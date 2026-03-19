@@ -10,6 +10,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { Filter, X, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Shop() {
   const cartItems = useCartStore((state) => state.getTotalItems());
@@ -44,6 +45,7 @@ export default function Shop() {
       name: product.name,
       imageUrl: product.imageUrl,
     });
+    toast.success(`${product.name} added to cart`);
   };
 
   const handleToggleFavorite = (productId: string) => {

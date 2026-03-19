@@ -51,9 +51,9 @@ export const Footer = () => {
             <ul className="space-y-3 text-sm">
               {[
                 { href: '/shop', label: 'All Products' },
-                { href: '/shop?category=Bags', label: 'Bags' },
+                { href: '/shop?category=Laptop%20Cases', label: 'Laptop Cases' },
+                { href: '/shop?category=Pouches', label: 'Pouches' },
                 { href: '/shop?category=Accessories', label: 'Accessories' },
-                { href: '/shop?category=Limited%20Edition', label: 'Limited Edition' },
               ].map((item) => (
                 <li key={item.href}>
                   <Link href={item.href}>

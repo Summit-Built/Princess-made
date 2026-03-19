@@ -1,17 +1,28 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'wouter';
+import { Link, useSearch } from 'wouter';
 import { PageTransition } from '@/components/PageTransition';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { Check, Package, ArrowRight, Sparkles } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
+import { Check, Package, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 
 export default function OrderConfirmation() {
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
   const clearCart = useCartStore((state) => state.clearCart);
+
+  const searchString = useSearch();
+  const sessionId = new URLSearchParams(searchString).get('session_id');
+
+  // Try to find the order by session ID
+  const { data: orders } = trpc.orders.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  const order = orders?.find((o: any) => o.stripeSessionId === sessionId);
 
   React.useEffect(() => {
     clearCart();
@@ -76,9 +87,22 @@ export default function OrderConfirmation() {
                     Order Number
                   </p>
                   <p className="font-serif font-light">
-                    #PM-{Date.now().toString().slice(-8)}
+                    {order ? `#PM-${String(order.id).padStart(5, '0')}` : (
+                      <span className="inline-flex items-center gap-2 text-muted-foreground/60">
+                        <Loader2 size={14} className="animate-spin" /> Loading...
+                      </span>
+                    )}
                   </p>
                 </div>
+
+                {order && (
+                  <div className="border-t border-border/20 pt-4 flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground/60 font-light">Total</span>
+                    <span className="text-lg font-serif font-light text-accent">
+                      ${(order.totalAmount / 100).toFixed(2)}
+                    </span>
+                  </div>
+                )}
 
                 <div className="border-t border-border/20 pt-4 flex items-start gap-3">
                   <Package size={18} className="text-accent mt-0.5 flex-shrink-0" />
@@ -135,21 +159,21 @@ export default function OrderConfirmation() {
                 transition={{ delay: 0.6 }}
                 className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
               >
-                <Link href="/shop">
+                <Link href="/dashboard">
                   <motion.a
                     whileHover={{ scale: 1.02 }}
                     className="btn-primary inline-flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    Continue Shopping
+                    View My Orders
                     <ArrowRight size={16} />
                   </motion.a>
                 </Link>
-                <Link href="/">
+                <Link href="/shop">
                   <motion.a
                     whileHover={{ scale: 1.02 }}
                     className="btn-outline inline-flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    Back to Home
+                    Continue Shopping
                   </motion.a>
                 </Link>
               </motion.div>

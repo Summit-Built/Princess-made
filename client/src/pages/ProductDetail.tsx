@@ -9,6 +9,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { Heart, ShoppingBag, Check, ChevronLeft, Share2, Truck, Shield, RotateCcw, Scissors } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function ProductDetail() {
   const [, params] = useRoute('/product/:id');
@@ -47,6 +48,7 @@ export default function ProductDetail() {
 
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
+    toast.success(`${product.name} added to cart`);
   };
 
   const handleToggleFavorite = () => {
