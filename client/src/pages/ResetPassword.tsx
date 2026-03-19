@@ -240,13 +240,8 @@ export default function ResetPassword() {
                       Your password has been updated successfully.
                     </p>
                   </div>
-                  <Link href="/login">
-                    <motion.a
-                      whileHover={{ scale: 1.01 }}
-                      className="btn-primary inline-flex items-center justify-center gap-2 px-8 py-3 cursor-pointer"
-                    >
-                      Sign In
-                    </motion.a>
+                  <Link href="/login" className="btn-primary inline-flex items-center justify-center gap-2 px-8 py-3 cursor-pointer">
+                    Sign In
                   </Link>
                 </motion.div>
               )}
@@ -255,10 +250,8 @@ export default function ResetPassword() {
               <div className="text-center">
                 <p className="text-sm text-muted-foreground font-light">
                   Remember your password?{' '}
-                  <Link href="/login">
-                    <a className="text-accent hover:text-accent/80 transition-colors">
-                      Sign in
-                    </a>
+                  <Link href="/login" className="text-accent hover:text-accent/80 transition-colors">
+                    Sign in
                   </Link>
                 </p>
               </div>

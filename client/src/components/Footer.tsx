@@ -91,10 +91,8 @@ export const Footer = () => {
                 { href: '/shop?category=Accessories', label: 'Accessories' },
               ].map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href}>
-                    <a className="text-background/50 hover:text-blush transition-colors cursor-pointer font-light py-1 inline-block min-h-[44px] leading-[44px] md:min-h-0 md:leading-normal">
-                      {item.label}
-                    </a>
+                  <Link href={item.href} className="text-background/50 hover:text-blush transition-colors cursor-pointer font-light py-1 inline-block min-h-[44px] leading-[44px] md:min-h-0 md:leading-normal">
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -117,10 +115,8 @@ export const Footer = () => {
                 { href: '/returns', label: 'Returns' },
               ].map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href}>
-                    <a className="text-background/50 hover:text-blush transition-colors cursor-pointer font-light py-1 inline-block min-h-[44px] leading-[44px] md:min-h-0 md:leading-normal">
-                      {item.label}
-                    </a>
+                  <Link href={item.href} className="text-background/50 hover:text-blush transition-colors cursor-pointer font-light py-1 inline-block min-h-[44px] leading-[44px] md:min-h-0 md:leading-normal">
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -142,10 +138,8 @@ export const Footer = () => {
                 { href: '/terms', label: 'Terms' },
               ].map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href}>
-                    <a className="text-background/50 hover:text-blush transition-colors cursor-pointer font-light py-1 inline-block min-h-[44px] leading-[44px] md:min-h-0 md:leading-normal">
-                      {item.label}
-                    </a>
+                  <Link href={item.href} className="text-background/50 hover:text-blush transition-colors cursor-pointer font-light py-1 inline-block min-h-[44px] leading-[44px] md:min-h-0 md:leading-normal">
+                    {item.label}
                   </Link>
                 </li>
               ))}

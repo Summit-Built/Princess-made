@@ -283,10 +283,8 @@ export default function Dashboard() {
                       <div className="border border-border/30 p-16 text-center space-y-4" style={{ borderRadius: '2px' }}>
                         <Package size={32} className="mx-auto text-muted-foreground/20" />
                         <p className="text-muted-foreground font-light">No orders yet</p>
-                        <Link href="/shop">
-                          <motion.a className="inline-flex items-center gap-2 text-accent font-light text-sm hover:text-accent/80 cursor-pointer">
-                            Start Shopping <ChevronRight size={14} />
-                          </motion.a>
+                        <Link href="/shop" className="inline-flex items-center gap-2 text-accent font-light text-sm hover:text-accent/80 cursor-pointer">
+                          Start Shopping <ChevronRight size={14} />
                         </Link>
                       </div>
                     )}
@@ -441,10 +439,8 @@ export default function Dashboard() {
                       <div className="border border-border/30 p-16 text-center space-y-4" style={{ borderRadius: '2px' }}>
                         <Heart size={32} className="mx-auto text-muted-foreground/20" />
                         <p className="text-muted-foreground font-light">No favorites yet</p>
-                        <Link href="/shop">
-                          <motion.a className="inline-flex items-center gap-2 text-accent font-light text-sm hover:text-accent/80 cursor-pointer">
-                            Browse Collection <ChevronRight size={14} />
-                          </motion.a>
+                        <Link href="/shop" className="inline-flex items-center gap-2 text-accent font-light text-sm hover:text-accent/80 cursor-pointer">
+                          Browse Collection <ChevronRight size={14} />
                         </Link>
                       </div>
                     )}

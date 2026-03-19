@@ -73,7 +73,7 @@ export default function NotFound() {
                   Go Home
                 </motion.button>
                 <Link href="/shop">
-                  <motion.a
+                  <motion.div
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     className="inline-flex items-center justify-center gap-3 px-8 py-4 border border-accent/30 text-foreground font-light tracking-[0.15em] uppercase text-sm hover:border-accent/60 transition-all cursor-pointer min-h-[44px]"
@@ -81,7 +81,7 @@ export default function NotFound() {
                   >
                     <Search size={16} />
                     Browse Shop
-                  </motion.a>
+                  </motion.div>
                 </Link>
               </div>
 
@@ -93,7 +93,7 @@ export default function NotFound() {
                 <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
                   {popularLinks.map((link) => (
                     <Link key={link.href} href={link.href}>
-                      <motion.a
+                      <motion.div
                         whileHover={{ y: -2 }}
                         className="flex items-center gap-2 p-3 bg-card border border-border/40 hover:border-accent/30 text-sm text-foreground/70 hover:text-accent font-light transition-all cursor-pointer min-h-[44px]"
                         style={{ borderRadius: '2px' }}
@@ -101,7 +101,7 @@ export default function NotFound() {
                         <link.icon size={14} className="text-accent/50 flex-shrink-0" />
                         <span className="truncate">{link.label}</span>
                         <ArrowRight size={12} className="ml-auto text-muted-foreground/30 flex-shrink-0" />
-                      </motion.a>
+                      </motion.div>
                     </Link>
                   ))}
                 </div>

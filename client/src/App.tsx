@@ -1,50 +1,55 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import Shop from "./pages/Shop";
-import ProductDetail from "./pages/ProductDetail";
-import Checkout from "./pages/Checkout";
-import OrderConfirmation from "./pages/OrderConfirmation";
-import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import Admin from "./pages/Admin";
-import ResetPassword from "./pages/ResetPassword";
-import TrackOrder from "./pages/TrackOrder";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
+
+// Lazy-loaded pages for code splitting
+const Shop = lazy(() => import("./pages/Shop"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Admin = lazy(() => import("./pages/Admin"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const TrackOrder = lazy(() => import("./pages/TrackOrder"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 function Router() {
   return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/shop"} component={Shop} />
-      <Route path={"/product/:id"} component={ProductDetail} />
-      <Route path={"/checkout"} component={Checkout} />
-      <Route path={"/order-confirmation"} component={OrderConfirmation} />
-      <Route path={"/dashboard"} component={Dashboard} />
-      <Route path={"/login"} component={Login} />
-      <Route path={"/register"} component={Register} />
-      <Route path={"/about"} component={About} />
-      <Route path={"/contact"} component={Contact} />
-      <Route path={"/faq"} component={Contact} />
-      <Route path={"/shipping"} component={Contact} />
-      <Route path={"/returns"} component={Contact} />
-      <Route path={"/admin"} component={Admin} />
-      <Route path={"/track-order"} component={TrackOrder} />
-      <Route path={"/privacy"} component={Privacy} />
-      <Route path={"/terms"} component={Terms} />
-      <Route path={"/reset-password"} component={ResetPassword} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><p className="font-script text-2xl text-accent animate-pulse">Princess Made</p></div>}>
+      <Switch>
+        <Route path={"/"} component={Home} />
+        <Route path={"/shop"} component={Shop} />
+        <Route path={"/product/:id"} component={ProductDetail} />
+        <Route path={"/checkout"} component={Checkout} />
+        <Route path={"/order-confirmation"} component={OrderConfirmation} />
+        <Route path={"/dashboard"} component={Dashboard} />
+        <Route path={"/login"} component={Login} />
+        <Route path={"/register"} component={Register} />
+        <Route path={"/about"} component={About} />
+        <Route path={"/contact"} component={Contact} />
+        <Route path={"/faq"} component={Contact} />
+        <Route path={"/shipping"} component={Contact} />
+        <Route path={"/returns"} component={Contact} />
+        <Route path={"/admin"} component={Admin} />
+        <Route path={"/track-order"} component={TrackOrder} />
+        <Route path={"/privacy"} component={Privacy} />
+        <Route path={"/terms"} component={Terms} />
+        <Route path={"/reset-password"} component={ResetPassword} />
+        <Route path={"/404"} component={NotFound} />
+        {/* Final fallback route */}
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
@@ -62,7 +67,9 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <main>
+            <Router />
+          </main>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

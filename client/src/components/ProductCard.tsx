@@ -63,22 +63,20 @@ export const ProductCard = ({
         {/* Image Container */}
         <div className="relative overflow-hidden aspect-[3/4]">
           {product.imageUrl ? (
-            <Link href={`/product/${product.id}`}>
-              <a className="block w-full h-full cursor-pointer" aria-label={`View ${product.name}`}>
-                {!imgLoaded && (
-                  <div className="absolute inset-0 bg-cream animate-skeleton" />
-                )}
-                <img
-                  src={proxyImage(product.imageUrl) ?? product.imageUrl}
-                  alt={product.name}
-                  className={`w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-[1.08] ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
-                  loading="lazy"
-                  decoding="async"
-                  width={400}
-                  height={533}
-                  onLoad={onImgLoad}
-                />
-              </a>
+            <Link href={`/product/${product.id}`} className="block w-full h-full cursor-pointer" aria-label={`View ${product.name}`}>
+              {!imgLoaded && (
+                <div className="absolute inset-0 bg-cream animate-skeleton" />
+              )}
+              <img
+                src={proxyImage(product.imageUrl) ?? product.imageUrl}
+                alt={product.name}
+                className={`w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-[1.08] ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                loading="lazy"
+                decoding="async"
+                width={400}
+                height={533}
+                onLoad={onImgLoad}
+              />
             </Link>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-cream">
@@ -96,17 +94,16 @@ export const ProductCard = ({
                 transition={{ duration: 0.2 }}
                 className="absolute inset-0 bg-foreground/10 backdrop-blur-[2px] hidden md:flex items-end justify-center pb-6 gap-3"
               >
-                <Link href={`/product/${product.id}`}>
-                  <motion.a
+                <Link href={`/product/${product.id}`} aria-label={`View ${product.name} details`}>
+                  <motion.div
                     initial={{ y: 10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.05 }}
                     className="p-3 bg-card/95 backdrop-blur-sm hover:bg-card transition-all shadow-sm cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
                     style={{ borderRadius: '2px' }}
-                    aria-label={`View ${product.name} details`}
                   >
                     <Eye size={18} className="text-foreground" />
-                  </motion.a>
+                  </motion.div>
                 </Link>
                 <motion.button
                   initial={{ y: 10, opacity: 0 }}
@@ -192,7 +189,7 @@ export const ProductCard = ({
             <div
               className="absolute top-3 left-3 px-3 py-1 bg-foreground/80 backdrop-blur-sm text-[10px] font-light tracking-[0.2em] text-background uppercase shadow-sm"
               style={{ borderRadius: '2px' }}
-              aria-label="Limited edition"
+              role="img" aria-label="Limited edition"
             >
               Limited
             </div>
@@ -209,12 +206,10 @@ export const ProductCard = ({
           )}
 
           {/* Product Name */}
-          <Link href={`/product/${product.id}`}>
-            <a className="cursor-pointer">
-              <h3 className="font-serif text-sm md:text-base font-light leading-snug text-foreground group-hover:text-accent transition-colors line-clamp-2">
-                {product.name}
-              </h3>
-            </a>
+          <Link href={`/product/${product.id}`} className="cursor-pointer">
+            <h3 className="font-serif text-sm md:text-base font-light leading-snug text-foreground group-hover:text-accent transition-colors line-clamp-2">
+              {product.name}
+            </h3>
           </Link>
 
           {/* Spacer */}

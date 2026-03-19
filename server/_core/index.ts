@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import compression from "compression";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -84,6 +85,16 @@ async function startServer() {
       console.error("[Stripe] Webhook error:", error);
       res.status(400).json({ error: "Webhook verification failed" });
     }
+  });
+
+  // Gzip/Brotli compression - after webhook (needs raw body) but before other routes
+  app.use(compression());
+
+  // Security headers
+  app.use((_req, res, next) => {
+    res.set("X-Content-Type-Options", "nosniff");
+    res.set("X-Frame-Options", "SAMEORIGIN");
+    next();
   });
 
   // Image proxy - resolves Stripe redirect URLs and caches with long TTL

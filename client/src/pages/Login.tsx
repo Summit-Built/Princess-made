@@ -176,10 +176,8 @@ export default function Login() {
                   <div className="space-y-4 text-center">
                     <p className="text-sm text-muted-foreground font-light">
                       Don't have an account?{' '}
-                      <Link href="/register">
-                        <a className="text-accent hover:text-accent/80 transition-colors">
-                          Create one
-                        </a>
+                      <Link href="/register" className="text-accent hover:text-accent/80 transition-colors">
+                        Create one
                       </Link>
                     </p>
 
@@ -190,11 +188,9 @@ export default function Login() {
                       <div className="flex-1 h-px bg-border/60" />
                     </div>
 
-                    <Link href="/shop">
-                      <a className="inline-flex items-center gap-2 text-sm text-muted-foreground font-light hover:text-accent transition-colors">
-                        <ShoppingBag size={14} />
-                        Continue as guest
-                      </a>
+                    <Link href="/shop" className="inline-flex items-center gap-2 text-sm text-muted-foreground font-light hover:text-accent transition-colors">
+                      <ShoppingBag size={14} />
+                      Continue as guest
                     </Link>
                   </div>
                 </motion.div>

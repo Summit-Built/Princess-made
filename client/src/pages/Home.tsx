@@ -115,7 +115,7 @@ export default function Home() {
               {/* CTA */}
               <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 w-full sm:w-auto px-4 sm:px-0">
                 <Link href="/shop">
-                  <motion.a
+                  <motion.div
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-accent text-accent-foreground font-light tracking-[0.15em] uppercase text-sm hover:bg-accent/90 transition-all cursor-pointer min-h-[48px] w-full sm:w-auto"
@@ -123,17 +123,17 @@ export default function Home() {
                   >
                     Shop Collection
                     <ArrowRight size={16} />
-                  </motion.a>
+                  </motion.div>
                 </Link>
                 <Link href="/about">
-                  <motion.a
+                  <motion.div
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     className="inline-flex items-center justify-center gap-3 px-8 py-4 border border-accent/30 text-foreground font-light tracking-[0.15em] uppercase text-sm hover:border-accent/60 transition-all cursor-pointer min-h-[48px] w-full sm:w-auto"
                     style={{ borderRadius: '2px' }}
                   >
                     Our Story
-                  </motion.a>
+                  </motion.div>
                 </Link>
               </motion.div>
             </motion.div>
@@ -217,7 +217,7 @@ export default function Home() {
               ].map((category, index) => (
                 <motion.div key={index} variants={itemVariants}>
                   <Link href={category.href}>
-                    <motion.a
+                    <motion.div
                       whileHover={{ y: -6 }}
                       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                       className="block cursor-pointer group"
@@ -237,7 +237,7 @@ export default function Home() {
                           </span>
                         </div>
                       </div>
-                    </motion.a>
+                    </motion.div>
                   </Link>
                 </motion.div>
               ))}
@@ -350,7 +350,7 @@ export default function Home() {
                   style={{ borderRadius: '2px' }}
                 >
                   {/* Stars */}
-                  <div className="flex gap-0.5" aria-label="5 out of 5 stars">
+                  <div className="flex gap-0.5" role="img" aria-label="5 out of 5 stars">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} size={14} className="fill-accent/70 text-accent/70" />
                     ))}

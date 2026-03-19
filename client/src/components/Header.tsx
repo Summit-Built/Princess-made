@@ -66,41 +66,40 @@ export const Header = ({
 
       <div className="container flex items-center justify-between h-16 md:h-18">
         {/* Logo */}
-        <Link href="/">
-          <motion.a
+        <Link href="/" aria-label="Princess Made - Home">
+          <motion.div
             whileHover={{ scale: 1.02 }}
             className="flex items-center gap-3 cursor-pointer"
-            aria-label="Princess Made - Home"
           >
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310419663031002008/Hy2VZfwLraitLwcA3hcpuJ/Princess(1)_e208d2f4.png"
               alt="Princess Made"
               className="h-10 w-auto"
             />
-          </motion.a>
+          </motion.div>
         </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">
           {navLinks.map((link) => (
-            <Link key={link.href} href={link.href}>
-              <motion.a
-                className={`text-[13px] font-light tracking-[0.15em] uppercase transition-colors cursor-pointer relative py-1 ${
-                  isActive(link.href)
-                    ? 'text-accent'
-                    : 'text-foreground/70 hover:text-foreground'
-                }`}
-                aria-current={isActive(link.href) ? 'page' : undefined}
-              >
-                {link.label}
-                {isActive(link.href) && (
-                  <motion.div
-                    layoutId="nav-underline"
-                    className="absolute -bottom-1 left-0 right-0 h-px bg-accent"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
-                )}
-              </motion.a>
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`text-[13px] font-light tracking-[0.15em] uppercase transition-colors cursor-pointer relative py-1 ${
+                isActive(link.href)
+                  ? 'text-accent'
+                  : 'text-foreground/70 hover:text-foreground'
+              }`}
+              aria-current={isActive(link.href) ? 'page' : undefined}
+            >
+              {link.label}
+              {isActive(link.href) && (
+                <motion.div
+                  layoutId="nav-underline"
+                  className="absolute -bottom-1 left-0 right-0 h-px bg-accent"
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                />
+              )}
             </Link>
           ))}
         </nav>
@@ -109,15 +108,14 @@ export const Header = ({
         <div className="flex items-center gap-1 md:gap-2">
           {/* Favorites */}
           {isAuthenticated && (
-            <Link href="/dashboard">
-              <motion.a
+            <Link href="/dashboard" aria-label="My favorites">
+              <motion.div
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.95 }}
                 className="p-2.5 hover:bg-accent/5 rounded-full transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-                aria-label="My favorites"
               >
                 <Heart size={18} className="text-foreground/70" />
-              </motion.a>
+              </motion.div>
             </Link>
           )}
 
@@ -149,15 +147,14 @@ export const Header = ({
 
           {/* User Account */}
           {isAuthenticated ? (
-            <Link href="/dashboard">
-              <motion.a
+            <Link href="/dashboard" aria-label="My account">
+              <motion.div
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.95 }}
                 className="p-2.5 hover:bg-accent/5 rounded-full transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-                aria-label="My account"
               >
                 <User size={18} className="text-foreground/70" />
-              </motion.a>
+              </motion.div>
             </Link>
           ) : (
             <motion.button
@@ -236,47 +233,42 @@ export const Header = ({
                 </p>
 
                 {navLinks.map((link, index) => (
-                  <Link key={link.href} href={link.href}>
-                    <motion.a
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      onClick={() => setIsMenuOpen(false)}
-                      className={`flex items-center justify-between py-3.5 text-sm font-light tracking-[0.1em] uppercase transition-colors cursor-pointer min-h-[44px] ${
-                        isActive(link.href)
-                          ? 'text-accent'
-                          : 'text-foreground/70 hover:text-foreground'
-                      }`}
-                      aria-current={isActive(link.href) ? 'page' : undefined}
-                    >
-                      {link.label}
-                      {isActive(link.href) && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent" aria-hidden="true" />
-                      )}
-                    </motion.a>
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`flex items-center justify-between py-3.5 text-sm font-light tracking-[0.1em] uppercase transition-colors cursor-pointer min-h-[44px] ${
+                      isActive(link.href)
+                        ? 'text-accent'
+                        : 'text-foreground/70 hover:text-foreground'
+                    }`}
+                    aria-current={isActive(link.href) ? 'page' : undefined}
+                  >
+                    {link.label}
+                    {isActive(link.href) && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent" aria-hidden="true" />
+                    )}
                   </Link>
                 ))}
 
                 <div className="pt-4 border-t border-border/30 space-y-2">
                   {isAuthenticated ? (
                     <>
-                      <Link href="/dashboard">
-                        <motion.a
-                          onClick={() => setIsMenuOpen(false)}
-                          className="flex items-center gap-3 py-3.5 text-sm font-light tracking-[0.1em] uppercase text-foreground/70 hover:text-foreground cursor-pointer min-h-[44px]"
-                        >
-                          <User size={16} />
-                          My Account
-                        </motion.a>
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center gap-3 py-3.5 text-sm font-light tracking-[0.1em] uppercase text-foreground/70 hover:text-foreground cursor-pointer min-h-[44px]"
+                      >
+                        <User size={16} />
+                        My Account
                       </Link>
-                      <Link href="/dashboard">
-                        <motion.a
-                          onClick={() => setIsMenuOpen(false)}
-                          className="flex items-center gap-3 py-3.5 text-sm font-light tracking-[0.1em] uppercase text-foreground/70 hover:text-foreground cursor-pointer min-h-[44px]"
-                        >
-                          <Heart size={16} />
-                          My Favorites
-                        </motion.a>
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center gap-3 py-3.5 text-sm font-light tracking-[0.1em] uppercase text-foreground/70 hover:text-foreground cursor-pointer min-h-[44px]"
+                      >
+                        <Heart size={16} />
+                        My Favorites
                       </Link>
                       <motion.button
                         onClick={() => { onLogoutClick?.(); setIsMenuOpen(false); }}
@@ -293,13 +285,12 @@ export const Header = ({
                       >
                         Sign In
                       </motion.button>
-                      <Link href="/register">
-                        <motion.a
-                          onClick={() => setIsMenuOpen(false)}
-                          className="block text-center text-sm text-muted-foreground font-light hover:text-accent transition-colors cursor-pointer py-2 min-h-[44px] leading-[44px]"
-                        >
-                          Create an account
-                        </motion.a>
+                      <Link
+                        href="/register"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="block text-center text-sm text-muted-foreground font-light hover:text-accent transition-colors cursor-pointer py-2 min-h-[44px] leading-[44px]"
+                      >
+                        Create an account
                       </Link>
                     </div>
                   )}

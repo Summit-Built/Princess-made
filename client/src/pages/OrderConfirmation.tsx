@@ -238,33 +238,18 @@ export default function OrderConfirmation() {
                 className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
               >
                 {isAuthenticated ? (
-                  <Link href="/dashboard">
-                    <motion.a
-                      whileHover={{ scale: 1.02 }}
-                      className="btn-primary inline-flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      View My Orders
-                      <ArrowRight size={16} />
-                    </motion.a>
+                  <Link href="/dashboard" className="btn-primary inline-flex items-center justify-center gap-2 cursor-pointer">
+                    View My Orders
+                    <ArrowRight size={16} />
                   </Link>
                 ) : (
-                  <Link href="/track-order">
-                    <motion.a
-                      whileHover={{ scale: 1.02 }}
-                      className="btn-primary inline-flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      Track Your Order
-                      <ArrowRight size={16} />
-                    </motion.a>
+                  <Link href="/track-order" className="btn-primary inline-flex items-center justify-center gap-2 cursor-pointer">
+                    Track Your Order
+                    <ArrowRight size={16} />
                   </Link>
                 )}
-                <Link href="/shop">
-                  <motion.a
-                    whileHover={{ scale: 1.02 }}
-                    className="btn-outline inline-flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    Continue Shopping
-                  </motion.a>
+                <Link href="/shop" className="btn-outline inline-flex items-center justify-center gap-2 cursor-pointer">
+                  Continue Shopping
                 </Link>
               </motion.div>
 
@@ -281,13 +266,8 @@ export default function OrderConfirmation() {
                   <p className="text-xs text-muted-foreground font-light">
                     Create an account with the same email to view order history, save addresses, and more.
                   </p>
-                  <Link href="/register">
-                    <motion.a
-                      whileHover={{ scale: 1.02 }}
-                      className="btn-outline inline-flex items-center gap-2 text-xs cursor-pointer"
-                    >
-                      Create Account
-                    </motion.a>
+                  <Link href="/register" className="btn-outline inline-flex items-center gap-2 text-xs cursor-pointer">
+                    Create Account
                   </Link>
                 </motion.div>
               )}
@@ -301,10 +281,8 @@ export default function OrderConfirmation() {
               >
                 <p className="text-xs text-muted-foreground/50 font-light">
                   Questions?{' '}
-                  <Link href="/contact">
-                    <a className="text-accent hover:text-accent/80 transition-colors">
-                      Contact us
-                    </a>
+                  <Link href="/contact" className="text-accent hover:text-accent/80 transition-colors">
+                    Contact us
                   </Link>
                 </p>
               </motion.div>

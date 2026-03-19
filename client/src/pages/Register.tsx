@@ -193,10 +193,8 @@ export default function Register() {
                   <div className="space-y-4 text-center">
                     <p className="text-sm text-muted-foreground font-light">
                       Already have an account?{' '}
-                      <Link href="/login">
-                        <a className="text-accent hover:text-accent/80 transition-colors">
-                          Sign in
-                        </a>
+                      <Link href="/login" className="text-accent hover:text-accent/80 transition-colors">
+                        Sign in
                       </Link>
                     </p>
 
@@ -207,11 +205,9 @@ export default function Register() {
                       <div className="flex-1 h-px bg-border/60" />
                     </div>
 
-                    <Link href="/shop">
-                      <a className="inline-flex items-center gap-2 text-sm text-muted-foreground font-light hover:text-accent transition-colors">
-                        <ShoppingBag size={14} />
-                        Continue as guest
-                      </a>
+                    <Link href="/shop" className="inline-flex items-center gap-2 text-sm text-muted-foreground font-light hover:text-accent transition-colors">
+                      <ShoppingBag size={14} />
+                      Continue as guest
                     </Link>
                   </div>
                 </motion.div>

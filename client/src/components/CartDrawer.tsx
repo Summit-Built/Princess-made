@@ -81,15 +81,9 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                       Discover our handcrafted collection of unique, made-with-love pieces
                     </p>
                   </div>
-                  <Link href="/shop">
-                    <motion.a
-                      whileHover={{ scale: 1.02 }}
-                      onClick={onClose}
-                      className="btn-primary text-sm cursor-pointer inline-flex items-center gap-2"
-                    >
-                      <Sparkles size={14} />
-                      Start Shopping
-                    </motion.a>
+                  <Link href="/shop" onClick={onClose} className="btn-primary text-sm cursor-pointer inline-flex items-center gap-2">
+                    <Sparkles size={14} />
+                    Start Shopping
                   </Link>
                 </motion.div>
               ) : (
@@ -226,15 +220,8 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                 </p>
 
                 {/* Checkout */}
-                <Link href="/checkout">
-                  <motion.a
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={onClose}
-                    className="btn-primary w-full text-center block cursor-pointer py-4"
-                  >
-                    Proceed to Checkout
-                  </motion.a>
+                <Link href="/checkout" onClick={onClose} className="btn-primary w-full text-center block cursor-pointer py-4">
+                  Proceed to Checkout
                 </Link>
 
                 {/* Continue Shopping */}

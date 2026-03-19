@@ -210,7 +210,7 @@ export default function About() {
               </h2>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-4 px-4 sm:px-0">
                 <Link href="/shop">
-                  <motion.a
+                  <motion.div
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-accent text-accent-foreground font-light tracking-[0.15em] uppercase text-sm cursor-pointer min-h-[48px] w-full sm:w-auto"
@@ -218,7 +218,7 @@ export default function About() {
                   >
                     Shop Collection
                     <ArrowRight size={16} />
-                  </motion.a>
+                  </motion.div>
                 </Link>
                 <a
                   href="https://www.instagram.com/princessmadefashion/"

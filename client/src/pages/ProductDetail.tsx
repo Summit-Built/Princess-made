@@ -119,11 +119,9 @@ export default function ProductDetail() {
           />
           <div className="container py-24 text-center space-y-4">
             <h1 className="text-2xl font-serif font-light">Product Not Found</h1>
-            <Link href="/shop">
-              <motion.a className="inline-flex items-center gap-2 text-accent font-light hover:text-accent/80 transition-colors cursor-pointer text-sm">
-                <ChevronLeft size={16} />
-                Back to Collection
-              </motion.a>
+            <Link href="/shop" className="inline-flex items-center gap-2 text-accent font-light hover:text-accent/80 transition-colors cursor-pointer text-sm">
+              <ChevronLeft size={16} />
+              Back to Collection
             </Link>
           </div>
           <Footer />
@@ -158,15 +156,11 @@ export default function ProductDetail() {
         <div className="border-b border-border/30">
           <div className="container py-4">
             <div className="flex items-center gap-2 text-xs font-light text-muted-foreground/60">
-              <Link href="/shop">
-                <a className="hover:text-foreground transition-colors cursor-pointer">Shop</a>
-              </Link>
+              <Link href="/shop" className="hover:text-foreground transition-colors cursor-pointer">Shop</Link>
               <span>/</span>
               {product.category && (
                 <>
-                  <Link href={`/shop?category=${product.category}`}>
-                    <a className="hover:text-foreground transition-colors cursor-pointer">{product.category}</a>
-                  </Link>
+                  <Link href={`/shop?category=${product.category}`} className="hover:text-foreground transition-colors cursor-pointer">{product.category}</Link>
                   <span>/</span>
                 </>
               )}
