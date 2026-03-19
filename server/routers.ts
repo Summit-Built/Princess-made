@@ -6,8 +6,13 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
 import * as stripe from "./stripe";
+import * as email from "./email";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
+
+function auspostTrackingUrl(trackingNumber: string) {
+  return `https://auspost.com.au/mypost/track/#/details/${encodeURIComponent(trackingNumber)}`;
+}
 
 export const appRouter = router({
   system: systemRouter,
@@ -51,11 +56,8 @@ export const appRouter = router({
         if (user) {
           const token = nanoid(32);
           await db.createPasswordResetToken(user.id, token);
-          // In production, send email with reset link
-          // For now, log it (the token is stored in DB)
           console.log(`Password reset token for ${input.email}: ${token}`);
         }
-        // Always return success to prevent email enumeration
         return { success: true, message: "If an account exists with that email, a reset link has been sent." };
       }),
     resetPassword: publicProcedure
@@ -102,6 +104,77 @@ export const appRouter = router({
   }),
 
   checkout: router({
+    // Guest checkout - no auth required
+    createGuestSession: publicProcedure
+      .input(z.object({
+        items: z.array(z.object({
+          stripePriceId: z.string(),
+          stripeProductId: z.string(),
+          quantity: z.number().min(1),
+          price: z.number(),
+          name: z.string(),
+        })),
+        email: z.string().email(),
+        name: z.string().min(1),
+        shippingAddress: z.object({
+          street: z.string(),
+          city: z.string(),
+          state: z.string(),
+          postalCode: z.string(),
+          country: z.string().optional(),
+        }),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const totalAmount = input.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+        const origin = `${ctx.req.protocol}://${ctx.req.get("host")}`;
+        const session = await stripe.createCheckoutSession({
+          lineItems: input.items.map(item => ({
+            stripePriceId: item.stripePriceId,
+            quantity: item.quantity,
+          })),
+          customerEmail: input.email,
+          userId: 0, // guest
+          successUrl: `${origin}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${origin}/checkout`,
+        });
+
+        // Create pending order (guest - no userId)
+        const order = await db.createOrder({
+          userId: null,
+          guestEmail: input.email,
+          guestName: input.name,
+          stripeSessionId: session.sessionId,
+          totalAmount,
+          status: "pending",
+        });
+
+        // Create order items
+        if (order) {
+          for (const item of input.items) {
+            await db.createOrderItem({
+              orderId: order.id,
+              productId: item.stripeProductId,
+              stripeProductId: item.stripeProductId,
+              quantity: item.quantity,
+              priceAtTime: item.price,
+            });
+          }
+
+          // Send order confirmation email
+          email.sendOrderConfirmation({
+            to: input.email,
+            orderNumber: `#PM-${String(order.id).padStart(5, "0")}`,
+            totalAmount,
+            items: input.items.map(i => ({ name: i.name, quantity: i.quantity, price: i.price * i.quantity })),
+            guestTrackingUrl: `${origin}/track-order?email=${encodeURIComponent(input.email)}`,
+          });
+        }
+
+        return { url: session.url, sessionId: session.sessionId };
+      }),
+
+    // Authenticated checkout
     createSession: protectedProcedure
       .input(z.object({
         items: z.array(z.object({
@@ -157,7 +230,7 @@ export const appRouter = router({
           shippingAddressId,
         });
 
-        // Create order items
+        // Create order items + send email
         if (order) {
           for (const item of input.items) {
             await db.createOrderItem({
@@ -168,6 +241,13 @@ export const appRouter = router({
               priceAtTime: item.price,
             });
           }
+
+          email.sendOrderConfirmation({
+            to: ctx.user.email,
+            orderNumber: `#PM-${String(order.id).padStart(5, "0")}`,
+            totalAmount,
+            items: input.items.map(i => ({ name: i.name, quantity: i.quantity, price: i.price * i.quantity })),
+          });
         }
 
         return { url: session.url, sessionId: session.sessionId };
@@ -193,6 +273,47 @@ export const appRouter = router({
           throw new TRPCError({ code: "NOT_FOUND" });
         }
         return db.getOrderItems(input);
+      }),
+    // Guest order lookup by email
+    lookupByEmail: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .query(async ({ input }) => {
+        const orders = await db.getOrdersByGuestEmail(input.email);
+        // Return limited info for guest orders
+        return orders.map(o => ({
+          id: o.id,
+          orderNumber: `#PM-${String(o.id).padStart(5, "0")}`,
+          totalAmount: o.totalAmount,
+          status: o.status,
+          trackingNumber: o.trackingNumber,
+          shippingStatus: o.shippingStatus,
+          trackingUrl: o.trackingNumber ? auspostTrackingUrl(o.trackingNumber) : null,
+          createdAt: o.createdAt,
+        }));
+      }),
+    // Get items for a guest order (verified by email)
+    guestGetItems: publicProcedure
+      .input(z.object({ orderId: z.number(), email: z.string().email() }))
+      .query(async ({ input }) => {
+        const order = await db.getOrderByIdAndEmail(input.orderId, input.email);
+        if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+        return db.getOrderItems(input.orderId);
+      }),
+    // Get order by session ID (for order confirmation page - works for both guest and auth)
+    getBySessionId: publicProcedure
+      .input(z.string())
+      .query(async ({ input }) => {
+        // Find order by stripe session ID
+        const allOrders = await db.getAllOrders();
+        const order = allOrders.find(o => o.stripeSessionId === input);
+        if (!order) return null;
+        return {
+          id: order.id,
+          orderNumber: `#PM-${String(order.id).padStart(5, "0")}`,
+          totalAmount: order.totalAmount,
+          status: order.status,
+          createdAt: order.createdAt,
+        };
       }),
   }),
 
@@ -278,7 +399,6 @@ export const appRouter = router({
     orders: router({
       list: adminProcedure.query(async () => {
         const orders = await db.getAllOrders();
-        // Attach user info to each order
         const ordersWithUsers = await Promise.all(
           orders.map(async (order) => {
             const enriched = await db.getOrderWithUser(order.id);
@@ -296,9 +416,25 @@ export const appRouter = router({
           trackingNumber: z.string(),
           shippingStatus: z.string(),
         }))
-        .mutation(({ input }) =>
-          db.updateOrderTracking(input.orderId, input.trackingNumber, input.shippingStatus)
-        ),
+        .mutation(async ({ input }) => {
+          const result = await db.updateOrderTracking(input.orderId, input.trackingNumber, input.shippingStatus);
+
+          // Send shipping update email
+          if (result) {
+            const customerEmail = result.guestEmail || (result.userId ? (await db.getUserById(result.userId))?.email : null);
+            if (customerEmail) {
+              email.sendShippingUpdate({
+                to: customerEmail,
+                orderNumber: `#PM-${String(result.id).padStart(5, "0")}`,
+                trackingNumber: input.trackingNumber,
+                shippingStatus: input.shippingStatus,
+                trackingUrl: auspostTrackingUrl(input.trackingNumber),
+              });
+            }
+          }
+
+          return result;
+        }),
       updateStatus: adminProcedure
         .input(z.object({
           orderId: z.number(),

@@ -7,9 +7,11 @@ import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
+import { usePageMeta } from '@/lib/usePageMeta';
 import { Check, Package, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 
 export default function OrderConfirmation() {
+  usePageMeta({ title: 'Order Confirmed', description: 'Your Princess Made order has been confirmed.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
   const clearCart = useCartStore((state) => state.clearCart);
@@ -17,12 +19,10 @@ export default function OrderConfirmation() {
   const searchString = useSearch();
   const sessionId = new URLSearchParams(searchString).get('session_id');
 
-  // Try to find the order by session ID
-  const { data: orders } = trpc.orders.list.useQuery(undefined, {
-    enabled: isAuthenticated,
+  // Use the public route that works for both guests and auth users
+  const { data: order } = trpc.orders.getBySessionId.useQuery(sessionId || '', {
+    enabled: !!sessionId,
   });
-
-  const order = orders?.find((o: any) => o.stripeSessionId === sessionId);
 
   React.useEffect(() => {
     clearCart();
@@ -87,7 +87,7 @@ export default function OrderConfirmation() {
                     Order Number
                   </p>
                   <p className="font-serif font-light">
-                    {order ? `#PM-${String(order.id).padStart(5, '0')}` : (
+                    {order ? order.orderNumber : (
                       <span className="inline-flex items-center gap-2 text-muted-foreground/60">
                         <Loader2 size={14} className="animate-spin" /> Loading...
                       </span>
@@ -123,7 +123,7 @@ export default function OrderConfirmation() {
                       <Sparkles size={10} className="text-accent" /> Shipping information
                     </li>
                     <li className="flex items-center gap-2">
-                      <Sparkles size={10} className="text-accent" /> Estimated delivery
+                      <Sparkles size={10} className="text-accent" /> Tracking updates
                     </li>
                   </ul>
                 </div>
@@ -159,15 +159,27 @@ export default function OrderConfirmation() {
                 transition={{ delay: 0.6 }}
                 className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
               >
-                <Link href="/dashboard">
-                  <motion.a
-                    whileHover={{ scale: 1.02 }}
-                    className="btn-primary inline-flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    View My Orders
-                    <ArrowRight size={16} />
-                  </motion.a>
-                </Link>
+                {isAuthenticated ? (
+                  <Link href="/dashboard">
+                    <motion.a
+                      whileHover={{ scale: 1.02 }}
+                      className="btn-primary inline-flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      View My Orders
+                      <ArrowRight size={16} />
+                    </motion.a>
+                  </Link>
+                ) : (
+                  <Link href="/track-order">
+                    <motion.a
+                      whileHover={{ scale: 1.02 }}
+                      className="btn-primary inline-flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      Track Your Order
+                      <ArrowRight size={16} />
+                    </motion.a>
+                  </Link>
+                )}
                 <Link href="/shop">
                   <motion.a
                     whileHover={{ scale: 1.02 }}
@@ -178,11 +190,35 @@ export default function OrderConfirmation() {
                 </Link>
               </motion.div>
 
+              {/* Create account prompt for guests */}
+              {!isAuthenticated && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.7 }}
+                  className="bg-accent/5 border border-accent/20 p-6 space-y-3"
+                  style={{ borderRadius: '2px' }}
+                >
+                  <p className="font-serif font-light text-sm">Want to track all your orders in one place?</p>
+                  <p className="text-xs text-muted-foreground font-light">
+                    Create an account with the same email to view order history, save addresses, and more.
+                  </p>
+                  <Link href="/register">
+                    <motion.a
+                      whileHover={{ scale: 1.02 }}
+                      className="btn-outline inline-flex items-center gap-2 text-xs cursor-pointer"
+                    >
+                      Create Account
+                    </motion.a>
+                  </Link>
+                </motion.div>
+              )}
+
               {/* Help */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.7 }}
+                transition={{ delay: 0.8 }}
                 className="pt-8 border-t border-border/30"
               >
                 <p className="text-xs text-muted-foreground/50 font-light">

@@ -7,9 +7,12 @@ import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
+import { usePageMeta } from '@/lib/usePageMeta';
 import { ChevronLeft, Loader2, Shield, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Checkout() {
+  usePageMeta({ title: 'Checkout', description: 'Complete your Princess Made order.' });
   const [, navigate] = useLocation();
   const items = useCartStore((state) => state.items);
   const getTotalPrice = useCartStore((state) => state.getTotalPrice);
@@ -25,6 +28,7 @@ export default function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const { mutate: createCheckoutSession } = trpc.checkout.createSession.useMutation();
+  const { mutate: createGuestSession } = trpc.checkout.createGuestSession.useMutation();
 
   const totalPrice = getTotalPrice();
   const totalPriceInDollars = (totalPrice / 100).toFixed(2);
@@ -32,81 +36,81 @@ export default function Checkout() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isAuthenticated) {
-      navigate('/login');
+    if (items.length === 0) return;
+
+    if (!email || !fullName) {
+      toast.error('Please fill in your email and name');
       return;
     }
 
-    if (items.length === 0) return;
-
     setIsProcessing(true);
 
-    try {
-      createCheckoutSession(
-        {
-          items: items.map(item => ({
-            stripePriceId: item.stripePriceId || '',
-            stripeProductId: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-            name: item.name,
-          })),
-          shippingAddress: street ? {
-            street,
-            city,
-            state,
-            postalCode,
-            country: 'AU',
-          } : undefined,
-        },
-        {
-          onSuccess: (data) => {
-            if (data.url) {
-              window.location.href = data.url;
-            }
-          },
-          onError: (error) => {
-            console.error('Checkout error:', error.message);
-            setIsProcessing(false);
-          },
+    const itemsPayload = items.map(item => ({
+      stripePriceId: item.stripePriceId || '',
+      stripeProductId: item.productId,
+      quantity: item.quantity,
+      price: item.price,
+      name: item.name,
+    }));
+
+    const callbacks = {
+      onSuccess: (data: { url: string; sessionId: string }) => {
+        if (data.url) {
+          window.location.href = data.url;
         }
-      );
+      },
+      onError: (error: any) => {
+        console.error('Checkout error:', error.message);
+        toast.error('Checkout failed. Please try again.');
+        setIsProcessing(false);
+      },
+    };
+
+    try {
+      if (isAuthenticated) {
+        // Authenticated checkout
+        createCheckoutSession(
+          {
+            items: itemsPayload,
+            shippingAddress: street ? {
+              street,
+              city,
+              state,
+              postalCode,
+              country: 'AU',
+            } : undefined,
+          },
+          callbacks,
+        );
+      } else {
+        // Guest checkout
+        createGuestSession(
+          {
+            items: itemsPayload,
+            email,
+            name: fullName,
+            shippingAddress: {
+              street,
+              city,
+              state,
+              postalCode,
+              country: 'AU',
+            },
+          },
+          callbacks,
+        );
+      }
     } catch (error) {
       console.error('Checkout error:', error);
       setIsProcessing(false);
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <PageTransition>
-        <div className="min-h-screen bg-background">
-          <Header cartCount={cartItems} />
-          <div className="container py-24 text-center space-y-6">
-            <Sparkles size={24} className="text-accent mx-auto" />
-            <h1 className="text-3xl font-serif font-light">Sign In to Checkout</h1>
-            <p className="text-muted-foreground font-light">
-              You need to be signed in to complete your purchase.
-            </p>
-            <motion.a
-              whileHover={{ scale: 1.02 }}
-              href="/login"
-              className="btn-primary inline-block cursor-pointer"
-            >
-              Sign In
-            </motion.a>
-          </div>
-          <Footer />
-        </div>
-      </PageTransition>
-    );
-  }
-
   if (items.length === 0) {
     return (
       <PageTransition>
         <div className="min-h-screen bg-background">
-          <Header cartCount={cartItems} />
+          <Header cartCount={cartItems} isAuthenticated={isAuthenticated} />
           <div className="container py-24 text-center space-y-6">
             <h1 className="text-3xl font-serif font-light">Your Cart is Empty</h1>
             <p className="text-muted-foreground font-light">
@@ -130,7 +134,7 @@ export default function Checkout() {
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
-        <Header cartCount={cartItems} />
+        <Header cartCount={cartItems} isAuthenticated={isAuthenticated} />
 
         <section className="py-12 md:py-20">
           <div className="container">
@@ -156,6 +160,17 @@ export default function Checkout() {
                   Checkout
                 </h1>
 
+                {!isAuthenticated && (
+                  <div className="flex items-center gap-3 p-4 bg-cream/50 border border-border/30 mb-8" style={{ borderRadius: '2px' }}>
+                    <Sparkles size={16} className="text-accent flex-shrink-0" />
+                    <p className="text-xs text-muted-foreground font-light">
+                      Already have an account?{' '}
+                      <a href="/login" className="text-accent hover:text-accent/80 underline">Sign in</a>{' '}
+                      for faster checkout and order tracking.
+                    </p>
+                  </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-10">
                   {/* Contact */}
                   <div className="space-y-4">
@@ -169,7 +184,8 @@ export default function Checkout() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="input-elegant"
+                        disabled={isAuthenticated}
+                        className="input-elegant disabled:opacity-60 disabled:cursor-not-allowed"
                       />
                       <input
                         type="text"
@@ -254,7 +270,7 @@ export default function Checkout() {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="lg:col-span-1"
               >
-                <div className="sticky top-28 border border-border/30 p-6 space-y-6" style={{ borderRadius: '2px' }}>
+                <div className="sticky top-28 border border-border/30 bg-card p-6 space-y-6" style={{ borderRadius: '2px' }}>
                   <h3 className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light">
                     Order Summary
                   </h3>

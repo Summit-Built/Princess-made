@@ -51,7 +51,9 @@ export type InsertAddress = typeof addresses.$inferInsert;
 
 export const orders = sqliteTable("orders", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  userId: integer("userId").notNull(),
+  userId: integer("userId"),
+  guestEmail: text("guestEmail"),
+  guestName: text("guestName"),
   stripeSessionId: text("stripeSessionId").unique(),
   stripePaymentIntentId: text("stripePaymentIntentId"),
   totalAmount: integer("totalAmount").notNull(),

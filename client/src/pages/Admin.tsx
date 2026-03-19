@@ -298,7 +298,7 @@ function AdminOrderCard({
             )}
           </div>
           <p className="text-xs text-muted-foreground/60 font-light">
-            {order.userEmail || 'Unknown user'} &middot;{' '}
+            {order.guestEmail ? `${order.guestEmail} (guest)` : order.user?.email || order.userEmail || 'Unknown user'} &middot;{' '}
             {new Date(order.createdAt).toLocaleDateString('en-AU', {
               year: 'numeric',
               month: 'short',
@@ -398,7 +398,7 @@ function AdminOrderCard({
                     </select>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -413,6 +413,16 @@ function AdminOrderCard({
                     )}
                     Update Tracking
                   </motion.button>
+                  {editTracking && (
+                    <a
+                      href={`https://auspost.com.au/mypost/track/#/details/${encodeURIComponent(editTracking)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-accent hover:text-accent/80 font-light underline"
+                    >
+                      View on AusPost
+                    </a>
+                  )}
                 </div>
               </div>
 

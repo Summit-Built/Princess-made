@@ -16,6 +16,15 @@ sqlite.pragma("journal_mode = WAL");
 
 export const db = drizzle(sqlite, { schema });
 
+// Safe column addition helper
+function addColumnIfNotExists(table: string, column: string, type: string) {
+  try {
+    sqlite.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+  } catch {
+    // Column already exists
+  }
+}
+
 // Run migrations on startup - create tables if they don't exist
 sqlite.exec(`
   CREATE TABLE IF NOT EXISTS users (
@@ -60,7 +69,9 @@ sqlite.exec(`
 
   CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    userId INTEGER NOT NULL,
+    userId INTEGER,
+    guestEmail TEXT,
+    guestName TEXT,
     stripeSessionId TEXT UNIQUE,
     stripePaymentIntentId TEXT,
     totalAmount INTEGER NOT NULL,
@@ -104,6 +115,10 @@ sqlite.exec(`
     createdAt INTEGER NOT NULL DEFAULT (unixepoch())
   );
 `);
+
+// Add guest columns to existing orders table
+addColumnIfNotExists("orders", "guestEmail", "TEXT");
+addColumnIfNotExists("orders", "guestName", "TEXT");
 
 // ============ USERS ============
 
@@ -152,14 +167,18 @@ export async function getAddressById(id: number) {
 // ============ ORDERS ============
 
 export async function createOrder(data: {
-  userId: number;
+  userId?: number | null;
+  guestEmail?: string | null;
+  guestName?: string | null;
   stripeSessionId: string;
   totalAmount: number;
   status?: string;
   shippingAddressId?: number | null;
 }) {
   const result = db.insert(schema.orders).values({
-    userId: data.userId,
+    userId: data.userId ?? null,
+    guestEmail: data.guestEmail ?? null,
+    guestName: data.guestName ?? null,
     stripeSessionId: data.stripeSessionId,
     totalAmount: data.totalAmount,
     status: (data.status ?? "pending") as any,
@@ -168,6 +187,22 @@ export async function createOrder(data: {
     updatedAt: new Date(),
   }).returning().get();
   return result;
+}
+
+export async function getOrdersByGuestEmail(email: string) {
+  return db.select().from(schema.orders)
+    .where(eq(schema.orders.guestEmail, email))
+    .orderBy(desc(schema.orders.createdAt))
+    .all();
+}
+
+export async function getOrderByIdAndEmail(orderId: number, email: string) {
+  const order = db.select().from(schema.orders)
+    .where(eq(schema.orders.id, orderId))
+    .get();
+  if (!order) return null;
+  if (order.guestEmail === email || order.userId) return order;
+  return null;
 }
 
 export async function createOrderItem(data: {
@@ -381,6 +416,9 @@ export async function getAllUsers() {
 export async function getOrderWithUser(orderId: number) {
   const order = db.select().from(schema.orders).where(eq(schema.orders.id, orderId)).get();
   if (!order) return null;
-  const user = db.select({ email: schema.users.email, name: schema.users.name }).from(schema.users).where(eq(schema.users.id, order.userId)).get();
+  let user = null;
+  if (order.userId) {
+    user = db.select({ email: schema.users.email, name: schema.users.name }).from(schema.users).where(eq(schema.users.id, order.userId)).get() ?? null;
+  }
   return { ...order, user };
 }

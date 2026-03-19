@@ -9,7 +9,7 @@ import { MiniLoader } from '@/components/LoadingScreen';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-import { Heart, ShoppingBag, Check, ChevronLeft, Share2, Truck, Shield, RotateCcw, Scissors } from 'lucide-react';
+import { Heart, ShoppingBag, Check, ChevronLeft, Share2, Truck, Shield, Scissors } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePageMeta } from '@/lib/usePageMeta';
 
@@ -345,7 +345,7 @@ export default function ProductDetail() {
                   {[
                     { icon: Truck, title: 'Free Shipping', desc: 'On orders over A$50' },
                     { icon: Shield, title: 'Secure Checkout', desc: 'SSL encrypted payment' },
-                    { icon: RotateCcw, title: 'Easy Returns', desc: '30-day guarantee' },
+                    { icon: Scissors, title: 'Handmade Quality', desc: 'Crafted with care in Australia' },
                   ].map((item, i) => (
                     <div key={i} className="flex gap-3 items-center">
                       <div className="w-9 h-9 flex items-center justify-center rounded-full bg-cream border border-border/20">
