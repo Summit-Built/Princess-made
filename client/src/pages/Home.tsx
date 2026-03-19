@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'wouter';
-import { PageTransition } from '@/components/PageTransition';
+// Home page does NOT use PageTransition to avoid opacity:0 delaying LCP/FCP
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/stores/cartStore';
@@ -65,7 +65,6 @@ export default function Home() {
   };
 
   return (
-    <PageTransition>
       <div className="min-h-screen bg-background">
         <Header
           cartCount={cartItems}
@@ -483,6 +482,5 @@ export default function Home() {
 
         <Footer />
       </div>
-    </PageTransition>
   );
 }

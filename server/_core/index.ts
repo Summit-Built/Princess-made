@@ -97,9 +97,9 @@ async function startServer() {
     next();
   });
 
-  // Image proxy - resolves Stripe redirect URLs and caches with long TTL
-  // This avoids the 302 redirect hop for every image load
-  const imageCache = new Map<string, { url: string; expires: number }>();
+  // Image proxy - streams Stripe images through our server with proper cache headers.
+  // This avoids the 302 redirect hop and ensures long Cache-Control on responses.
+  const resolvedUrlCache = new Map<string, { url: string; expires: number }>();
   const IMAGE_CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
   app.get("/api/img", async (req, res) => {
@@ -110,26 +110,40 @@ async function startServer() {
     }
 
     try {
-      // Check if we already resolved this URL
-      const cached = imageCache.get(src);
+      // Resolve the final URL (follow Stripe redirects)
+      let finalUrl: string;
+      const cached = resolvedUrlCache.get(src);
       if (cached && cached.expires > Date.now()) {
-        res.set("Cache-Control", "public, max-age=86400, immutable");
-        res.redirect(301, cached.url);
+        finalUrl = cached.url;
+      } else {
+        const headResp = await fetch(src, { method: "HEAD", redirect: "follow" });
+        finalUrl = headResp.url;
+        resolvedUrlCache.set(src, { url: finalUrl, expires: Date.now() + IMAGE_CACHE_TTL });
+      }
+
+      // Stream the image through with proper cache headers
+      const imgResp = await fetch(finalUrl);
+      if (!imgResp.ok || !imgResp.body) {
+        res.redirect(302, finalUrl);
         return;
       }
 
-      // Follow redirects to get the final direct URL
-      const response = await fetch(src, { method: "HEAD", redirect: "follow" });
-      const finalUrl = response.url;
+      const contentType = imgResp.headers.get("content-type") || "image/png";
+      res.set("Content-Type", contentType);
+      res.set("Cache-Control", "public, max-age=31536000, immutable");
 
-      // Cache the resolved URL
-      imageCache.set(src, { url: finalUrl, expires: Date.now() + IMAGE_CACHE_TTL });
-
-      // 301 with long cache - browser won't re-request
-      res.set("Cache-Control", "public, max-age=86400, immutable");
-      res.redirect(301, finalUrl);
+      const reader = imgResp.body.getReader();
+      const pump = async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          res.write(Buffer.from(value));
+        }
+        res.end();
+      };
+      await pump();
     } catch {
-      // Fall back to original URL
+      // Fall back to redirect
       res.redirect(302, src);
     }
   });
