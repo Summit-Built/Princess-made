@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:/Users/ruuva/Documents/Princess Made website/princess-made\" && pnpm install 2>&1 | tail -5)",
+      "Bash(cd \"C:/Users/ruuva/Documents/Princess Made website/princess-made\" && pnpm dev 2>&1)",
+      "Bash(cd \"C:/Users/ruuva/Documents/Princess Made website/princess-made\" && NODE_ENV=development npx tsx watch server/_core/index.ts 2>&1)",
+      "Bash(cd \"C:/Users/ruuva/Documents/Princess Made website/princess-made\" && pnpm remove mysql2 vite-plugin-manus-runtime @builder.io/vite-plugin-jsx-loc @aws-sdk/client-s3 @aws-sdk/s3-request-presigner 2>&1 | tail -5)",
+      "Bash(cd \"C:/Users/ruuva/Documents/Princess Made website/princess-made\" && pnpm add stripe better-sqlite3 bcryptjs 2>&1 | tail -5)",
+      "Bash(cd \"C:/Users/ruuva/Documents/Princess Made website/princess-made\" && pnpm approve-builds better-sqlite3 2>&1 | tail -3)",
+      "Bash(cd \"C:/Users/ruuva/Documents/Princess Made website/princess-made\" && pnpm config set approve-builds better-sqlite3 esbuild @tailwindcss/oxide --location project 2>&1; pnpm add better-sqlite3 2>&1 | tail -10)",
+      "Bash(cd \"C:/Users/ruuva/Documents/Princess Made website/princess-made\" && pnpm add -D @types/better-sqlite3 @types/bcryptjs 2>&1 | tail -3)",
+      "Bash(pkill -f \"tsx watch server\" 2>/dev/null; sleep 1; echo \"killed\")",
+      "Bash(cd \"C:/Users/ruuva/Documents/Princess Made website/princess-made\" && pnpm install 2>&1 | tail -10)",
+      "Bash(cd \"C:/Users/ruuva/Documents/Princess Made website/princess-made\" && pnpm rebuild better-sqlite3 2>&1)",
+      "Bash(cd \"/c/Users/ruuva/Documents/Princess Made website/princess-made\" && npx tsc --noEmit 2>&1 | head -60)",
+      "Bash(cd \"/c/Users/ruuva/Documents/Princess Made website/princess-made\" && npx tsc --noEmit 2>&1 | head -30)",
+      "Bash(cd \"/c/Users/ruuva/Documents/Princess Made website/princess-made\" && npx tsc --noEmit 2>&1 | head -20)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3004 2>/dev/null || curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000 2>/dev/null || echo \"no server\")"
+    ]
+  }
+}
