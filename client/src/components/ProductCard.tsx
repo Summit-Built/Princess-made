@@ -138,7 +138,7 @@ export const ProductCard = ({
           {/* Price */}
           <div className="pt-3 border-t border-border/40 flex items-baseline justify-between">
             <span className="text-lg font-serif font-light text-accent">
-              ${priceInDollars}
+              A${priceInDollars}
             </span>
             <span className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground/50 font-light">
               Handmade

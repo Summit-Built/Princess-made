@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'wouter';
 import { PageTransition } from '@/components/PageTransition';
@@ -5,11 +6,27 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { ArrowRight, Scissors, Heart, Sparkles, Instagram } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
+import { ArrowRight, Scissors, Heart, Sparkles, Instagram, Check, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function Home() {
+  usePageMeta({ title: 'Princess Made', description: 'Handcrafted bags and accessories made with love in Australia. 100% handmade, one of a kind.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
+  const subscribeMutation = trpc.newsletter.subscribe.useMutation({
+    onSuccess: () => {
+      setNewsletterSubscribed(true);
+      setNewsletterEmail('');
+      toast.success('Welcome to the Princess Made family!');
+    },
+    onError: () => {
+      toast.error('Something went wrong. Please try again.');
+    },
+  });
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -320,20 +337,39 @@ export default function Home() {
               <p className="text-muted-foreground font-light">
                 Be the first to know about new drops, exclusive offers, and behind-the-scenes peeks.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                <input
-                  type="email"
-                  placeholder="Your email address"
-                  className="input-elegant flex-1"
-                />
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="btn-primary px-8"
+              {newsletterSubscribed ? (
+                <div className="flex items-center justify-center gap-2 text-accent font-light">
+                  <Check size={18} />
+                  <span>You're in! Thanks for subscribing.</span>
+                </div>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (newsletterEmail) subscribeMutation.mutate({ email: newsletterEmail });
+                  }}
+                  className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
                 >
-                  Subscribe
-                </motion.button>
-              </div>
+                  <input
+                    type="email"
+                    placeholder="Your email address"
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    required
+                    className="input-elegant flex-1"
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    disabled={subscribeMutation.isPending}
+                    className="btn-primary px-8 flex items-center justify-center gap-2"
+                  >
+                    {subscribeMutation.isPending && <Loader2 size={14} className="animate-spin" />}
+                    Subscribe
+                  </motion.button>
+                </form>
+              )}
               <p className="text-xs text-muted-foreground/60 font-light">
                 No spam, ever. Unsubscribe anytime.
               </p>

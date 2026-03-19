@@ -4,12 +4,14 @@ import { useRoute, Link } from 'wouter';
 import { PageTransition } from '@/components/PageTransition';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { ProductCard } from '@/components/ProductCard';
 import { MiniLoader } from '@/components/LoadingScreen';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { Heart, ShoppingBag, Check, ChevronLeft, Share2, Truck, Shield, RotateCcw, Scissors } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function ProductDetail() {
   const [, params] = useRoute('/product/:id');
@@ -27,9 +29,20 @@ export default function ProductDetail() {
     enabled: !!productId,
   });
 
+  usePageMeta({
+    title: product?.name || 'Product',
+    description: product?.description || 'Handmade with love by Princess Made',
+  });
+
   const { data: isFav } = trpc.favorites.isFavorited.useQuery(productId || '', {
     enabled: isAuthenticated && !!productId,
   });
+
+  // Fetch related products (same category)
+  const { data: relatedProducts } = trpc.products.list.useQuery(
+    { category: product?.category },
+    { enabled: !!product?.category }
+  );
 
   const toggleFavoriteMutation = trpc.favorites.add.useMutation();
   const removeFavoriteMutation = trpc.favorites.remove.useMutation();
@@ -100,7 +113,15 @@ export default function ProductDetail() {
   }
 
   const priceInDollars = (product.price / 100).toFixed(2);
-  const productImages = [product.imageUrl, product.imageUrl, product.imageUrl].filter(Boolean);
+  // Use actual images array from Stripe (may have multiple)
+  const productImages = product.images && product.images.length > 0
+    ? product.images
+    : product.imageUrl ? [product.imageUrl] : [];
+
+  // Filter related products to exclude current product, limit to 4
+  const filteredRelated = relatedProducts
+    ?.filter(p => p.id !== productId)
+    .slice(0, 4) || [];
 
   return (
     <PageTransition>
@@ -239,8 +260,9 @@ export default function ProductDetail() {
                   </h1>
                   <div className="flex items-center gap-3">
                     <span className="text-3xl font-serif font-light text-accent">
-                      ${priceInDollars}
+                      A${priceInDollars}
                     </span>
+                    <span className="text-xs text-muted-foreground/50 font-light">AUD</span>
                   </div>
                 </div>
 
@@ -307,6 +329,10 @@ export default function ProductDetail() {
 
                   <motion.button
                     whileHover={{ scale: 1.01 }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast.success('Link copied to clipboard');
+                    }}
                     className="btn-outline w-full flex items-center justify-center gap-2 text-sm"
                   >
                     <Share2 size={16} />
@@ -317,7 +343,7 @@ export default function ProductDetail() {
                 {/* Trust Signals */}
                 <div className="grid grid-cols-1 gap-4 pt-6 border-t border-border/30">
                   {[
-                    { icon: Truck, title: 'Free Shipping', desc: 'On orders over $50' },
+                    { icon: Truck, title: 'Free Shipping', desc: 'On orders over A$50' },
                     { icon: Shield, title: 'Secure Checkout', desc: 'SSL encrypted payment' },
                     { icon: RotateCcw, title: 'Easy Returns', desc: '30-day guarantee' },
                   ].map((item, i) => (
@@ -336,6 +362,48 @@ export default function ProductDetail() {
             </motion.div>
           </div>
         </section>
+
+        {/* Related Products */}
+        {filteredRelated.length > 0 && (
+          <section className="py-16 md:py-20 border-t border-border/30">
+            <div className="container">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-center mb-12 space-y-3"
+              >
+                <p className="font-script text-xl text-accent">You May Also Like</p>
+                <h2 className="text-3xl font-serif font-light">Related Products</h2>
+              </motion.div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                {filteredRelated.map((p) => (
+                  <motion.div
+                    key={p.id}
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                  >
+                    <ProductCard
+                      product={p}
+                      onAddToCart={() => {
+                        addItem({
+                          productId: p.id,
+                          stripePriceId: p.stripePriceId || '',
+                          quantity: 1,
+                          price: p.price,
+                          name: p.name,
+                          imageUrl: p.imageUrl || undefined,
+                        });
+                        toast.success(`${p.name} added to cart`);
+                      }}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         <Footer />
       </div>

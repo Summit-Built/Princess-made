@@ -107,7 +107,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                         {item.name}
                       </h3>
                       <p className="text-sm text-accent mt-1 font-light">
-                        ${(item.price / 100).toFixed(2)}
+                        A${(item.price / 100).toFixed(2)}
                       </p>
 
                       {/* Quantity Controls */}
@@ -156,7 +156,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                 <div className="flex items-baseline justify-between">
                   <span className="text-sm font-light text-muted-foreground uppercase tracking-[0.1em]">Subtotal</span>
                   <span className="text-2xl font-serif font-light text-accent">
-                    ${totalPriceInDollars}
+                    A${totalPriceInDollars}
                   </span>
                 </div>
 

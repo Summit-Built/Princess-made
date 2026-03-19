@@ -99,7 +99,7 @@ export default function OrderConfirmation() {
                   <div className="border-t border-border/20 pt-4 flex items-center justify-between">
                     <span className="text-xs text-muted-foreground/60 font-light">Total</span>
                     <span className="text-lg font-serif font-light text-accent">
-                      ${(order.totalAmount / 100).toFixed(2)}
+                      A${(order.totalAmount / 100).toFixed(2)}
                     </span>
                   </div>
                 )}

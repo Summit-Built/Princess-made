@@ -88,3 +88,22 @@ export const favorites = sqliteTable("favorites", {
 
 export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = typeof favorites.$inferInsert;
+
+export const newsletterSubscribers = sqliteTable("newsletter_subscribers", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  email: text("email").notNull().unique(),
+  createdAt: integer("createdAt", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
+});
+
+export type NewsletterSubscriber = typeof newsletterSubscribers.$inferSelect;
+
+export const passwordResetTokens = sqliteTable("password_reset_tokens", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("userId").notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: integer("expiresAt", { mode: "timestamp" }).notNull(),
+  used: integer("used").default(0).notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
+});
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;

@@ -41,7 +41,7 @@ export const Header = ({
       <div className="bg-accent/5 border-b border-accent/10 hidden md:block">
         <div className="container flex items-center justify-center h-8">
           <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground font-light">
-            Handmade with love — Free shipping on orders over $50
+            Handmade with love — Free shipping on orders over A$50
           </p>
         </div>
       </div>
@@ -109,8 +109,10 @@ export const Header = ({
             <ShoppingBag size={18} className="text-foreground/70" />
             {cartCount > 0 && (
               <motion.span
+                key={cartCount}
                 initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
+                animate={{ scale: [1.3, 1] }}
+                transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                 className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-accent text-accent-foreground text-[10px] font-medium rounded-full flex items-center justify-center"
               >
                 {cartCount}

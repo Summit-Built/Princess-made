@@ -6,8 +6,10 @@ import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { Scissors, Heart, Sparkles, Instagram, ArrowRight } from 'lucide-react';
+import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function About() {
+  usePageMeta({ title: 'About', description: 'The story behind Princess Made — handcrafted bags made with love in Australia.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
 

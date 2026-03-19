@@ -9,10 +9,12 @@ import { MiniLoader } from '@/components/LoadingScreen';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-import { Filter, X, Sparkles } from 'lucide-react';
+import { Filter, X, Sparkles, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function Shop() {
+  usePageMeta({ title: 'Shop', description: 'Browse our collection of handmade bags, laptop cases, pouches and accessories.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const addItem = useCartStore((state) => state.addItem);
   const { isAuthenticated, logout } = useAuth();
@@ -22,9 +24,11 @@ export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(urlCategory);
   const [sortBy, setSortBy] = useState<'price-low' | 'price-high' | 'newest'>('newest');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: products, isLoading } = trpc.products.list.useQuery({
     category: selectedCategory,
+    search: searchQuery || undefined,
   });
 
   const { data: favorites } = trpc.favorites.list.useQuery(undefined, {
@@ -114,6 +118,16 @@ export default function Shop() {
               <p className="text-muted-foreground font-light max-w-lg mx-auto">
                 Each piece lovingly handcrafted, designed to be as unique as you are
               </p>
+              <div className="max-w-md mx-auto relative pt-2">
+                <Search size={16} className="absolute left-4 top-1/2 mt-1 -translate-y-1/2 text-muted-foreground/40" />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="input-elegant pl-11 w-full"
+                />
+              </div>
             </motion.div>
           </div>
         </section>
@@ -285,7 +299,7 @@ export default function Shop() {
               </p>
               <motion.a
                 whileHover={{ scale: 1.02 }}
-                href="mailto:hello@princessmade.com"
+                href="mailto:princessmadefashion@gmail.com"
                 className="btn-primary inline-block"
               >
                 Get in Touch

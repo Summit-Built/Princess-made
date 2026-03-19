@@ -20,11 +20,15 @@ import {
   Sparkles,
   Loader2,
   Check,
+  KeyRound,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { usePageMeta } from '@/lib/usePageMeta';
 
 type TabType = 'orders' | 'addresses' | 'favorites' | 'settings';
 
 export default function Dashboard() {
+  usePageMeta({ title: 'My Account', description: 'Manage your Princess Made account, orders, and favorites.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('orders');
@@ -41,6 +45,11 @@ export default function Dashboard() {
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [settingsSaved, setSettingsSaved] = useState(false);
+
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const utils = trpc.useUtils();
 
@@ -83,6 +92,19 @@ export default function Dashboard() {
       utils.auth.me.invalidate();
       setSettingsSaved(true);
       setTimeout(() => setSettingsSaved(false), 2000);
+    },
+  });
+
+  // Password change
+  const changePassword = trpc.auth.changePassword.useMutation({
+    onSuccess: () => {
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      toast.success('Password changed successfully');
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Failed to change password');
     },
   });
 
@@ -477,6 +499,60 @@ export default function Dashboard() {
                       </motion.div>
                     </form>
 
+                    {/* Change Password */}
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (newPassword !== confirmPassword) {
+                          toast.error('Passwords do not match');
+                          return;
+                        }
+                        changePassword.mutate({ currentPassword, newPassword });
+                      }}
+                      className="border border-border/30 p-6 space-y-4"
+                      style={{ borderRadius: '2px' }}
+                    >
+                      <h3 className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light flex items-center gap-2">
+                        <KeyRound size={12} /> Change Password
+                      </h3>
+                      <div className="space-y-3">
+                        <input
+                          type="password"
+                          placeholder="Current password"
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          required
+                          className="input-elegant"
+                        />
+                        <input
+                          type="password"
+                          placeholder="New password (min 6 characters)"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          required
+                          minLength={6}
+                          className="input-elegant"
+                        />
+                        <input
+                          type="password"
+                          placeholder="Confirm new password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                          className="input-elegant"
+                        />
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        type="submit"
+                        disabled={changePassword.isPending}
+                        className="btn-primary text-xs px-6 py-2.5 flex items-center gap-2"
+                      >
+                        {changePassword.isPending && <Loader2 size={12} className="animate-spin" />}
+                        Update Password
+                      </motion.button>
+                    </form>
+
                     <div className="border border-border/30 p-6 space-y-4" style={{ borderRadius: '2px' }}>
                       <h3 className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light">
                         Account
@@ -534,7 +610,7 @@ function OrderCard({ order, isExpanded, onToggle }: { order: any; isExpanded: bo
         </div>
         <div className="flex items-center gap-3">
           <p className="text-lg font-serif font-light text-accent">
-            ${(order.totalAmount / 100).toFixed(2)}
+            A${(order.totalAmount / 100).toFixed(2)}
           </p>
           <ChevronDown size={16} className={`text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
         </div>
@@ -600,7 +676,7 @@ function OrderItemRow({ item }: { item: any }) {
         <p className="text-sm font-light truncate">{product?.name || item.productId}</p>
         <p className="text-[11px] text-muted-foreground/50 font-light">Qty: {item.quantity}</p>
       </div>
-      <p className="text-sm font-light text-accent">${((item.priceAtTime * item.quantity) / 100).toFixed(2)}</p>
+      <p className="text-sm font-light text-accent">A${((item.priceAtTime * item.quantity) / 100).toFixed(2)}</p>
     </div>
   );
 }
@@ -656,7 +732,7 @@ function FavoriteCard({ productId, onRemove }: { productId: string; onRemove: ()
               {product.name}
             </p>
           </Link>
-          <p className="text-accent font-serif font-light">${(product.price / 100).toFixed(2)}</p>
+          <p className="text-accent font-serif font-light">A${(product.price / 100).toFixed(2)}</p>
           <div className="flex gap-2 pt-1">
             <motion.button
               whileHover={{ scale: 1.02 }}

@@ -1,6 +1,6 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, like, sql } from "drizzle-orm";
 import * as schema from "../drizzle/schema";
 import path from "path";
 import fs from "fs";
@@ -86,6 +86,21 @@ sqlite.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     userId INTEGER NOT NULL,
     productId TEXT NOT NULL,
+    createdAt INTEGER NOT NULL DEFAULT (unixepoch())
+  );
+
+  CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE,
+    createdAt INTEGER NOT NULL DEFAULT (unixepoch())
+  );
+
+  CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL,
+    token TEXT NOT NULL UNIQUE,
+    expiresAt INTEGER NOT NULL,
+    used INTEGER NOT NULL DEFAULT 0,
     createdAt INTEGER NOT NULL DEFAULT (unixepoch())
   );
 `);
@@ -198,6 +213,13 @@ export async function updateOrderStatus(stripeSessionId: string, status: string)
     .run();
 }
 
+export async function updateOrderStatusById(orderId: number, status: string) {
+  db.update(schema.orders)
+    .set({ status: status as any, updatedAt: new Date() })
+    .where(eq(schema.orders.id, orderId))
+    .run();
+}
+
 // ============ ADDRESSES ============
 
 export async function getUserAddresses(userId: number) {
@@ -273,4 +295,92 @@ export async function removeFavorite(userId: number, productId: string) {
     .where(and(eq(schema.favorites.userId, userId), eq(schema.favorites.productId, productId)))
     .run();
   return true;
+}
+
+// ============ NEWSLETTER ============
+
+export async function addNewsletterSubscriber(email: string) {
+  try {
+    db.insert(schema.newsletterSubscribers).values({
+      email,
+      createdAt: new Date(),
+    }).run();
+    return { success: true };
+  } catch {
+    // Unique constraint violation = already subscribed
+    return { success: true, alreadySubscribed: true };
+  }
+}
+
+// ============ PASSWORD RESET ============
+
+export async function createPasswordResetToken(userId: number, token: string) {
+  // Expire in 1 hour
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+  db.insert(schema.passwordResetTokens).values({
+    userId,
+    token,
+    expiresAt,
+    createdAt: new Date(),
+  }).run();
+}
+
+export async function getPasswordResetToken(token: string) {
+  return db.select().from(schema.passwordResetTokens)
+    .where(eq(schema.passwordResetTokens.token, token))
+    .get() ?? null;
+}
+
+export async function markResetTokenUsed(token: string) {
+  db.update(schema.passwordResetTokens)
+    .set({ used: 1 })
+    .where(eq(schema.passwordResetTokens.token, token))
+    .run();
+}
+
+export async function updateUserPassword(userId: number, passwordHash: string) {
+  db.update(schema.users)
+    .set({ passwordHash, updatedAt: new Date() })
+    .where(eq(schema.users.id, userId))
+    .run();
+}
+
+// ============ ADMIN ============
+
+export async function getAllOrders() {
+  return db.select().from(schema.orders)
+    .orderBy(desc(schema.orders.createdAt))
+    .all();
+}
+
+export async function updateOrderTracking(orderId: number, trackingNumber: string, shippingStatus: string) {
+  db.update(schema.orders)
+    .set({
+      trackingNumber,
+      shippingStatus: shippingStatus as any,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.orders.id, orderId))
+    .run();
+  return db.select().from(schema.orders).where(eq(schema.orders.id, orderId)).get() ?? null;
+}
+
+export async function getAllUsers() {
+  return db.select({
+    id: schema.users.id,
+    email: schema.users.email,
+    name: schema.users.name,
+    role: schema.users.role,
+    createdAt: schema.users.createdAt,
+    lastSignedIn: schema.users.lastSignedIn,
+  }).from(schema.users)
+    .orderBy(desc(schema.users.createdAt))
+    .all();
+}
+
+export async function getOrderWithUser(orderId: number) {
+  const order = db.select().from(schema.orders).where(eq(schema.orders.id, orderId)).get();
+  if (!order) return null;
+  const user = db.select({ email: schema.users.email, name: schema.users.name }).from(schema.users).where(eq(schema.users.id, order.userId)).get();
+  return { ...order, user };
 }

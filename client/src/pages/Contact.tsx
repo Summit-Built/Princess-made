@@ -5,8 +5,10 @@ import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { Instagram, Mail, Clock, Sparkles, MessageCircle } from 'lucide-react';
+import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function Contact() {
+  usePageMeta({ title: 'Contact & FAQ', description: 'Get in touch with Princess Made. FAQ about shipping, returns, custom orders and more.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
 

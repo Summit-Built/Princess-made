@@ -51,6 +51,13 @@ export default function Checkout() {
             price: item.price,
             name: item.name,
           })),
+          shippingAddress: street ? {
+            street,
+            city,
+            state,
+            postalCode,
+            country: 'AU',
+          } : undefined,
         },
         {
           onSuccess: (data) => {
@@ -269,7 +276,7 @@ export default function Checkout() {
                           <p className="text-xs text-muted-foreground/60 font-light">Qty: {item.quantity}</p>
                         </div>
                         <p className="text-sm font-light text-accent whitespace-nowrap">
-                          ${((item.price * item.quantity) / 100).toFixed(2)}
+                          A${((item.price * item.quantity) / 100).toFixed(2)}
                         </p>
                       </div>
                     ))}
@@ -279,7 +286,7 @@ export default function Checkout() {
                   <div className="space-y-3 border-t border-border/30 pt-4">
                     <div className="flex justify-between text-sm font-light">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span>${totalPriceInDollars}</span>
+                      <span>A${totalPriceInDollars}</span>
                     </div>
                     <div className="flex justify-between text-sm font-light">
                       <span className="text-muted-foreground">Shipping</span>
@@ -287,7 +294,7 @@ export default function Checkout() {
                     </div>
                     <div className="flex justify-between pt-3 border-t border-border/30">
                       <span className="text-sm font-light text-muted-foreground uppercase tracking-[0.1em]">Total</span>
-                      <span className="text-xl font-serif font-light text-accent">${totalPriceInDollars}</span>
+                      <span className="text-xl font-serif font-light text-accent">A${totalPriceInDollars}</span>
                     </div>
                   </div>
                 </div>

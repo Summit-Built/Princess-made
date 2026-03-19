@@ -1,11 +1,13 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
+import { publicProcedure, router, protectedProcedure, adminProcedure } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
 import * as stripe from "./stripe";
+import bcrypt from "bcryptjs";
+import { nanoid } from "nanoid";
 
 export const appRouter = router({
   system: systemRouter,
@@ -24,15 +26,73 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         return db.updateUser(ctx.user.id, input);
       }),
+    changePassword: protectedProcedure
+      .input(z.object({
+        currentPassword: z.string(),
+        newPassword: z.string().min(6),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const user = await db.getUserById(ctx.user.id);
+        if (!user || !user.passwordHash) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot change password" });
+        }
+        const valid = await bcrypt.compare(input.currentPassword, user.passwordHash);
+        if (!valid) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Current password is incorrect" });
+        }
+        const hash = await bcrypt.hash(input.newPassword, 10);
+        await db.updateUserPassword(ctx.user.id, hash);
+        return { success: true };
+      }),
+    requestPasswordReset: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input }) => {
+        const user = await db.getUserByEmail(input.email);
+        if (user) {
+          const token = nanoid(32);
+          await db.createPasswordResetToken(user.id, token);
+          // In production, send email with reset link
+          // For now, log it (the token is stored in DB)
+          console.log(`Password reset token for ${input.email}: ${token}`);
+        }
+        // Always return success to prevent email enumeration
+        return { success: true, message: "If an account exists with that email, a reset link has been sent." };
+      }),
+    resetPassword: publicProcedure
+      .input(z.object({
+        token: z.string(),
+        newPassword: z.string().min(6),
+      }))
+      .mutation(async ({ input }) => {
+        const resetToken = await db.getPasswordResetToken(input.token);
+        if (!resetToken || resetToken.used || new Date(resetToken.expiresAt) < new Date()) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid or expired reset token" });
+        }
+        const hash = await bcrypt.hash(input.newPassword, 10);
+        await db.updateUserPassword(resetToken.userId, hash);
+        await db.markResetTokenUsed(input.token);
+        return { success: true };
+      }),
   }),
 
   products: router({
     list: publicProcedure
-      .input(z.object({ category: z.string().optional() }).optional())
+      .input(z.object({
+        category: z.string().optional(),
+        search: z.string().optional(),
+      }).optional())
       .query(async ({ input }) => {
-        const products = await stripe.getProducts();
+        let products = await stripe.getProducts();
         if (input?.category) {
-          return products.filter(p => p.category === input.category);
+          products = products.filter(p => p.category === input.category);
+        }
+        if (input?.search) {
+          const searchLower = input.search.toLowerCase();
+          products = products.filter(p =>
+            p.name.toLowerCase().includes(searchLower) ||
+            (p.description && p.description.toLowerCase().includes(searchLower)) ||
+            p.category.toLowerCase().includes(searchLower)
+          );
         }
         return products;
       }),
@@ -51,9 +111,30 @@ export const appRouter = router({
           price: z.number(),
           name: z.string(),
         })),
+        shippingAddress: z.object({
+          street: z.string(),
+          city: z.string(),
+          state: z.string(),
+          postalCode: z.string(),
+          country: z.string().optional(),
+        }).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const totalAmount = input.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+        // Save shipping address if provided
+        let shippingAddressId: number | null = null;
+        if (input.shippingAddress) {
+          const address = await db.createAddress({
+            userId: ctx.user.id,
+            street: input.shippingAddress.street,
+            city: input.shippingAddress.city,
+            state: input.shippingAddress.state,
+            postalCode: input.shippingAddress.postalCode,
+            country: input.shippingAddress.country || "AU",
+          });
+          shippingAddressId = address.id;
+        }
 
         const origin = `${ctx.req.protocol}://${ctx.req.get("host")}`;
         const session = await stripe.createCheckoutSession({
@@ -73,6 +154,7 @@ export const appRouter = router({
           stripeSessionId: session.sessionId,
           totalAmount,
           status: "pending",
+          shippingAddressId,
         });
 
         // Create order items
@@ -132,7 +214,7 @@ export const appRouter = router({
           city: input.city,
           state: input.state,
           postalCode: input.postalCode,
-          country: input.country || "US",
+          country: input.country || "AU",
           isDefault: input.isDefault || 0,
         })
       ),
@@ -182,6 +264,56 @@ export const appRouter = router({
     remove: protectedProcedure
       .input(z.string())
       .mutation(({ ctx, input }) => db.removeFavorite(ctx.user.id, input)),
+  }),
+
+  newsletter: router({
+    subscribe: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input }) => {
+        return db.addNewsletterSubscriber(input.email);
+      }),
+  }),
+
+  admin: router({
+    orders: router({
+      list: adminProcedure.query(async () => {
+        const orders = await db.getAllOrders();
+        // Attach user info to each order
+        const ordersWithUsers = await Promise.all(
+          orders.map(async (order) => {
+            const enriched = await db.getOrderWithUser(order.id);
+            return enriched || order;
+          })
+        );
+        return ordersWithUsers;
+      }),
+      getItems: adminProcedure
+        .input(z.number())
+        .query(({ input }) => db.getOrderItems(input)),
+      updateTracking: adminProcedure
+        .input(z.object({
+          orderId: z.number(),
+          trackingNumber: z.string(),
+          shippingStatus: z.string(),
+        }))
+        .mutation(({ input }) =>
+          db.updateOrderTracking(input.orderId, input.trackingNumber, input.shippingStatus)
+        ),
+      updateStatus: adminProcedure
+        .input(z.object({
+          orderId: z.number(),
+          status: z.string(),
+        }))
+        .mutation(async ({ input }) => {
+          const order = await db.getOrderById(input.orderId);
+          if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+          await db.updateOrderStatusById(input.orderId, input.status);
+          return db.getOrderById(input.orderId);
+        }),
+    }),
+    users: router({
+      list: adminProcedure.query(() => db.getAllUsers()),
+    }),
   }),
 });
 
