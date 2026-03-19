@@ -43,11 +43,40 @@ async function startServer() {
 
     try {
       const event = await handleWebhookEvent(req.body, signature);
+      console.log(`[Stripe Webhook] Received event: ${event.type} (${event.id})`);
 
-      if (event.type === "checkout.session.completed") {
-        const session = event.data.object as any;
-        await db.updateOrderStatus(session.id, "completed");
-        console.log(`[Stripe] Order completed: ${session.id}`);
+      switch (event.type) {
+        case "checkout.session.completed": {
+          const session = event.data.object as any;
+          await db.updateOrderStatus(session.id, "completed");
+          // Store the payment intent ID on the order for future refund/failure lookups
+          if (session.payment_intent) {
+            await db.updateOrderPaymentIntent(session.id, session.payment_intent);
+          }
+          console.log(`[Stripe] Order completed: ${session.id}`);
+          break;
+        }
+
+        case "payment_intent.payment_failed": {
+          const paymentIntent = event.data.object as any;
+          const failureMessage = paymentIntent.last_payment_error?.message || "Unknown error";
+          console.log(`[Stripe] Payment failed: ${paymentIntent.id} - ${failureMessage}`);
+          await db.updateOrderStatusByPaymentIntent(paymentIntent.id, "failed");
+          break;
+        }
+
+        case "charge.refunded": {
+          const charge = event.data.object as any;
+          const paymentIntentId = charge.payment_intent;
+          console.log(`[Stripe] Charge refunded: ${charge.id} (PI: ${paymentIntentId})`);
+          if (paymentIntentId) {
+            await db.updateOrderStatusByPaymentIntent(paymentIntentId, "refunded");
+          }
+          break;
+        }
+
+        default:
+          console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`);
       }
 
       res.json({ received: true });

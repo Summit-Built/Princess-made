@@ -37,7 +37,7 @@ export default function About() {
         />
 
         {/* Hero */}
-        <section className="relative py-20 md:py-32 overflow-hidden">
+        <section className="relative py-16 sm:py-20 md:py-32 overflow-hidden">
           <div className="absolute inset-0 gradient-blush opacity-40" />
           <div className="absolute inset-0 texture-linen" />
           <div className="container relative">
@@ -47,16 +47,16 @@ export default function About() {
               animate="visible"
               className="max-w-3xl mx-auto text-center space-y-6"
             >
-              <motion.p variants={itemVariants} className="font-script text-2xl text-accent">
+              <motion.p variants={itemVariants} className="font-script text-xl sm:text-2xl text-accent">
                 Our Story
               </motion.p>
               <motion.h1
                 variants={itemVariants}
-                className="text-5xl md:text-7xl font-serif font-light leading-tight"
+                className="text-4xl sm:text-5xl md:text-7xl font-serif font-light leading-tight"
               >
                 Made with <span className="italic text-accent">Heart</span>
               </motion.h1>
-              <motion.div variants={itemVariants} className="flex items-center gap-4 max-w-xs mx-auto">
+              <motion.div variants={itemVariants} className="flex items-center gap-4 max-w-xs mx-auto" aria-hidden="true">
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent to-accent/30" />
                 <Sparkles size={16} className="text-accent/50" />
                 <div className="flex-1 h-px bg-gradient-to-l from-transparent to-accent/30" />
@@ -66,7 +66,7 @@ export default function About() {
         </section>
 
         {/* Story */}
-        <section className="py-20 md:py-28">
+        <section className="py-16 sm:py-20 md:py-28">
           <div className="container">
             <motion.div
               variants={containerVariants}
@@ -80,7 +80,7 @@ export default function About() {
               </motion.p>
               <motion.p
                 variants={itemVariants}
-                className="text-lg md:text-xl text-muted-foreground font-light leading-relaxed"
+                className="text-base sm:text-lg md:text-xl text-muted-foreground font-light leading-relaxed px-4 sm:px-0"
               >
                 Princess Made started as a passion project — just a girl with a sewing machine and a dream.
                 What began as making gifts for friends quickly became something bigger when people started
@@ -88,7 +88,7 @@ export default function About() {
               </motion.p>
               <motion.p
                 variants={itemVariants}
-                className="text-lg md:text-xl text-muted-foreground font-light leading-relaxed"
+                className="text-base sm:text-lg md:text-xl text-muted-foreground font-light leading-relaxed px-4 sm:px-0"
               >
                 Every single piece is handmade from start to finish. From choosing the perfect fabrics
                 to placing the final stitch, each product is crafted with love and care. No factories,
@@ -99,7 +99,7 @@ export default function About() {
         </section>
 
         {/* Values */}
-        <section className="relative py-20 md:py-28 overflow-hidden">
+        <section className="relative py-16 sm:py-20 md:py-28 overflow-hidden">
           <div className="absolute inset-0 gradient-warm" />
           <div className="absolute inset-0 texture-linen" />
           <div className="container relative">
@@ -108,20 +108,20 @@ export default function About() {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="text-center space-y-12"
+              className="text-center space-y-10 sm:space-y-12"
             >
               <div className="space-y-4">
                 <motion.p variants={itemVariants} className="font-script text-xl text-accent">
                   What We Stand For
                 </motion.p>
-                <motion.h2 variants={itemVariants} className="text-4xl md:text-5xl font-serif font-light">
+                <motion.h2 variants={itemVariants} className="text-3xl sm:text-4xl md:text-5xl font-serif font-light">
                   Our Values
                 </motion.h2>
               </div>
 
               <motion.div
                 variants={containerVariants}
-                className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-4xl mx-auto pt-4"
+                className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-10 max-w-4xl mx-auto pt-4"
               >
                 {[
                   {
@@ -145,10 +145,10 @@ export default function About() {
                 ].map((value, index) => (
                   <motion.div key={index} variants={itemVariants} className="space-y-4">
                     <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-full bg-accent/10 border border-accent/20">
-                      <value.icon size={22} className="text-accent" />
+                      <value.icon size={22} className="text-accent" aria-hidden="true" />
                     </div>
                     <h3 className="text-xl font-serif font-light">{value.title}</h3>
-                    <p className="text-muted-foreground text-sm font-light leading-relaxed">
+                    <p className="text-muted-foreground text-sm font-light leading-relaxed px-4 sm:px-0">
                       {value.description}
                     </p>
                   </motion.div>
@@ -159,7 +159,7 @@ export default function About() {
         </section>
 
         {/* Materials */}
-        <section className="py-20 md:py-28">
+        <section className="py-16 sm:py-20 md:py-28">
           <div className="container">
             <motion.div
               variants={containerVariants}
@@ -171,10 +171,10 @@ export default function About() {
               <motion.p variants={itemVariants} className="font-script text-xl text-accent">
                 The Details
               </motion.p>
-              <motion.h2 variants={itemVariants} className="text-4xl md:text-5xl font-serif font-light">
+              <motion.h2 variants={itemVariants} className="text-3xl sm:text-4xl md:text-5xl font-serif font-light">
                 What Goes Into Each Piece
               </motion.h2>
-              <motion.div variants={itemVariants} className="text-left space-y-6 pt-4">
+              <motion.div variants={itemVariants} className="text-left space-y-6 pt-4 px-2 sm:px-0">
                 {[
                   { label: 'Faux Fur', detail: 'Luxuriously soft, carefully selected for texture and quality' },
                   { label: 'Quilted Fabric', detail: 'Padded with flex foam for structure and protection' },
@@ -182,7 +182,7 @@ export default function About() {
                   { label: 'Machine Washable', detail: 'Practical meets pretty — easy to care for' },
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-4 pb-6 border-b border-border/20 last:border-0 last:pb-0">
-                    <Sparkles size={14} className="text-accent mt-1 flex-shrink-0" />
+                    <Sparkles size={14} className="text-accent mt-1 flex-shrink-0" aria-hidden="true" />
                     <div>
                       <p className="font-serif font-light">{item.label}</p>
                       <p className="text-sm text-muted-foreground font-light mt-1">{item.detail}</p>
@@ -195,7 +195,7 @@ export default function About() {
         </section>
 
         {/* CTA */}
-        <section className="py-20 md:py-28 relative overflow-hidden">
+        <section className="py-16 sm:py-20 md:py-28 relative overflow-hidden">
           <div className="absolute inset-0 gradient-rose-subtle" />
           <div className="container relative text-center space-y-8">
             <motion.div
@@ -205,15 +205,15 @@ export default function About() {
               className="space-y-6"
             >
               <p className="font-script text-xl text-accent">Ready to Shop?</p>
-              <h2 className="text-4xl md:text-5xl font-serif font-light">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-light">
                 Find Your Perfect Piece
               </h2>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-4 px-4 sm:px-0">
                 <Link href="/shop">
                   <motion.a
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    className="inline-flex items-center gap-3 px-8 py-4 bg-accent text-accent-foreground font-light tracking-[0.15em] uppercase text-sm cursor-pointer"
+                    className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-accent text-accent-foreground font-light tracking-[0.15em] uppercase text-sm cursor-pointer min-h-[48px] w-full sm:w-auto"
                     style={{ borderRadius: '2px' }}
                   >
                     Shop Collection
@@ -224,11 +224,12 @@ export default function About() {
                   href="https://www.instagram.com/princessmadefashion/"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="Follow Princess Made on Instagram"
                 >
                   <motion.span
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    className="inline-flex items-center gap-3 px-8 py-4 border border-accent/30 text-foreground font-light tracking-[0.15em] uppercase text-sm cursor-pointer"
+                    className="inline-flex items-center justify-center gap-3 px-8 py-4 border border-accent/30 text-foreground font-light tracking-[0.15em] uppercase text-sm cursor-pointer min-h-[48px] w-full sm:w-auto"
                     style={{ borderRadius: '2px' }}
                   >
                     <Instagram size={16} />

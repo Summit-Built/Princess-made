@@ -152,3 +152,91 @@ export async function sendShippingUpdate(opts: {
     console.error("[Email] Failed to send shipping update:", err);
   }
 }
+
+export async function sendPasswordResetEmail(opts: {
+  to: string;
+  resetLink: string;
+}) {
+  const resend = getResend();
+  if (!resend) {
+    console.log("[Email] Resend not configured, skipping password reset email");
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: getFrom(),
+      to: opts.to,
+      subject: "Reset Your Password — Princess Made",
+      html: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, sans-serif; color: #3d3530; background: #faf8f6; padding: 40px 30px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-family: Georgia, serif; font-weight: 300; font-size: 28px; margin: 0;">Password Reset</h1>
+            <p style="color: #8a7a72; font-weight: 300; margin-top: 8px;">You requested a password reset for your Princess Made account.</p>
+          </div>
+
+          <div style="background: white; border: 1px solid #f0e8e4; padding: 24px; margin-bottom: 24px; text-align: center;">
+            <p style="font-size: 14px; font-weight: 300; margin: 0 0 20px 0;">Click the button below to set a new password. This link expires in 1 hour.</p>
+            <a href="${opts.resetLink}" style="display: inline-block; padding: 14px 36px; background: #c9a89a; color: white; text-decoration: none; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; font-weight: 300;">Reset Password</a>
+          </div>
+
+          <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f0e8e4;">
+            <p style="font-size: 13px; color: #8a7a72; font-weight: 300;">If you didn't request this, you can safely ignore this email.</p>
+            <p style="font-size: 12px; color: #b0a49c; margin-top: 16px;">Handmade in Australia</p>
+            <p style="font-size: 11px; color: #c4b8b0;">Princess Made — princessmadefashion@gmail.com</p>
+          </div>
+        </div>
+      `,
+    });
+    console.log(`[Email] Password reset email sent to ${opts.to}`);
+  } catch (err) {
+    console.error("[Email] Failed to send password reset email:", err);
+  }
+}
+
+export async function sendContactFormNotification(opts: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) {
+  const resend = getResend();
+  if (!resend) {
+    console.log("[Email] Resend not configured, skipping contact form notification");
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: getFrom(),
+      to: "princessmadefashion@gmail.com",
+      replyTo: opts.email,
+      subject: `Contact Form: ${opts.subject}`,
+      html: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, sans-serif; color: #3d3530; background: #faf8f6; padding: 40px 30px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-family: Georgia, serif; font-weight: 300; font-size: 28px; margin: 0;">New Contact Message</h1>
+          </div>
+
+          <div style="background: white; border: 1px solid #f0e8e4; padding: 24px; margin-bottom: 24px;">
+            <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #8a7a72; margin: 0 0 4px 0;">From</p>
+            <p style="font-size: 16px; margin: 0 0 16px 0; font-weight: 300;">${opts.name} &lt;${opts.email}&gt;</p>
+
+            <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #8a7a72; margin: 0 0 4px 0;">Subject</p>
+            <p style="font-size: 16px; margin: 0 0 16px 0; font-weight: 300;">${opts.subject}</p>
+
+            <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #8a7a72; margin: 0 0 4px 0;">Message</p>
+            <p style="font-size: 14px; margin: 0; font-weight: 300; white-space: pre-wrap; line-height: 1.6;">${opts.message}</p>
+          </div>
+
+          <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f0e8e4;">
+            <p style="font-size: 12px; color: #b0a49c;">Reply directly to this email to respond to the customer.</p>
+          </div>
+        </div>
+      `,
+    });
+    console.log(`[Email] Contact form notification sent for ${opts.email}`);
+  } catch (err) {
+    console.error("[Email] Failed to send contact form notification:", err);
+  }
+}

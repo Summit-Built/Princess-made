@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Heart, User, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { CartDrawer } from './CartDrawer';
 
@@ -22,6 +22,23 @@ export const Header = ({
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [location] = useLocation();
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen]);
+
   const navLinks = [
     { href: '/shop', label: 'Shop' },
     { href: '/about', label: 'About' },
@@ -36,6 +53,7 @@ export const Header = ({
       animate={{ y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
       className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/50"
+      role="banner"
     >
       {/* Top bar */}
       <div className="bg-accent/5 border-b border-accent/10 hidden md:block">
@@ -52,6 +70,7 @@ export const Header = ({
           <motion.a
             whileHover={{ scale: 1.02 }}
             className="flex items-center gap-3 cursor-pointer"
+            aria-label="Princess Made - Home"
           >
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310419663031002008/Hy2VZfwLraitLwcA3hcpuJ/Princess(1)_e208d2f4.png"
@@ -62,21 +81,23 @@ export const Header = ({
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-10">
+        <nav className="hidden md:flex items-center gap-10" aria-label="Main navigation">
           {navLinks.map((link) => (
             <Link key={link.href} href={link.href}>
               <motion.a
-                className={`text-[13px] font-light tracking-[0.15em] uppercase transition-colors cursor-pointer relative ${
+                className={`text-[13px] font-light tracking-[0.15em] uppercase transition-colors cursor-pointer relative py-1 ${
                   isActive(link.href)
                     ? 'text-accent'
                     : 'text-foreground/70 hover:text-foreground'
                 }`}
+                aria-current={isActive(link.href) ? 'page' : undefined}
               >
                 {link.label}
                 {isActive(link.href) && (
                   <motion.div
                     layoutId="nav-underline"
                     className="absolute -bottom-1 left-0 right-0 h-px bg-accent"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
               </motion.a>
@@ -92,7 +113,8 @@ export const Header = ({
               <motion.a
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-2.5 hover:bg-accent/5 rounded-full transition-colors cursor-pointer"
+                className="p-2.5 hover:bg-accent/5 rounded-full transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="My favorites"
               >
                 <Heart size={18} className="text-foreground/70" />
               </motion.a>
@@ -104,20 +126,25 @@ export const Header = ({
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsCartOpen(true)}
-            className="relative p-2.5 hover:bg-accent/5 rounded-full transition-colors"
+            className="relative p-2.5 hover:bg-accent/5 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label={`Shopping cart${cartCount > 0 ? `, ${cartCount} item${cartCount !== 1 ? 's' : ''}` : ', empty'}`}
           >
             <ShoppingBag size={18} className="text-foreground/70" />
-            {cartCount > 0 && (
-              <motion.span
-                key={cartCount}
-                initial={{ scale: 0 }}
-                animate={{ scale: [1.3, 1] }}
-                transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-accent text-accent-foreground text-[10px] font-medium rounded-full flex items-center justify-center"
-              >
-                {cartCount}
-              </motion.span>
-            )}
+            <AnimatePresence mode="wait">
+              {cartCount > 0 && (
+                <motion.span
+                  key={cartCount}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                  className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-accent text-accent-foreground text-[10px] font-medium rounded-full flex items-center justify-center pointer-events-none"
+                  aria-hidden="true"
+                >
+                  {cartCount > 99 ? '99+' : cartCount}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </motion.button>
 
           {/* User Account */}
@@ -126,7 +153,8 @@ export const Header = ({
               <motion.a
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-2.5 hover:bg-accent/5 rounded-full transition-colors cursor-pointer"
+                className="p-2.5 hover:bg-accent/5 rounded-full transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="My account"
               >
                 <User size={18} className="text-foreground/70" />
               </motion.a>
@@ -136,7 +164,7 @@ export const Header = ({
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={onLoginClick}
-              className="hidden md:inline-flex px-5 py-2 text-[13px] font-light tracking-[0.1em] uppercase border border-accent/30 text-foreground hover:bg-accent hover:text-accent-foreground transition-all"
+              className="hidden md:inline-flex px-5 py-2 text-[13px] font-light tracking-[0.1em] uppercase border border-accent/30 text-foreground hover:bg-accent hover:text-accent-foreground transition-all min-h-[44px] items-center"
               style={{ borderRadius: '2px' }}
             >
               Sign In
@@ -145,16 +173,35 @@ export const Header = ({
 
           {/* Mobile Menu Toggle */}
           <motion.button
-            whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2.5 hover:bg-accent/5 rounded-full transition-colors"
+            className="md:hidden p-2.5 hover:bg-accent/5 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMenuOpen}
           >
-            {isMenuOpen ? (
-              <X size={20} className="text-foreground" />
-            ) : (
-              <Menu size={20} className="text-foreground" />
-            )}
+            <AnimatePresence mode="wait" initial={false}>
+              {isMenuOpen ? (
+                <motion.div
+                  key="close"
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <X size={20} className="text-foreground" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="menu"
+                  initial={{ rotate: 90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: -90, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <Menu size={20} className="text-foreground" />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.button>
         </div>
       </div>
@@ -162,58 +209,104 @@ export const Header = ({
       {/* Mobile Menu */}
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.nav
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden border-t border-border/50 bg-background overflow-hidden"
-          >
-            <div className="container py-6 space-y-1">
-              {navLinks.map((link) => (
-                <Link key={link.href} href={link.href}>
-                  <motion.a
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`block py-3 text-sm font-light tracking-[0.1em] uppercase transition-colors cursor-pointer ${
-                      isActive(link.href)
-                        ? 'text-accent'
-                        : 'text-foreground/70 hover:text-foreground'
-                    }`}
-                  >
-                    {link.label}
-                  </motion.a>
-                </Link>
-              ))}
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden fixed inset-0 top-16 bg-foreground/20 backdrop-blur-sm z-40"
+              onClick={() => setIsMenuOpen(false)}
+              aria-hidden="true"
+            />
 
-              <div className="pt-4 border-t border-border/30 space-y-2">
-                {isAuthenticated ? (
-                  <>
-                    <Link href="/dashboard">
-                      <motion.a
-                        onClick={() => setIsMenuOpen(false)}
-                        className="block py-3 text-sm font-light tracking-[0.1em] uppercase text-foreground/70 hover:text-foreground cursor-pointer"
-                      >
-                        My Account
-                      </motion.a>
-                    </Link>
-                    <motion.button
-                      onClick={() => { onLogoutClick?.(); setIsMenuOpen(false); }}
-                      className="btn-outline w-full text-sm py-2.5"
+            <motion.nav
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="md:hidden absolute left-0 right-0 top-full border-t border-border/50 bg-background shadow-lg z-50"
+              aria-label="Mobile navigation"
+            >
+              <div className="container py-6 space-y-1">
+                {/* Promo bar for mobile */}
+                <p className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground/60 font-light text-center pb-4 border-b border-border/30 mb-2">
+                  Free shipping on orders over A$50
+                </p>
+
+                {navLinks.map((link, index) => (
+                  <Link key={link.href} href={link.href}>
+                    <motion.a
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`flex items-center justify-between py-3.5 text-sm font-light tracking-[0.1em] uppercase transition-colors cursor-pointer min-h-[44px] ${
+                        isActive(link.href)
+                          ? 'text-accent'
+                          : 'text-foreground/70 hover:text-foreground'
+                      }`}
+                      aria-current={isActive(link.href) ? 'page' : undefined}
                     >
-                      Sign Out
-                    </motion.button>
-                  </>
-                ) : (
-                  <motion.button
-                    onClick={() => { onLoginClick?.(); setIsMenuOpen(false); }}
-                    className="btn-primary w-full text-sm py-2.5"
-                  >
-                    Sign In
-                  </motion.button>
-                )}
+                      {link.label}
+                      {isActive(link.href) && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent" aria-hidden="true" />
+                      )}
+                    </motion.a>
+                  </Link>
+                ))}
+
+                <div className="pt-4 border-t border-border/30 space-y-2">
+                  {isAuthenticated ? (
+                    <>
+                      <Link href="/dashboard">
+                        <motion.a
+                          onClick={() => setIsMenuOpen(false)}
+                          className="flex items-center gap-3 py-3.5 text-sm font-light tracking-[0.1em] uppercase text-foreground/70 hover:text-foreground cursor-pointer min-h-[44px]"
+                        >
+                          <User size={16} />
+                          My Account
+                        </motion.a>
+                      </Link>
+                      <Link href="/dashboard">
+                        <motion.a
+                          onClick={() => setIsMenuOpen(false)}
+                          className="flex items-center gap-3 py-3.5 text-sm font-light tracking-[0.1em] uppercase text-foreground/70 hover:text-foreground cursor-pointer min-h-[44px]"
+                        >
+                          <Heart size={16} />
+                          My Favorites
+                        </motion.a>
+                      </Link>
+                      <motion.button
+                        onClick={() => { onLogoutClick?.(); setIsMenuOpen(false); }}
+                        className="btn-outline w-full text-sm py-2.5 mt-2"
+                      >
+                        Sign Out
+                      </motion.button>
+                    </>
+                  ) : (
+                    <div className="space-y-3 pt-2">
+                      <motion.button
+                        onClick={() => { onLoginClick?.(); setIsMenuOpen(false); }}
+                        className="btn-primary w-full text-sm py-3"
+                      >
+                        Sign In
+                      </motion.button>
+                      <Link href="/register">
+                        <motion.a
+                          onClick={() => setIsMenuOpen(false)}
+                          className="block text-center text-sm text-muted-foreground font-light hover:text-accent transition-colors cursor-pointer py-2 min-h-[44px] leading-[44px]"
+                        >
+                          Create an account
+                        </motion.a>
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </motion.nav>
+            </motion.nav>
+          </>
         )}
       </AnimatePresence>
 

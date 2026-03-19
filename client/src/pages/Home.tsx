@@ -7,7 +7,7 @@ import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-import { ArrowRight, Scissors, Heart, Sparkles, Instagram, Check, Loader2 } from 'lucide-react';
+import { ArrowRight, Scissors, Heart, Sparkles, Instagram, Check, Loader2, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePageMeta } from '@/lib/usePageMeta';
 
@@ -69,20 +69,20 @@ export default function Home() {
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="flex flex-col items-center text-center py-28 md:py-44 space-y-10"
+              className="flex flex-col items-center text-center py-20 sm:py-28 md:py-44 space-y-6 sm:space-y-8 md:space-y-10"
             >
               {/* Script tagline */}
               <motion.p
                 variants={itemVariants}
-                className="font-script text-2xl md:text-3xl text-accent"
+                className="font-script text-xl sm:text-2xl md:text-3xl text-accent"
               >
                 Just a girl with a dream
               </motion.p>
 
-              {/* Main heading */}
+              {/* Main heading - properly sized for mobile */}
               <motion.h1
                 variants={itemVariants}
-                className="text-5xl md:text-7xl lg:text-8xl font-serif font-light leading-[1.1] tracking-tight max-w-4xl"
+                className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-light leading-[1.1] tracking-tight max-w-4xl"
               >
                 Handcrafted
                 <br />
@@ -93,6 +93,7 @@ export default function Home() {
               <motion.div
                 variants={itemVariants}
                 className="flex items-center gap-4 w-full max-w-xs"
+                aria-hidden="true"
               >
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent to-accent/30" />
                 <Sparkles size={16} className="text-accent/50" />
@@ -102,19 +103,19 @@ export default function Home() {
               {/* Subheading */}
               <motion.p
                 variants={itemVariants}
-                className="text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl"
+                className="text-base sm:text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl px-4 sm:px-0"
               >
                 100% handmade bags, lovingly crafted one stitch at a time.
                 Each piece is unique, just like you.
               </motion.p>
 
               {/* CTA */}
-              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 pt-4">
+              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 w-full sm:w-auto px-4 sm:px-0">
                 <Link href="/shop">
                   <motion.a
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    className="inline-flex items-center gap-3 px-8 py-4 bg-accent text-accent-foreground font-light tracking-[0.15em] uppercase text-sm hover:bg-accent/90 transition-all cursor-pointer"
+                    className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-accent text-accent-foreground font-light tracking-[0.15em] uppercase text-sm hover:bg-accent/90 transition-all cursor-pointer min-h-[48px] w-full sm:w-auto"
                     style={{ borderRadius: '2px' }}
                   >
                     Shop Collection
@@ -125,7 +126,7 @@ export default function Home() {
                   <motion.a
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    className="inline-flex items-center gap-3 px-8 py-4 border border-accent/30 text-foreground font-light tracking-[0.15em] uppercase text-sm hover:border-accent/60 transition-all cursor-pointer"
+                    className="inline-flex items-center justify-center gap-3 px-8 py-4 border border-accent/30 text-foreground font-light tracking-[0.15em] uppercase text-sm hover:border-accent/60 transition-all cursor-pointer min-h-[48px] w-full sm:w-auto"
                     style={{ borderRadius: '2px' }}
                   >
                     Our Story
@@ -142,42 +143,42 @@ export default function Home() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="flex items-center justify-center gap-8 md:gap-16 text-xs tracking-[0.25em] uppercase text-muted-foreground font-light"
+            className="flex items-center justify-center gap-6 sm:gap-8 md:gap-16 text-[10px] sm:text-xs tracking-[0.2em] sm:tracking-[0.25em] uppercase text-muted-foreground font-light flex-wrap"
           >
             <span className="flex items-center gap-2">
-              <Scissors size={14} className="text-accent" />
+              <Scissors size={14} className="text-accent" aria-hidden="true" />
               100% Handmade
             </span>
-            <span className="hidden sm:flex items-center gap-2">
-              <Heart size={14} className="text-accent" />
+            <span className="flex items-center gap-2">
+              <Heart size={14} className="text-accent" aria-hidden="true" />
               Made with Love
             </span>
             <span className="flex items-center gap-2">
-              <Sparkles size={14} className="text-accent" />
+              <Sparkles size={14} className="text-accent" aria-hidden="true" />
               One of a Kind
             </span>
             <span className="hidden md:flex items-center gap-2">
-              <Instagram size={14} className="text-accent" />
+              <Instagram size={14} className="text-accent" aria-hidden="true" />
               @princessmadefashion
             </span>
           </motion.div>
         </section>
 
         {/* Featured Categories */}
-        <section className="py-24 md:py-32">
+        <section className="py-16 sm:py-24 md:py-32">
           <div className="container">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              className="text-center mb-16 space-y-4"
+              className="text-center mb-12 md:mb-16 space-y-4"
             >
               <p className="font-script text-xl text-accent">Explore</p>
-              <h2 className="text-4xl md:text-5xl font-serif font-light">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-light">
                 Our Collections
               </h2>
-              <div className="flex items-center gap-4 max-w-xs mx-auto pt-2">
+              <div className="flex items-center gap-4 max-w-xs mx-auto pt-2" aria-hidden="true">
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent to-accent/20" />
                 <div className="w-1.5 h-1.5 rounded-full bg-accent/30" />
                 <div className="flex-1 h-px bg-gradient-to-l from-transparent to-accent/20" />
@@ -189,7 +190,7 @@ export default function Home() {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8"
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8"
             >
               {[
                 {
@@ -218,10 +219,10 @@ export default function Home() {
                       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                       className="block cursor-pointer group"
                     >
-                      <div className={`bg-gradient-to-br ${category.accent} p-12 md:p-14 text-center border border-accent/10 hover:border-accent/30 transition-all duration-500 relative overflow-hidden`} style={{ borderRadius: '2px' }}>
+                      <div className={`bg-gradient-to-br ${category.accent} p-10 sm:p-12 md:p-14 text-center border border-accent/10 hover:border-accent/30 transition-all duration-500 relative overflow-hidden`} style={{ borderRadius: '2px' }}>
                         <div className="absolute inset-0 texture-linen opacity-50" />
                         <div className="relative">
-                          <h3 className="text-2xl md:text-3xl font-serif font-light mb-3 text-foreground">
+                          <h3 className="text-xl sm:text-2xl md:text-3xl font-serif font-light mb-3 text-foreground">
                             {category.title}
                           </h3>
                           <p className="text-sm text-muted-foreground font-light tracking-wide mb-6">
@@ -242,7 +243,7 @@ export default function Home() {
         </section>
 
         {/* Brand Story Section */}
-        <section className="relative py-24 md:py-32 overflow-hidden">
+        <section className="relative py-16 sm:py-24 md:py-32 overflow-hidden">
           <div className="absolute inset-0 gradient-warm" />
           <div className="absolute inset-0 texture-linen" />
 
@@ -259,13 +260,13 @@ export default function Home() {
               </motion.p>
               <motion.h2
                 variants={itemVariants}
-                className="text-4xl md:text-5xl font-serif font-light leading-tight"
+                className="text-3xl sm:text-4xl md:text-5xl font-serif font-light leading-tight"
               >
                 Every Bag Tells <span className="italic">a Story</span>
               </motion.h2>
               <motion.p
                 variants={itemVariants}
-                className="text-muted-foreground font-light leading-relaxed text-lg"
+                className="text-muted-foreground font-light leading-relaxed text-base sm:text-lg px-4 sm:px-0"
               >
                 At Princess Made, we believe in the beauty of slow fashion. Each bag is handcrafted
                 from carefully selected materials, sewn with attention to every detail. No two pieces
@@ -274,7 +275,7 @@ export default function Home() {
 
               <motion.div
                 variants={containerVariants}
-                className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8"
+                className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-8"
               >
                 {[
                   { icon: Scissors, title: 'Handcrafted', description: 'Every stitch placed with care and intention' },
@@ -283,7 +284,7 @@ export default function Home() {
                 ].map((value, index) => (
                   <motion.div key={index} variants={itemVariants} className="space-y-3">
                     <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-accent/10 border border-accent/20">
-                      <value.icon size={20} className="text-accent" />
+                      <value.icon size={20} className="text-accent" aria-hidden="true" />
                     </div>
                     <h3 className="text-lg font-serif font-light">{value.title}</h3>
                     <p className="text-muted-foreground text-sm font-light leading-relaxed">
@@ -296,52 +297,112 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Testimonial / Quote Section */}
-        <section className="py-24 md:py-32 border-y border-accent/10">
-          <div className="container max-w-3xl mx-auto text-center">
+        {/* Customer love / Social Proof Section */}
+        <section className="py-16 sm:py-24 md:py-32 border-y border-accent/10">
+          <div className="container">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              className="space-y-8"
+              className="text-center space-y-6 mb-12"
             >
-              <p className="font-script text-5xl md:text-6xl text-accent/60 leading-none">"</p>
-              <p className="text-2xl md:text-3xl font-serif font-light italic leading-relaxed text-foreground/80">
-                Fashion is about something that comes from within you.
-              </p>
-              <div className="flex items-center gap-4 max-w-xs mx-auto">
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-accent/20" />
-                <div className="w-1.5 h-1.5 rounded-full bg-accent/30" />
-                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-accent/20" />
-              </div>
+              <p className="font-script text-xl text-accent">Customer Love</p>
+              <h2 className="text-3xl sm:text-4xl font-serif font-light">
+                What Our Customers Say
+              </h2>
+            </motion.div>
+
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+            >
+              {[
+                {
+                  quote: 'Absolutely love my laptop case! The quilting is so soft and it fits my MacBook perfectly. You can really tell it was made with care.',
+                  name: 'Sarah',
+                  location: 'Sydney',
+                  product: 'Quilted Laptop Case',
+                },
+                {
+                  quote: 'I bought a pouch as a gift for my sister and she was obsessed. The faux fur is SO cute. Already ordering one for myself!',
+                  name: 'Jess',
+                  location: 'Melbourne',
+                  product: 'Faux Fur Pouch',
+                },
+                {
+                  quote: 'The attention to detail is incredible for the price. My pencil case gets so many compliments at uni. Supporting small business feels great too.',
+                  name: 'Mia',
+                  location: 'Brisbane',
+                  product: 'Pencil Case',
+                },
+              ].map((testimonial, index) => (
+                <motion.div
+                  key={index}
+                  variants={itemVariants}
+                  className="p-6 md:p-8 bg-card border border-border/40 text-left space-y-4 relative"
+                  style={{ borderRadius: '2px' }}
+                >
+                  {/* Stars */}
+                  <div className="flex gap-0.5" aria-label="5 out of 5 stars">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={14} className="fill-accent/70 text-accent/70" />
+                    ))}
+                  </div>
+
+                  <p className="text-sm text-foreground/80 font-light leading-relaxed italic">
+                    "{testimonial.quote}"
+                  </p>
+
+                  <div className="pt-2 border-t border-border/30">
+                    <p className="text-sm font-serif font-light text-foreground">
+                      {testimonial.name}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground/60 font-light">
+                      {testimonial.location} · {testimonial.product}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
             </motion.div>
           </div>
         </section>
 
         {/* Newsletter */}
-        <section className="py-24 md:py-32 relative">
+        <section className="py-16 sm:py-24 md:py-32 relative overflow-hidden">
           <div className="absolute inset-0 gradient-rose-subtle" />
+          <div className="absolute inset-0 texture-linen opacity-20" />
+
           <div className="container max-w-xl mx-auto text-center relative">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              className="space-y-8"
+              className="space-y-6 sm:space-y-8 p-6 sm:p-10 md:p-12 bg-card/50 backdrop-blur-sm border border-border/30"
+              style={{ borderRadius: '2px' }}
             >
               <p className="font-script text-xl text-accent">Stay in Touch</p>
-              <h2 className="text-4xl md:text-5xl font-serif font-light">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-light">
                 Join the Family
               </h2>
-              <p className="text-muted-foreground font-light">
+              <p className="text-muted-foreground font-light text-sm sm:text-base">
                 Be the first to know about new drops, exclusive offers, and behind-the-scenes peeks.
               </p>
               {newsletterSubscribed ? (
-                <div className="flex items-center justify-center gap-2 text-accent font-light">
-                  <Check size={18} />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex items-center justify-center gap-2 text-accent font-light py-4"
+                >
+                  <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+                    <Check size={16} className="text-accent" />
+                  </div>
                   <span>You're in! Thanks for subscribing.</span>
-                </div>
+                </motion.div>
               ) : (
                 <form
                   onSubmit={(e) => {
@@ -357,20 +418,21 @@ export default function Home() {
                     onChange={(e) => setNewsletterEmail(e.target.value)}
                     required
                     className="input-elegant flex-1"
+                    aria-label="Email address for newsletter"
                   />
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={subscribeMutation.isPending}
-                    className="btn-primary px-8 flex items-center justify-center gap-2"
+                    className="btn-primary px-8 flex items-center justify-center gap-2 min-h-[48px]"
                   >
                     {subscribeMutation.isPending && <Loader2 size={14} className="animate-spin" />}
                     Subscribe
                   </motion.button>
                 </form>
               )}
-              <p className="text-xs text-muted-foreground/60 font-light">
+              <p className="text-xs text-muted-foreground/50 font-light">
                 No spam, ever. Unsubscribe anytime.
               </p>
             </motion.div>
@@ -378,7 +440,7 @@ export default function Home() {
         </section>
 
         {/* Instagram CTA */}
-        <section className="py-16 border-t border-accent/10">
+        <section className="py-12 sm:py-16 border-t border-accent/10">
           <div className="container text-center">
             <motion.div
               initial={{ opacity: 0 }}
@@ -391,10 +453,11 @@ export default function Home() {
                 href="https://www.instagram.com/princessmadefashion/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 text-foreground hover:text-accent transition-colors group"
+                className="inline-flex items-center gap-3 text-foreground hover:text-accent transition-colors group min-h-[44px]"
+                aria-label="Follow @princessmadefashion on Instagram"
               >
                 <Instagram size={20} />
-                <span className="text-lg font-light tracking-wide group-hover:tracking-wider transition-all">
+                <span className="text-base sm:text-lg font-light tracking-wide group-hover:tracking-wider transition-all">
                   @princessmadefashion
                 </span>
               </a>

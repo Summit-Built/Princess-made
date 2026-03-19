@@ -1,16 +1,49 @@
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { PageTransition } from '@/components/PageTransition';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { Instagram, Mail, Clock, Sparkles, MessageCircle } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
+import { Instagram, Mail, Clock, MessageCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { usePageMeta } from '@/lib/usePageMeta';
+import { toast } from 'sonner';
 
 export default function Contact() {
   usePageMeta({ title: 'Contact & FAQ', description: 'Get in touch with Princess Made. FAQ about shipping, returns, custom orders and more.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [website, setWebsite] = useState(''); // honeypot
+  const [submitted, setSubmitted] = useState(false);
+
+  const { mutate: sendContact, isPending } = trpc.contact.send.useMutation({
+    onSuccess: () => {
+      setSubmitted(true);
+      setName('');
+      setEmail('');
+      setSubject('');
+      setMessage('');
+      toast.success('Message sent! We\'ll get back to you soon.');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to send message. Please try again.');
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !email.trim() || !subject.trim() || !message.trim()) {
+      toast.error('Please fill in all fields.');
+      return;
+    }
+    sendContact({ name: name.trim(), email: email.trim(), subject: subject.trim(), message: message.trim(), website });
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -133,6 +166,133 @@ export default function Contact() {
                   please be patient during busy periods — we promise we'll get back to you!
                 </p>
               </motion.div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Contact Form */}
+        <section className="relative py-16 md:py-24 overflow-hidden">
+          <div className="absolute inset-0 gradient-blush opacity-20" />
+          <div className="absolute inset-0 texture-linen" />
+          <div className="container relative max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="space-y-10"
+            >
+              <div className="text-center space-y-4">
+                <p className="font-script text-xl text-accent">Send a Message</p>
+                <h2 className="text-4xl font-serif font-light">Contact Form</h2>
+              </div>
+
+              {submitted ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-12 space-y-4"
+                >
+                  <div className="w-16 h-16 mx-auto flex items-center justify-center rounded-full bg-accent/10 border border-accent/20">
+                    <CheckCircle2 size={28} className="text-accent" />
+                  </div>
+                  <h3 className="text-2xl font-serif font-light">Message Sent!</h3>
+                  <p className="text-muted-foreground font-light max-w-md mx-auto">
+                    Thank you for reaching out. We'll get back to you as soon as possible.
+                  </p>
+                  <button
+                    onClick={() => setSubmitted(false)}
+                    className="text-accent text-sm font-light underline underline-offset-4 hover:text-accent/80 transition-colors"
+                  >
+                    Send another message
+                  </button>
+                </motion.div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Honeypot - hidden from real users */}
+                  <div className="absolute" style={{ left: '-9999px', position: 'absolute' }} aria-hidden="true">
+                    <label htmlFor="website">Website</label>
+                    <input
+                      type="text"
+                      id="website"
+                      name="website"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label htmlFor="contact-name" className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light">
+                        Name
+                      </label>
+                      <input
+                        id="contact-name"
+                        type="text"
+                        placeholder="Your name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        className="input-elegant"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="contact-email" className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light">
+                        Email
+                      </label>
+                      <input
+                        id="contact-email"
+                        type="email"
+                        placeholder="your@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="input-elegant"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="contact-subject" className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light">
+                      Subject
+                    </label>
+                    <input
+                      id="contact-subject"
+                      type="text"
+                      placeholder="What's this about?"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      required
+                      className="input-elegant"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="contact-message" className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light">
+                      Message
+                    </label>
+                    <textarea
+                      id="contact-message"
+                      placeholder="Tell us what's on your mind..."
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      required
+                      rows={6}
+                      className="input-elegant resize-none"
+                    />
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    type="submit"
+                    disabled={isPending}
+                    className="btn-primary w-full py-4 flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isPending && <Loader2 size={16} className="animate-spin" />}
+                    {isPending ? 'Sending...' : 'Send Message'}
+                  </motion.button>
+                </form>
+              )}
             </motion.div>
           </div>
         </section>

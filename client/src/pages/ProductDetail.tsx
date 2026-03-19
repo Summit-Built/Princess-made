@@ -34,8 +34,10 @@ export default function ProductDetail() {
     description: product?.description || 'Handmade with love by Princess Made',
   });
 
+  const utils = trpc.useUtils();
+
   const { data: isFav } = trpc.favorites.isFavorited.useQuery(productId || '', {
-    enabled: isAuthenticated && !!productId,
+    enabled: !!isAuthenticated && !!productId,
   });
 
   // Fetch related products (same category)
@@ -44,8 +46,20 @@ export default function ProductDetail() {
     { enabled: !!product?.category }
   );
 
-  const toggleFavoriteMutation = trpc.favorites.add.useMutation();
-  const removeFavoriteMutation = trpc.favorites.remove.useMutation();
+  const toggleFavoriteMutation = trpc.favorites.add.useMutation({
+    onSuccess: () => {
+      utils.favorites.isFavorited.invalidate();
+      utils.favorites.list.invalidate();
+      toast.success('Added to favorites');
+    },
+  });
+  const removeFavoriteMutation = trpc.favorites.remove.useMutation({
+    onSuccess: () => {
+      utils.favorites.isFavorited.invalidate();
+      utils.favorites.list.invalidate();
+      toast.success('Removed from favorites');
+    },
+  });
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -66,7 +80,12 @@ export default function ProductDetail() {
 
   const handleToggleFavorite = () => {
     if (!isAuthenticated) {
-      window.location.href = '/login';
+      toast('Sign in to save favorites', {
+        action: {
+          label: 'Sign In',
+          onClick: () => { window.location.href = '/login'; },
+        },
+      });
       return;
     }
 

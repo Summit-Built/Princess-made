@@ -83,7 +83,11 @@ export default function Dashboard() {
 
   // Favorites mutation
   const removeFavorite = trpc.favorites.remove.useMutation({
-    onSuccess: () => utils.favorites.list.invalidate(),
+    onSuccess: () => {
+      utils.favorites.list.invalidate();
+      utils.favorites.isFavorited.invalidate();
+      toast.success('Removed from favorites');
+    },
   });
 
   // Profile update
@@ -581,12 +585,20 @@ function OrderCard({ order, isExpanded, onToggle }: { order: any; isExpanded: bo
     enabled: isExpanded,
   });
 
-  const statusColors: Record<string, string> = {
-    pending: 'bg-amber-100 text-amber-700',
-    completed: 'bg-green-100 text-green-700',
-    failed: 'bg-red-100 text-red-700',
-    cancelled: 'bg-gray-100 text-gray-500',
+  const orderNumber = `PM-${1000 + order.id}`;
+
+  const statusConfig: Record<string, { bg: string; dot: string; label: string }> = {
+    pending: { bg: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-400', label: 'Pending' },
+    completed: { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-400', label: 'Completed' },
+    failed: { bg: 'bg-red-50 text-red-700 border-red-200', dot: 'bg-red-400', label: 'Failed' },
+    cancelled: { bg: 'bg-gray-50 text-gray-500 border-gray-200', dot: 'bg-gray-400', label: 'Cancelled' },
+    refunded: { bg: 'bg-purple-50 text-purple-700 border-purple-200', dot: 'bg-purple-400', label: 'Refunded' },
   };
+
+  const status = statusConfig[order.status] || statusConfig.cancelled;
+  const auspostUrl = order.trackingNumber
+    ? `https://auspost.com.au/mypost/track/#/details/${encodeURIComponent(order.trackingNumber)}`
+    : null;
 
   return (
     <motion.div
@@ -599,20 +611,21 @@ function OrderCard({ order, isExpanded, onToggle }: { order: any; isExpanded: bo
       >
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <p className="font-serif font-light text-sm">Order #{order.id}</p>
-            <span className={`text-[9px] px-2 py-0.5 font-light tracking-wider uppercase ${statusColors[order.status] || 'bg-gray-100 text-gray-500'}`} style={{ borderRadius: '2px' }}>
-              {order.status}
+            <p className="font-serif font-light text-sm">{orderNumber}</p>
+            <span className={`inline-flex items-center gap-1.5 text-[9px] px-2.5 py-1 font-light tracking-wider uppercase border ${status.bg}`} style={{ borderRadius: '10px' }}>
+              <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+              {status.label}
             </span>
           </div>
           <p className="text-xs text-muted-foreground/60 font-light">
-            {new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            {new Date(order.createdAt).toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <p className="text-lg font-serif font-light text-accent">
             A${(order.totalAmount / 100).toFixed(2)}
           </p>
-          <ChevronDown size={16} className={`text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+          <ChevronDown size={16} className={`text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
         </div>
       </button>
 
@@ -625,33 +638,54 @@ function OrderCard({ order, isExpanded, onToggle }: { order: any; isExpanded: bo
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-5 pb-5 border-t border-border/20 pt-4 space-y-3">
+            <div className="px-5 pb-5 border-t border-border/20 pt-4 space-y-4">
+              {/* Tracking info with AusPost link */}
               {order.trackingNumber && (
-                <div className="flex items-center gap-2 text-xs font-light">
-                  <Package size={12} className="text-accent" />
-                  <span className="text-muted-foreground">Tracking:</span>
-                  <span>{order.trackingNumber}</span>
-                </div>
-              )}
-              {order.shippingStatus && (
-                <div className="flex items-center gap-2 text-xs font-light">
-                  <span className="text-muted-foreground">Shipping:</span>
-                  <span className="capitalize">{order.shippingStatus}</span>
+                <div className="p-3 bg-cream/50 border border-border/20 space-y-2" style={{ borderRadius: '2px' }}>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50 font-light">
+                        Australia Post Tracking
+                      </p>
+                      <p className="font-mono text-sm">{order.trackingNumber}</p>
+                    </div>
+                    {auspostUrl && (
+                      <a
+                        href={auspostUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-primary text-[10px] px-3 py-1.5 inline-flex items-center gap-1.5"
+                      >
+                        Track on AusPost
+                        <ChevronRight size={10} />
+                      </a>
+                    )}
+                  </div>
+                  {order.shippingStatus && (
+                    <div className="flex items-center gap-2 text-xs font-light pt-1 border-t border-border/10">
+                      <Package size={12} className="text-accent" />
+                      <span className="text-muted-foreground">Status:</span>
+                      <span className="capitalize font-medium">{order.shippingStatus.replace('_', ' ')}</span>
+                    </div>
+                  )}
                 </div>
               )}
 
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50 font-light pt-2">Items</p>
-              {orderItems ? (
-                <div className="space-y-2">
-                  {orderItems.map((item: any) => (
-                    <OrderItemRow key={item.id} item={item} />
-                  ))}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Loader2 size={12} className="animate-spin" /> Loading...
-                </div>
-              )}
+              {/* Order items */}
+              <div className="space-y-2">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50 font-light">Items</p>
+                {orderItems ? (
+                  <div className="space-y-2">
+                    {orderItems.map((item: any) => (
+                      <OrderItemRow key={item.id} item={item} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Loader2 size={12} className="animate-spin" /> Loading items...
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

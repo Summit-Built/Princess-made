@@ -8,7 +8,37 @@ import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { usePageMeta } from '@/lib/usePageMeta';
-import { Check, Package, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
+import { Check, Package, ArrowRight, Sparkles, Loader2, MapPin } from 'lucide-react';
+
+function OrderItemDisplay({ item }: { item: { productId: string; quantity: number; priceAtTime: number } }) {
+  const { data: product } = trpc.products.getById.useQuery(item.productId, {
+    enabled: !!item.productId,
+  });
+
+  return (
+    <div className="flex items-center gap-3 py-3">
+      {product?.imageUrl ? (
+        <img
+          src={product.imageUrl}
+          alt={product?.name || 'Product'}
+          className="w-14 h-14 object-cover flex-shrink-0"
+          style={{ borderRadius: '2px' }}
+        />
+      ) : (
+        <div className="w-14 h-14 bg-cream flex-shrink-0 flex items-center justify-center" style={{ borderRadius: '2px' }}>
+          <Package size={16} className="text-muted-foreground/20" />
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-light truncate">{product?.name || 'Loading...'}</p>
+        <p className="text-xs text-muted-foreground/60 font-light">Qty: {item.quantity}</p>
+      </div>
+      <p className="text-sm font-light text-accent whitespace-nowrap">
+        A${((item.priceAtTime * item.quantity) / 100).toFixed(2)}
+      </p>
+    </div>
+  );
+}
 
 export default function OrderConfirmation() {
   usePageMeta({ title: 'Order Confirmed', description: 'Your Princess Made order has been confirmed.' });
@@ -19,7 +49,6 @@ export default function OrderConfirmation() {
   const searchString = useSearch();
   const sessionId = new URLSearchParams(searchString).get('session_id');
 
-  // Use the public route that works for both guests and auth users
   const { data: order } = trpc.orders.getBySessionId.useQuery(sessionId || '', {
     enabled: !!sessionId,
   });
@@ -53,8 +82,8 @@ export default function OrderConfirmation() {
                 transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
                 className="flex justify-center"
               >
-                <div className="w-20 h-20 bg-sage/10 rounded-full flex items-center justify-center border border-sage/20">
-                  <Check size={36} className="text-sage" />
+                <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center border border-emerald-200">
+                  <Check size={36} className="text-emerald-600" />
                 </div>
               </motion.div>
 
@@ -70,66 +99,111 @@ export default function OrderConfirmation() {
                   Order Confirmed
                 </h1>
                 <p className="text-muted-foreground font-light">
-                  Your handmade treasures are on their way
+                  Your handmade treasures are being prepared with care
                 </p>
               </motion.div>
 
-              {/* Order Details */}
+              {/* Order Details Card */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-cream/50 border border-border/30 p-8 space-y-5 text-left"
+                className="bg-card border border-border/30 overflow-hidden text-left"
                 style={{ borderRadius: '2px' }}
               >
-                <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light">
-                    Order Number
-                  </p>
-                  <p className="font-serif font-light">
-                    {order ? order.orderNumber : (
-                      <span className="inline-flex items-center gap-2 text-muted-foreground/60">
-                        <Loader2 size={14} className="animate-spin" /> Loading...
-                      </span>
+                {/* Order header */}
+                <div className="p-6 bg-cream/30 border-b border-border/20">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light">
+                        Order Number
+                      </p>
+                      <p className="font-serif font-light text-lg">
+                        {order ? order.orderNumber : (
+                          <span className="inline-flex items-center gap-2 text-muted-foreground/60 text-sm">
+                            <Loader2 size={14} className="animate-spin" /> Loading...
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    {order && (
+                      <div className="text-right">
+                        <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light">
+                          Total
+                        </p>
+                        <p className="text-xl font-serif font-light text-accent">
+                          A${(order.totalAmount / 100).toFixed(2)}
+                        </p>
+                      </div>
                     )}
-                  </p>
+                  </div>
                 </div>
 
-                {order && (
-                  <div className="border-t border-border/20 pt-4 flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground/60 font-light">Total</span>
-                    <span className="text-lg font-serif font-light text-accent">
-                      A${(order.totalAmount / 100).toFixed(2)}
-                    </span>
+                {/* Order items */}
+                {order && order.items && order.items.length > 0 && (
+                  <div className="px-6 py-4 border-b border-border/20">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light mb-2">
+                      Items Ordered
+                    </p>
+                    <div className="divide-y divide-border/10">
+                      {order.items.map((item: any) => (
+                        <OrderItemDisplay key={item.id} item={item} />
+                      ))}
+                    </div>
                   </div>
                 )}
 
-                <div className="border-t border-border/20 pt-4 flex items-start gap-3">
-                  <Package size={18} className="text-accent mt-0.5 flex-shrink-0" />
-                  <p className="text-sm font-light text-muted-foreground leading-relaxed">
-                    We're preparing your order with care. You'll receive a tracking number via email shortly.
-                  </p>
+                {/* Shipping address */}
+                {order?.shippingAddress && (
+                  <div className="px-6 py-4 border-b border-border/20">
+                    <div className="flex items-start gap-3">
+                      <MapPin size={16} className="text-accent mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light mb-1">
+                          Shipping To
+                        </p>
+                        <p className="text-sm font-light">
+                          {order.shippingAddress.street}
+                        </p>
+                        <p className="text-sm font-light text-muted-foreground">
+                          {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* What happens next */}
+                <div className="px-6 py-4 border-b border-border/20">
+                  <div className="flex items-start gap-3">
+                    <Package size={16} className="text-accent mt-0.5 flex-shrink-0" />
+                    <p className="text-sm font-light text-muted-foreground leading-relaxed">
+                      We're preparing your order with care. You'll receive a tracking number via email once shipped.
+                      Estimated delivery: 3-7 business days.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="border-t border-border/20 pt-4 space-y-2">
-                  <p className="text-xs text-muted-foreground/60 font-light">
+                {/* Confirmation email info */}
+                <div className="px-6 py-4">
+                  <p className="text-xs text-muted-foreground/60 font-light mb-2">
                     A confirmation email has been sent with:
                   </p>
-                  <ul className="text-xs font-light space-y-1 text-muted-foreground">
+                  <ul className="text-xs font-light space-y-1.5 text-muted-foreground">
                     <li className="flex items-center gap-2">
-                      <Sparkles size={10} className="text-accent" /> Order details
+                      <Sparkles size={10} className="text-accent flex-shrink-0" /> Order details and receipt
                     </li>
                     <li className="flex items-center gap-2">
-                      <Sparkles size={10} className="text-accent" /> Shipping information
+                      <Sparkles size={10} className="text-accent flex-shrink-0" /> Shipping updates when dispatched
                     </li>
                     <li className="flex items-center gap-2">
-                      <Sparkles size={10} className="text-accent" /> Tracking updates
+                      <Sparkles size={10} className="text-accent flex-shrink-0" /> Tracking number via Australia Post
                     </li>
                   </ul>
                 </div>
               </motion.div>
 
-              {/* What's Next */}
+              {/* Progress Steps */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -137,13 +211,17 @@ export default function OrderConfirmation() {
               >
                 <div className="grid grid-cols-3 gap-6 text-center">
                   {[
-                    { num: '1', title: 'Confirmed', desc: 'Check your email' },
-                    { num: '2', title: 'Crafting', desc: 'We prepare your order' },
-                    { num: '3', title: 'Delivered', desc: 'To your doorstep' },
+                    { num: '1', title: 'Confirmed', desc: 'Check your email', active: true },
+                    { num: '2', title: 'Crafting', desc: 'We prepare your order', active: false },
+                    { num: '3', title: 'Delivered', desc: 'To your doorstep', active: false },
                   ].map((step) => (
                     <div key={step.num} className="space-y-2">
-                      <div className="w-8 h-8 mx-auto bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xs font-light">
-                        {step.num}
+                      <div className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-xs font-light ${
+                        step.active
+                          ? 'bg-accent text-accent-foreground'
+                          : 'bg-cream text-muted-foreground/40 border border-border/30'
+                      }`}>
+                        {step.active ? <Check size={14} /> : step.num}
                       </div>
                       <p className="font-serif font-light text-sm">{step.title}</p>
                       <p className="text-[11px] text-muted-foreground/60 font-light">{step.desc}</p>

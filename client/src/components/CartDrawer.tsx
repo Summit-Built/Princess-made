@@ -1,7 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingBag, Trash2, Sparkles } from 'lucide-react';
+import { X, ShoppingBag, Trash2, Sparkles, Truck } from 'lucide-react';
 import { Link } from 'wouter';
 import { useCartStore } from '@/stores/cartStore';
+
+const FREE_SHIPPING_THRESHOLD = 5000; // A$50.00 in cents
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -16,6 +18,8 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
 
   const totalPrice = getTotalPrice();
   const totalPriceInDollars = (totalPrice / 100).toFixed(2);
+  const amountUntilFreeShipping = FREE_SHIPPING_THRESHOLD - totalPrice;
+  const hasFreeShipping = totalPrice >= FREE_SHIPPING_THRESHOLD;
 
   return (
     <AnimatePresence>
@@ -43,6 +47,11 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
               <div className="flex items-center gap-3">
                 <ShoppingBag size={20} className="text-accent" />
                 <h2 className="text-xl font-serif font-light">Your Cart</h2>
+                {items.length > 0 && (
+                  <span className="text-xs text-muted-foreground/60 font-light">
+                    ({items.reduce((sum, i) => sum + i.quantity, 0)} items)
+                  </span>
+                )}
               </div>
               <motion.button
                 whileHover={{ scale: 1.08 }}
@@ -60,100 +69,148 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="flex flex-col items-center justify-center h-full text-center space-y-4"
+                  className="flex flex-col items-center justify-center h-full text-center space-y-5"
                 >
-                  <div className="w-16 h-16 flex items-center justify-center rounded-full bg-cream border border-border/30">
-                    <ShoppingBag size={24} className="text-muted-foreground/40" />
+                  <div className="w-20 h-20 flex items-center justify-center rounded-full bg-cream border border-border/30">
+                    <ShoppingBag size={28} className="text-muted-foreground/30" />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <p className="text-foreground font-serif font-light text-lg">Your cart is empty</p>
-                    <p className="text-sm text-muted-foreground/60 mt-1 font-light">
-                      Discover our handcrafted collection
+                    <p className="text-sm text-muted-foreground/60 font-light max-w-[240px]">
+                      Discover our handcrafted collection of unique, made-with-love pieces
                     </p>
                   </div>
                   <Link href="/shop">
                     <motion.a
                       whileHover={{ scale: 1.02 }}
                       onClick={onClose}
-                      className="btn-primary text-sm cursor-pointer"
+                      className="btn-primary text-sm cursor-pointer inline-flex items-center gap-2"
                     >
-                      Browse Collection
+                      <Sparkles size={14} />
+                      Start Shopping
                     </motion.a>
                   </Link>
                 </motion.div>
               ) : (
-                items.map((item, index) => (
-                  <motion.div
-                    key={item.productId}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="flex gap-4 p-4 border border-border/30 bg-card"
-                    style={{ borderRadius: '2px' }}
-                  >
-                    {/* Image */}
-                    {item.imageUrl && (
-                      <img
-                        src={item.imageUrl}
-                        alt={item.name}
-                        className="w-20 h-20 object-cover flex-shrink-0"
-                        style={{ borderRadius: '2px' }}
-                      />
-                    )}
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-serif font-light text-sm line-clamp-2 leading-snug">
-                        {item.name}
-                      </h3>
-                      <p className="text-sm text-accent mt-1 font-light">
-                        A${(item.price / 100).toFixed(2)}
-                      </p>
-
-                      {/* Quantity Controls */}
-                      <div className="flex items-center gap-0 mt-3 border border-border/30 w-fit" style={{ borderRadius: '2px' }}>
-                        <motion.button
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() =>
-                            updateQuantity(item.productId, Math.max(1, item.quantity - 1))
-                          }
-                          className="px-2.5 py-1 text-sm hover:bg-cream transition-colors"
-                        >
-                          −
-                        </motion.button>
-                        <span className="px-3 py-1 text-sm text-center font-light border-x border-border/30">
-                          {item.quantity}
-                        </span>
-                        <motion.button
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          className="px-2.5 py-1 text-sm hover:bg-cream transition-colors"
-                        >
-                          +
-                        </motion.button>
-                      </div>
-                    </div>
-
-                    {/* Remove */}
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => removeItem(item.productId)}
-                      className="p-1.5 self-start hover:bg-destructive/5 transition-colors text-muted-foreground/40 hover:text-destructive"
+                <AnimatePresence mode="popLayout">
+                  {items.map((item, index) => (
+                    <motion.div
+                      key={item.productId}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: 80, transition: { duration: 0.2 } }}
+                      transition={{ delay: index * 0.03 }}
+                      className="flex gap-4 p-4 border border-border/30 bg-card"
                       style={{ borderRadius: '2px' }}
                     >
-                      <Trash2 size={14} />
-                    </motion.button>
-                  </motion.div>
-                ))
+                      {/* Image */}
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          className="w-20 h-20 object-cover flex-shrink-0"
+                          style={{ borderRadius: '2px' }}
+                        />
+                      ) : (
+                        <div
+                          className="w-20 h-20 flex-shrink-0 bg-cream flex items-center justify-center"
+                          style={{ borderRadius: '2px' }}
+                        >
+                          <ShoppingBag size={20} className="text-muted-foreground/20" />
+                        </div>
+                      )}
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-serif font-light text-sm line-clamp-2 leading-snug">
+                          {item.name}
+                        </h3>
+                        <p className="text-sm text-accent mt-1 font-light">
+                          A${(item.price / 100).toFixed(2)}
+                        </p>
+
+                        {/* Quantity Controls */}
+                        <div className="flex items-center gap-0 mt-3 border border-border/30 w-fit" style={{ borderRadius: '2px' }}>
+                          <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() =>
+                              updateQuantity(item.productId, Math.max(1, item.quantity - 1))
+                            }
+                            className="px-2.5 py-1 text-sm hover:bg-cream transition-colors"
+                          >
+                            −
+                          </motion.button>
+                          <motion.span
+                            key={item.quantity}
+                            initial={{ scale: 1.2, color: 'var(--accent)' }}
+                            animate={{ scale: 1, color: 'var(--foreground)' }}
+                            transition={{ duration: 0.2 }}
+                            className="px-3 py-1 text-sm text-center font-light border-x border-border/30 min-w-[36px]"
+                          >
+                            {item.quantity}
+                          </motion.span>
+                          <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                            className="px-2.5 py-1 text-sm hover:bg-cream transition-colors"
+                          >
+                            +
+                          </motion.button>
+                        </div>
+                      </div>
+
+                      {/* Remove */}
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => removeItem(item.productId)}
+                        className="p-1.5 self-start hover:bg-destructive/5 transition-colors text-muted-foreground/40 hover:text-destructive"
+                        style={{ borderRadius: '2px' }}
+                      >
+                        <Trash2 size={14} />
+                      </motion.button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               )}
             </div>
 
             {/* Footer */}
             {items.length > 0 && (
-              <div className="border-t border-border/50 p-6 space-y-5">
+              <div className="border-t border-border/50 p-6 space-y-4">
+                {/* Free shipping progress */}
+                {hasFreeShipping ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700"
+                    style={{ borderRadius: '2px' }}
+                  >
+                    <Truck size={16} className="flex-shrink-0" />
+                    <p className="text-xs font-light">Free shipping on this order!</p>
+                  </motion.div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs font-light text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Truck size={12} />
+                        A${(amountUntilFreeShipping / 100).toFixed(2)} away from free shipping
+                      </span>
+                    </div>
+                    <div className="w-full h-1.5 bg-cream rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-accent rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, (totalPrice / FREE_SHIPPING_THRESHOLD) * 100)}%` }}
+                        transition={{ duration: 0.5, ease: 'easeOut' }}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Subtotal */}
-                <div className="flex items-baseline justify-between">
+                <div className="flex items-baseline justify-between pt-2">
                   <span className="text-sm font-light text-muted-foreground uppercase tracking-[0.1em]">Subtotal</span>
                   <span className="text-2xl font-serif font-light text-accent">
                     A${totalPriceInDollars}
@@ -162,7 +219,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
 
                 <p className="text-xs text-muted-foreground/50 font-light flex items-center gap-1.5">
                   <Sparkles size={12} />
-                  Shipping calculated at checkout
+                  {hasFreeShipping ? 'Free standard shipping included' : 'Shipping calculated at checkout'}
                 </p>
 
                 {/* Checkout */}

@@ -17,6 +17,8 @@ import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
 import ResetPassword from "./pages/ResetPassword";
 import TrackOrder from "./pages/TrackOrder";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 
 function Router() {
   return (
@@ -36,6 +38,8 @@ function Router() {
       <Route path={"/returns"} component={Contact} />
       <Route path={"/admin"} component={Admin} />
       <Route path={"/track-order"} component={TrackOrder} />
+      <Route path={"/privacy"} component={Privacy} />
+      <Route path={"/terms"} component={Terms} />
       <Route path={"/reset-password"} component={ResetPassword} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

@@ -61,7 +61,7 @@ sqlite.exec(`
     city TEXT NOT NULL,
     state TEXT NOT NULL,
     postalCode TEXT NOT NULL,
-    country TEXT NOT NULL DEFAULT 'US',
+    country TEXT NOT NULL DEFAULT 'AU',
     isDefault INTEGER NOT NULL DEFAULT 0,
     createdAt INTEGER NOT NULL DEFAULT (unixepoch()),
     updatedAt INTEGER NOT NULL DEFAULT (unixepoch())
@@ -103,6 +103,15 @@ sqlite.exec(`
   CREATE TABLE IF NOT EXISTS newsletter_subscribers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
+    createdAt INTEGER NOT NULL DEFAULT (unixepoch())
+  );
+
+  CREATE TABLE IF NOT EXISTS contact_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    message TEXT NOT NULL,
     createdAt INTEGER NOT NULL DEFAULT (unixepoch())
   );
 
@@ -253,6 +262,26 @@ export async function updateOrderStatusById(orderId: number, status: string) {
     .set({ status: status as any, updatedAt: new Date() })
     .where(eq(schema.orders.id, orderId))
     .run();
+}
+
+export async function updateOrderPaymentIntent(stripeSessionId: string, paymentIntentId: string) {
+  db.update(schema.orders)
+    .set({ stripePaymentIntentId: paymentIntentId, updatedAt: new Date() })
+    .where(eq(schema.orders.stripeSessionId, stripeSessionId))
+    .run();
+}
+
+export async function updateOrderStatusByPaymentIntent(paymentIntentId: string, status: string) {
+  db.update(schema.orders)
+    .set({ status: status as any, updatedAt: new Date() })
+    .where(eq(schema.orders.stripePaymentIntentId, paymentIntentId))
+    .run();
+}
+
+export async function getOrderBySessionId(stripeSessionId: string) {
+  return db.select().from(schema.orders)
+    .where(eq(schema.orders.stripeSessionId, stripeSessionId))
+    .get() ?? null;
 }
 
 // ============ ADDRESSES ============
@@ -413,6 +442,23 @@ export async function getAllUsers() {
     .all();
 }
 
+// ============ CONTACT MESSAGES ============
+
+export async function insertContactMessage(data: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) {
+  return db.insert(schema.contactMessages).values({
+    name: data.name,
+    email: data.email,
+    subject: data.subject,
+    message: data.message,
+    createdAt: new Date(),
+  }).returning().get();
+}
+
 export async function getOrderWithUser(orderId: number) {
   const order = db.select().from(schema.orders).where(eq(schema.orders.id, orderId)).get();
   if (!order) return null;
@@ -420,5 +466,98 @@ export async function getOrderWithUser(orderId: number) {
   if (order.userId) {
     user = db.select({ email: schema.users.email, name: schema.users.name }).from(schema.users).where(eq(schema.users.id, order.userId)).get() ?? null;
   }
-  return { ...order, user };
+  let shippingAddress = null;
+  if (order.shippingAddressId) {
+    shippingAddress = db.select().from(schema.addresses).where(eq(schema.addresses.id, order.shippingAddressId)).get() ?? null;
+  }
+  return { ...order, user, shippingAddress };
+}
+
+// ============ ADMIN STATS ============
+
+export async function getAdminStats() {
+  const totalOrders = db.select({ count: sql<number>`count(*)` }).from(schema.orders).get();
+  const totalRevenue = db.select({ total: sql<number>`coalesce(sum(${schema.orders.totalAmount}), 0)` }).from(schema.orders).get();
+  const totalUsers = db.select({ count: sql<number>`count(*)` }).from(schema.users).get();
+  const totalSubscribers = db.select({ count: sql<number>`count(*)` }).from(schema.newsletterSubscribers).get();
+
+  const ordersByStatus = db.select({
+    status: schema.orders.status,
+    count: sql<number>`count(*)`,
+  }).from(schema.orders).groupBy(schema.orders.status).all();
+
+  const recentOrders = db.select().from(schema.orders)
+    .orderBy(desc(schema.orders.createdAt))
+    .limit(5)
+    .all();
+
+  const enrichedRecent = await Promise.all(
+    recentOrders.map(async (order) => {
+      let user = null;
+      if (order.userId) {
+        user = db.select({ email: schema.users.email, name: schema.users.name })
+          .from(schema.users)
+          .where(eq(schema.users.id, order.userId))
+          .get() ?? null;
+      }
+      return { ...order, user };
+    })
+  );
+
+  return {
+    totalOrders: totalOrders?.count ?? 0,
+    totalRevenue: totalRevenue?.total ?? 0,
+    totalUsers: totalUsers?.count ?? 0,
+    totalSubscribers: totalSubscribers?.count ?? 0,
+    ordersByStatus: ordersByStatus.reduce((acc, row) => {
+      acc[row.status] = row.count;
+      return acc;
+    }, {} as Record<string, number>),
+    recentOrders: enrichedRecent,
+  };
+}
+
+// ============ ADMIN USERS WITH STATS ============
+
+export async function getAllUsersWithStats() {
+  const users = db.select({
+    id: schema.users.id,
+    email: schema.users.email,
+    name: schema.users.name,
+    role: schema.users.role,
+    createdAt: schema.users.createdAt,
+    lastSignedIn: schema.users.lastSignedIn,
+  }).from(schema.users)
+    .orderBy(desc(schema.users.createdAt))
+    .all();
+
+  return users.map((user) => {
+    const orderStats = db.select({
+      count: sql<number>`count(*)`,
+      total: sql<number>`coalesce(sum(${schema.orders.totalAmount}), 0)`,
+    }).from(schema.orders)
+      .where(eq(schema.orders.userId, user.id))
+      .get();
+
+    return {
+      ...user,
+      orderCount: orderStats?.count ?? 0,
+      totalSpent: orderStats?.total ?? 0,
+    };
+  });
+}
+
+export async function getUserOrdersAdmin(userId: number) {
+  return db.select().from(schema.orders)
+    .where(eq(schema.orders.userId, userId))
+    .orderBy(desc(schema.orders.createdAt))
+    .all();
+}
+
+// ============ NEWSLETTER ADMIN ============
+
+export async function getAllNewsletterSubscribers() {
+  return db.select().from(schema.newsletterSubscribers)
+    .orderBy(desc(schema.newsletterSubscribers.createdAt))
+    .all();
 }

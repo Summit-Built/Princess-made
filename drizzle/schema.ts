@@ -40,7 +40,7 @@ export const addresses = sqliteTable("addresses", {
   city: text("city").notNull(),
   state: text("state").notNull(),
   postalCode: text("postalCode").notNull(),
-  country: text("country").default("US").notNull(),
+  country: text("country").default("AU").notNull(),
   isDefault: integer("isDefault").default(0).notNull(),
   createdAt: integer("createdAt", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
   updatedAt: integer("updatedAt", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
@@ -57,7 +57,7 @@ export const orders = sqliteTable("orders", {
   stripeSessionId: text("stripeSessionId").unique(),
   stripePaymentIntentId: text("stripePaymentIntentId"),
   totalAmount: integer("totalAmount").notNull(),
-  status: text("status", { enum: ["pending", "completed", "failed", "cancelled"] }).default("pending").notNull(),
+  status: text("status", { enum: ["pending", "completed", "failed", "cancelled", "refunded"] }).default("pending").notNull(),
   trackingNumber: text("trackingNumber"),
   shippingStatus: text("shippingStatus", { enum: ["processing", "shipped", "in_transit", "delivered"] }),
   shippingAddressId: integer("shippingAddressId"),
@@ -109,3 +109,15 @@ export const passwordResetTokens = sqliteTable("password_reset_tokens", {
 });
 
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
+export const contactMessages = sqliteTable("contact_messages", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
+});
+
+export type ContactMessage = typeof contactMessages.$inferSelect;
+export type InsertContactMessage = typeof contactMessages.$inferInsert;

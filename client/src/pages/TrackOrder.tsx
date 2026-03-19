@@ -167,13 +167,22 @@ export default function TrackOrder() {
                             <p className="text-lg font-serif font-light text-accent">
                               A${(order.totalAmount / 100).toFixed(2)}
                             </p>
-                            <span className={`text-[9px] px-2 py-0.5 font-light tracking-wider uppercase inline-block ${
-                              order.status === 'completed' ? 'bg-green-100 text-green-700' :
-                              order.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                              'bg-gray-100 text-gray-500'
-                            }`} style={{ borderRadius: '2px' }}>
-                              {order.status}
-                            </span>
+                            {(() => {
+                              const statusConfig: Record<string, { bg: string; dot: string; label: string }> = {
+                                pending: { bg: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-400', label: 'Pending' },
+                                completed: { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-400', label: 'Completed' },
+                                failed: { bg: 'bg-red-50 text-red-700 border-red-200', dot: 'bg-red-400', label: 'Failed' },
+                                cancelled: { bg: 'bg-gray-50 text-gray-500 border-gray-200', dot: 'bg-gray-400', label: 'Cancelled' },
+                                refunded: { bg: 'bg-purple-50 text-purple-700 border-purple-200', dot: 'bg-purple-400', label: 'Refunded' },
+                              };
+                              const config = statusConfig[order.status] || statusConfig.cancelled;
+                              return (
+                                <span className={`inline-flex items-center gap-1.5 text-[9px] px-2.5 py-1 font-light tracking-wider uppercase border ${config.bg}`} style={{ borderRadius: '10px' }}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+                                  {config.label}
+                                </span>
+                              );
+                            })()}
                           </div>
                         </div>
 

@@ -51,12 +51,17 @@ export const appRouter = router({
       }),
     requestPasswordReset: publicProcedure
       .input(z.object({ email: z.string().email() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const user = await db.getUserByEmail(input.email);
         if (user) {
           const token = nanoid(32);
           await db.createPasswordResetToken(user.id, token);
-          console.log(`Password reset token for ${input.email}: ${token}`);
+          const origin = `${ctx.req.protocol}://${ctx.req.get("host")}`;
+          const resetLink = `${origin}/reset-password?token=${token}`;
+          await email.sendPasswordResetEmail({
+            to: input.email,
+            resetLink,
+          });
         }
         return { success: true, message: "If an account exists with that email, a reset link has been sent." };
       }),
@@ -164,7 +169,7 @@ export const appRouter = router({
           // Send order confirmation email
           email.sendOrderConfirmation({
             to: input.email,
-            orderNumber: `#PM-${String(order.id).padStart(5, "0")}`,
+            orderNumber: `PM-${1000 + order.id}`,
             totalAmount,
             items: input.items.map(i => ({ name: i.name, quantity: i.quantity, price: i.price * i.quantity })),
             guestTrackingUrl: `${origin}/track-order?email=${encodeURIComponent(input.email)}`,
@@ -244,7 +249,7 @@ export const appRouter = router({
 
           email.sendOrderConfirmation({
             to: ctx.user.email,
-            orderNumber: `#PM-${String(order.id).padStart(5, "0")}`,
+            orderNumber: `PM-${1000 + order.id}`,
             totalAmount,
             items: input.items.map(i => ({ name: i.name, quantity: i.quantity, price: i.price * i.quantity })),
           });
@@ -282,7 +287,7 @@ export const appRouter = router({
         // Return limited info for guest orders
         return orders.map(o => ({
           id: o.id,
-          orderNumber: `#PM-${String(o.id).padStart(5, "0")}`,
+          orderNumber: `PM-${1000 + o.id}`,
           totalAmount: o.totalAmount,
           status: o.status,
           trackingNumber: o.trackingNumber,
@@ -303,16 +308,39 @@ export const appRouter = router({
     getBySessionId: publicProcedure
       .input(z.string())
       .query(async ({ input }) => {
-        // Find order by stripe session ID
-        const allOrders = await db.getAllOrders();
-        const order = allOrders.find(o => o.stripeSessionId === input);
+        const order = await db.getOrderBySessionId(input);
         if (!order) return null;
+
+        // Fetch order items
+        const items = await db.getOrderItems(order.id);
+
+        // Fetch shipping address if available
+        let shippingAddress = null;
+        if (order.shippingAddressId) {
+          shippingAddress = await db.getAddressById(order.shippingAddressId);
+        }
+
         return {
           id: order.id,
-          orderNumber: `#PM-${String(order.id).padStart(5, "0")}`,
+          orderNumber: `PM-${1000 + order.id}`,
           totalAmount: order.totalAmount,
           status: order.status,
           createdAt: order.createdAt,
+          guestEmail: order.guestEmail,
+          guestName: order.guestName,
+          items: items.map(item => ({
+            id: item.id,
+            productId: item.productId,
+            quantity: item.quantity,
+            priceAtTime: item.priceAtTime,
+          })),
+          shippingAddress: shippingAddress ? {
+            street: shippingAddress.street,
+            city: shippingAddress.city,
+            state: shippingAddress.state,
+            postalCode: shippingAddress.postalCode,
+            country: shippingAddress.country,
+          } : null,
         };
       }),
   }),
@@ -387,6 +415,42 @@ export const appRouter = router({
       .mutation(({ ctx, input }) => db.removeFavorite(ctx.user.id, input)),
   }),
 
+  contact: router({
+    send: publicProcedure
+      .input(z.object({
+        name: z.string().min(1, "Name is required"),
+        email: z.string().email("Valid email is required"),
+        subject: z.string().min(1, "Subject is required"),
+        message: z.string().min(1, "Message is required").max(5000, "Message is too long"),
+        website: z.string().optional(), // honeypot field
+      }))
+      .mutation(async ({ input }) => {
+        // Anti-spam honeypot: if 'website' field is filled, it's a bot
+        if (input.website) {
+          // Silently succeed to not tip off the bot
+          return { success: true };
+        }
+
+        // Store in database
+        await db.insertContactMessage({
+          name: input.name,
+          email: input.email,
+          subject: input.subject,
+          message: input.message,
+        });
+
+        // Send email notification
+        await email.sendContactFormNotification({
+          name: input.name,
+          email: input.email,
+          subject: input.subject,
+          message: input.message,
+        });
+
+        return { success: true };
+      }),
+  }),
+
   newsletter: router({
     subscribe: publicProcedure
       .input(z.object({ email: z.string().email() }))
@@ -425,7 +489,7 @@ export const appRouter = router({
             if (customerEmail) {
               email.sendShippingUpdate({
                 to: customerEmail,
-                orderNumber: `#PM-${String(result.id).padStart(5, "0")}`,
+                orderNumber: `PM-${1000 + result.id}`,
                 trackingNumber: input.trackingNumber,
                 shippingStatus: input.shippingStatus,
                 trackingUrl: auspostTrackingUrl(input.trackingNumber),
@@ -446,10 +510,38 @@ export const appRouter = router({
           await db.updateOrderStatusById(input.orderId, input.status);
           return db.getOrderById(input.orderId);
         }),
+      sendShippingEmail: adminProcedure
+        .input(z.object({ orderId: z.number() }))
+        .mutation(async ({ input }) => {
+          const order = await db.getOrderById(input.orderId);
+          if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+          if (!order.trackingNumber) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "No tracking number set for this order" });
+          }
+          const customerEmail = order.guestEmail || (order.userId ? (await db.getUserById(order.userId))?.email : null);
+          if (!customerEmail) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "No customer email found" });
+          }
+          await email.sendShippingUpdate({
+            to: customerEmail,
+            orderNumber: `PM-${1000 + order.id}`,
+            trackingNumber: order.trackingNumber,
+            shippingStatus: order.shippingStatus || "shipped",
+            trackingUrl: auspostTrackingUrl(order.trackingNumber),
+          });
+          return { success: true };
+        }),
     }),
     users: router({
-      list: adminProcedure.query(() => db.getAllUsers()),
+      list: adminProcedure.query(() => db.getAllUsersWithStats()),
+      getOrders: adminProcedure
+        .input(z.number())
+        .query(({ input }) => db.getUserOrdersAdmin(input)),
     }),
+    newsletter: router({
+      list: adminProcedure.query(() => db.getAllNewsletterSubscribers()),
+    }),
+    stats: adminProcedure.query(() => db.getAdminStats()),
   }),
 });
 
