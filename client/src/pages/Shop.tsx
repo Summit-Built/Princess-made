@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useSearch } from 'wouter';
 import { PageTransition } from '@/components/PageTransition';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -15,7 +16,9 @@ export default function Shop() {
   const addItem = useCartStore((state) => state.addItem);
   const { isAuthenticated, logout } = useAuth();
 
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+  const searchString = useSearch();
+  const urlCategory = new URLSearchParams(searchString).get('category') || undefined;
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(urlCategory);
   const [sortBy, setSortBy] = useState<'price-low' | 'price-high' | 'newest'>('newest');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -62,7 +65,7 @@ export default function Shop() {
     return 0;
   }) : [];
 
-  const categories = ['All', 'Bags', 'Accessories', 'Limited Edition'];
+  const categories = ['All', 'Laptop Cases', 'Pouches', 'Pencil Cases', 'Accessories'];
 
   const containerVariants = {
     hidden: { opacity: 0 },

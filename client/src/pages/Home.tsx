@@ -176,21 +176,21 @@ export default function Home() {
             >
               {[
                 {
-                  title: 'Fluffy Bags',
-                  description: 'Luxuriously soft, irresistibly fluffy',
-                  href: '/shop?category=Bags',
+                  title: 'Laptop Cases',
+                  description: 'Quilted & faux fur protection for your tech',
+                  href: '/shop?category=Laptop%20Cases',
                   accent: 'from-[#f0ddd8] to-[#e8c4c0]',
                 },
                 {
-                  title: 'Accessories',
-                  description: 'The finishing touches you deserve',
-                  href: '/shop?category=Accessories',
+                  title: 'Pouches',
+                  description: 'Beautiful pouches for every occasion',
+                  href: '/shop?category=Pouches',
                   accent: 'from-[#f5eeeb] to-[#e8ddd8]',
                 },
                 {
-                  title: 'Limited Edition',
-                  description: 'Exclusive, one-of-a-kind treasures',
-                  href: '/shop?category=Limited%20Edition',
+                  title: 'Pencil Cases',
+                  description: 'Soft & stylish cases for your stationery',
+                  href: '/shop?category=Pencil%20Cases',
                   accent: 'from-[#e8ddd8] to-[#d4c4be]',
                 },
               ].map((category, index) => (
