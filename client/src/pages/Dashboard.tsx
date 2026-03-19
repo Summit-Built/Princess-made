@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'wouter';
 import { PageTransition } from '@/components/PageTransition';
 import { Header } from '@/components/Header';
@@ -14,10 +14,12 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  ChevronDown,
   Plus,
-  Edit2,
   Trash2,
   Sparkles,
+  Loader2,
+  Check,
 } from 'lucide-react';
 
 type TabType = 'orders' | 'addresses' | 'favorites' | 'settings';
@@ -27,6 +29,20 @@ export default function Dashboard() {
   const { isAuthenticated, user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('orders');
   const [showAddressForm, setShowAddressForm] = useState(false);
+  const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
+
+  // Address form state
+  const [addressStreet, setAddressStreet] = useState('');
+  const [addressCity, setAddressCity] = useState('');
+  const [addressState, setAddressState] = useState('');
+  const [addressPostal, setAddressPostal] = useState('');
+
+  // Settings form state
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [settingsSaved, setSettingsSaved] = useState(false);
+
+  const utils = trpc.useUtils();
 
   const { data: orders } = trpc.orders.list.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -39,6 +55,44 @@ export default function Dashboard() {
   const { data: favorites } = trpc.favorites.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+
+  // Address mutations
+  const createAddress = trpc.addresses.create.useMutation({
+    onSuccess: () => {
+      utils.addresses.list.invalidate();
+      setShowAddressForm(false);
+      setAddressStreet('');
+      setAddressCity('');
+      setAddressState('');
+      setAddressPostal('');
+    },
+  });
+
+  const deleteAddress = trpc.addresses.delete.useMutation({
+    onSuccess: () => utils.addresses.list.invalidate(),
+  });
+
+  // Favorites mutation
+  const removeFavorite = trpc.favorites.remove.useMutation({
+    onSuccess: () => utils.favorites.list.invalidate(),
+  });
+
+  // Profile update
+  const updateProfile = trpc.auth.updateProfile.useMutation({
+    onSuccess: () => {
+      utils.auth.me.invalidate();
+      setSettingsSaved(true);
+      setTimeout(() => setSettingsSaved(false), 2000);
+    },
+  });
+
+  // Initialize settings form when user loads
+  React.useEffect(() => {
+    if (user) {
+      setEditName(user.name || '');
+      setEditEmail(user.email || '');
+    }
+  }, [user]);
 
   if (!isAuthenticated) {
     return (
@@ -85,6 +139,29 @@ export default function Dashboard() {
     { id: 'settings' as TabType, label: 'Settings', icon: Settings },
   ];
 
+  const handleSaveAddress = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addressStreet || !addressCity || !addressState || !addressPostal) return;
+    createAddress.mutate({
+      street: addressStreet,
+      city: addressCity,
+      state: addressState,
+      postalCode: addressPostal,
+      country: 'AU',
+      isDefault: addresses && addresses.length === 0 ? 1 : 0,
+    });
+  };
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    const updates: { name?: string; email?: string } = {};
+    if (editName !== user?.name) updates.name = editName;
+    if (editEmail !== user?.email) updates.email = editEmail;
+    if (Object.keys(updates).length > 0) {
+      updateProfile.mutate(updates);
+    }
+  };
+
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
@@ -129,6 +206,12 @@ export default function Dashboard() {
                       >
                         <Icon size={16} />
                         {tab.label}
+                        {tab.id === 'orders' && orders && orders.length > 0 && (
+                          <span className="ml-auto text-[10px] opacity-60">{orders.length}</span>
+                        )}
+                        {tab.id === 'favorites' && favorites && favorites.length > 0 && (
+                          <span className="ml-auto text-[10px] opacity-60">{favorites.length}</span>
+                        )}
                       </motion.button>
                     );
                   })}
@@ -154,7 +237,7 @@ export default function Dashboard() {
                 transition={{ delay: 0.1 }}
                 className="lg:col-span-3"
               >
-                {/* Orders */}
+                {/* ========== ORDERS ========== */}
                 {activeTab === 'orders' && (
                   <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
                     <h2 className="text-2xl font-serif font-light">Order History</h2>
@@ -162,29 +245,12 @@ export default function Dashboard() {
                     {orders && orders.length > 0 ? (
                       <div className="space-y-3">
                         {orders.map((order: any) => (
-                          <motion.div
+                          <OrderCard
                             key={order.id}
-                            variants={itemVariants}
-                            className="border border-border/30 p-5 hover:border-accent/20 transition-colors"
-                            style={{ borderRadius: '2px' }}
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-3">
-                                  <p className="font-serif font-light text-sm">Order #{order.id}</p>
-                                  <span className="badge-handmade text-[9px] py-0.5">
-                                    {order.status}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-muted-foreground/60 font-light">
-                                  {new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                                </p>
-                              </div>
-                              <p className="text-lg font-serif font-light text-accent">
-                                ${(order.totalAmount / 100).toFixed(2)}
-                              </p>
-                            </div>
-                          </motion.div>
+                            order={order}
+                            isExpanded={expandedOrder === order.id}
+                            onToggle={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+                          />
                         ))}
                       </div>
                     ) : (
@@ -201,7 +267,7 @@ export default function Dashboard() {
                   </motion.div>
                 )}
 
-                {/* Addresses */}
+                {/* ========== ADDRESSES ========== */}
                 {activeTab === 'addresses' && (
                   <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
                     <div className="flex items-center justify-between">
@@ -216,30 +282,73 @@ export default function Dashboard() {
                       </motion.button>
                     </div>
 
-                    {showAddressForm && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="border border-border/30 p-6 space-y-4"
-                        style={{ borderRadius: '2px' }}
-                      >
-                        <h3 className="font-serif font-light text-sm">New Address</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <input type="text" placeholder="Street" className="input-elegant" />
-                          <input type="text" placeholder="City" className="input-elegant" />
-                          <input type="text" placeholder="State" className="input-elegant" />
-                          <input type="text" placeholder="Postal Code" className="input-elegant" />
-                        </div>
-                        <div className="flex gap-3">
-                          <motion.button whileHover={{ scale: 1.02 }} className="btn-primary text-xs px-5 py-2">
-                            Save
-                          </motion.button>
-                          <motion.button whileHover={{ scale: 1.02 }} onClick={() => setShowAddressForm(false)} className="btn-outline text-xs px-5 py-2">
-                            Cancel
-                          </motion.button>
-                        </div>
-                      </motion.div>
-                    )}
+                    <AnimatePresence>
+                      {showAddressForm && (
+                        <motion.form
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          onSubmit={handleSaveAddress}
+                          className="border border-border/30 p-6 space-y-4"
+                          style={{ borderRadius: '2px' }}
+                        >
+                          <h3 className="font-serif font-light text-sm">New Address</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <input
+                              type="text"
+                              placeholder="Street"
+                              value={addressStreet}
+                              onChange={(e) => setAddressStreet(e.target.value)}
+                              required
+                              className="input-elegant"
+                            />
+                            <input
+                              type="text"
+                              placeholder="City"
+                              value={addressCity}
+                              onChange={(e) => setAddressCity(e.target.value)}
+                              required
+                              className="input-elegant"
+                            />
+                            <input
+                              type="text"
+                              placeholder="State"
+                              value={addressState}
+                              onChange={(e) => setAddressState(e.target.value)}
+                              required
+                              className="input-elegant"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Postal Code"
+                              value={addressPostal}
+                              onChange={(e) => setAddressPostal(e.target.value)}
+                              required
+                              className="input-elegant"
+                            />
+                          </div>
+                          <div className="flex gap-3">
+                            <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              type="submit"
+                              disabled={createAddress.isPending}
+                              className="btn-primary text-xs px-5 py-2 flex items-center gap-2"
+                            >
+                              {createAddress.isPending && <Loader2 size={12} className="animate-spin" />}
+                              Save
+                            </motion.button>
+                            <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              type="button"
+                              onClick={() => setShowAddressForm(false)}
+                              className="btn-outline text-xs px-5 py-2"
+                            >
+                              Cancel
+                            </motion.button>
+                          </div>
+                        </motion.form>
+                      )}
+                    </AnimatePresence>
 
                     {addresses && addresses.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -257,15 +366,21 @@ export default function Dashboard() {
                                   {address.city}, {address.state} {address.postalCode}
                                 </p>
                               </div>
-                              {address.isDefault && (
+                              {address.isDefault === 1 && (
                                 <span className="badge-handmade text-[9px] py-0.5">Default</span>
                               )}
                             </div>
                             <div className="flex gap-2 pt-3 border-t border-border/20">
-                              <motion.button whileHover={{ scale: 1.02 }} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-light hover:bg-cream transition-colors" style={{ borderRadius: '2px' }}>
-                                <Edit2 size={12} /> Edit
-                              </motion.button>
-                              <motion.button whileHover={{ scale: 1.02 }} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-light text-destructive hover:bg-destructive/5 transition-colors" style={{ borderRadius: '2px' }}>
+                              <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                onClick={() => {
+                                  if (confirm('Delete this address?')) {
+                                    deleteAddress.mutate(address.id);
+                                  }
+                                }}
+                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-light text-destructive hover:bg-destructive/5 transition-colors"
+                                style={{ borderRadius: '2px' }}
+                              >
                                 <Trash2 size={12} /> Delete
                               </motion.button>
                             </div>
@@ -281,7 +396,7 @@ export default function Dashboard() {
                   </motion.div>
                 )}
 
-                {/* Favorites */}
+                {/* ========== FAVORITES ========== */}
                 {activeTab === 'favorites' && (
                   <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
                     <h2 className="text-2xl font-serif font-light">Favorites</h2>
@@ -289,24 +404,11 @@ export default function Dashboard() {
                     {favorites && favorites.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {favorites.map((fav: any) => (
-                          <motion.div
+                          <FavoriteCard
                             key={fav.id}
-                            variants={itemVariants}
-                            className="border border-border/30 overflow-hidden hover:border-accent/20 transition-colors"
-                            style={{ borderRadius: '2px' }}
-                          >
-                            <div className="aspect-square bg-cream flex items-center justify-center">
-                              <Heart size={32} className="text-accent/20" />
-                            </div>
-                            <div className="p-4 space-y-3">
-                              <p className="font-serif font-light text-sm">Product {fav.productId}</p>
-                              <Link href={`/product/${fav.productId}`}>
-                                <motion.a whileHover={{ scale: 1.02 }} className="btn-primary w-full text-center block text-xs py-2 cursor-pointer">
-                                  View Product
-                                </motion.a>
-                              </Link>
-                            </div>
-                          </motion.div>
+                            productId={fav.productId}
+                            onRemove={() => removeFavorite.mutate(fav.productId)}
+                          />
                         ))}
                       </div>
                     ) : (
@@ -323,12 +425,12 @@ export default function Dashboard() {
                   </motion.div>
                 )}
 
-                {/* Settings */}
+                {/* ========== SETTINGS ========== */}
                 {activeTab === 'settings' && (
                   <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
                     <h2 className="text-2xl font-serif font-light">Settings</h2>
 
-                    <div className="border border-border/30 p-6 space-y-6" style={{ borderRadius: '2px' }}>
+                    <form onSubmit={handleSaveProfile} className="border border-border/30 p-6 space-y-6" style={{ borderRadius: '2px' }}>
                       <motion.div variants={itemVariants} className="space-y-4">
                         <h3 className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light">
                           Profile
@@ -338,36 +440,50 @@ export default function Dashboard() {
                             <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40 font-light">Name</label>
                             <input
                               type="text"
-                              value={user?.name || ''}
-                              readOnly
-                              className="input-elegant mt-1 bg-cream/50"
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              className="input-elegant mt-1"
                             />
                           </div>
                           <div>
                             <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40 font-light">Email</label>
                             <input
                               type="email"
-                              value={user?.email || ''}
-                              readOnly
-                              className="input-elegant mt-1 bg-cream/50"
+                              value={editEmail}
+                              onChange={(e) => setEditEmail(e.target.value)}
+                              className="input-elegant mt-1"
                             />
                           </div>
                         </div>
                       </motion.div>
 
-                      <motion.div variants={itemVariants} className="border-t border-border/20 pt-6 space-y-4">
-                        <h3 className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light">
-                          Preferences
-                        </h3>
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-border/30 accent-accent" />
-                          <span className="text-sm font-light">Order updates via email</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-border/30 accent-accent" />
-                          <span className="text-sm font-light">Promotional emails</span>
-                        </label>
+                      <motion.div variants={itemVariants} className="flex items-center gap-3 pt-2">
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          type="submit"
+                          disabled={updateProfile.isPending}
+                          className="btn-primary text-xs px-6 py-2.5 flex items-center gap-2"
+                        >
+                          {updateProfile.isPending && <Loader2 size={12} className="animate-spin" />}
+                          {settingsSaved ? (
+                            <>
+                              <Check size={12} /> Saved
+                            </>
+                          ) : (
+                            'Save Changes'
+                          )}
+                        </motion.button>
                       </motion.div>
+                    </form>
+
+                    <div className="border border-border/30 p-6 space-y-4" style={{ borderRadius: '2px' }}>
+                      <h3 className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 font-light">
+                        Account
+                      </h3>
+                      <p className="text-xs text-muted-foreground/60 font-light">
+                        Member since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : 'N/A'}
+                      </p>
                     </div>
                   </motion.div>
                 )}
@@ -379,5 +495,193 @@ export default function Dashboard() {
         <Footer />
       </div>
     </PageTransition>
+  );
+}
+
+// ========== ORDER CARD COMPONENT ==========
+
+function OrderCard({ order, isExpanded, onToggle }: { order: any; isExpanded: boolean; onToggle: () => void }) {
+  const { data: orderItems } = trpc.orders.getItems.useQuery(order.id, {
+    enabled: isExpanded,
+  });
+
+  const statusColors: Record<string, string> = {
+    pending: 'bg-amber-100 text-amber-700',
+    completed: 'bg-green-100 text-green-700',
+    failed: 'bg-red-100 text-red-700',
+    cancelled: 'bg-gray-100 text-gray-500',
+  };
+
+  return (
+    <motion.div
+      className="border border-border/30 hover:border-accent/20 transition-colors overflow-hidden"
+      style={{ borderRadius: '2px' }}
+    >
+      <button
+        onClick={onToggle}
+        className="w-full p-5 flex items-start justify-between text-left"
+      >
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <p className="font-serif font-light text-sm">Order #{order.id}</p>
+            <span className={`text-[9px] px-2 py-0.5 font-light tracking-wider uppercase ${statusColors[order.status] || 'bg-gray-100 text-gray-500'}`} style={{ borderRadius: '2px' }}>
+              {order.status}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground/60 font-light">
+            {new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <p className="text-lg font-serif font-light text-accent">
+            ${(order.totalAmount / 100).toFixed(2)}
+          </p>
+          <ChevronDown size={16} className={`text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+        </div>
+      </button>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-5 pb-5 border-t border-border/20 pt-4 space-y-3">
+              {order.trackingNumber && (
+                <div className="flex items-center gap-2 text-xs font-light">
+                  <Package size={12} className="text-accent" />
+                  <span className="text-muted-foreground">Tracking:</span>
+                  <span>{order.trackingNumber}</span>
+                </div>
+              )}
+              {order.shippingStatus && (
+                <div className="flex items-center gap-2 text-xs font-light">
+                  <span className="text-muted-foreground">Shipping:</span>
+                  <span className="capitalize">{order.shippingStatus}</span>
+                </div>
+              )}
+
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50 font-light pt-2">Items</p>
+              {orderItems ? (
+                <div className="space-y-2">
+                  {orderItems.map((item: any) => (
+                    <OrderItemRow key={item.id} item={item} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Loader2 size={12} className="animate-spin" /> Loading...
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// ========== ORDER ITEM ROW ==========
+
+function OrderItemRow({ item }: { item: any }) {
+  const { data: product } = trpc.products.getById.useQuery(item.productId, {
+    enabled: !!item.productId,
+  });
+
+  return (
+    <div className="flex items-center gap-3">
+      {product?.imageUrl && (
+        <img src={product.imageUrl} alt={product.name} className="w-10 h-10 object-cover flex-shrink-0" style={{ borderRadius: '2px' }} />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-light truncate">{product?.name || item.productId}</p>
+        <p className="text-[11px] text-muted-foreground/50 font-light">Qty: {item.quantity}</p>
+      </div>
+      <p className="text-sm font-light text-accent">${((item.priceAtTime * item.quantity) / 100).toFixed(2)}</p>
+    </div>
+  );
+}
+
+// ========== FAVORITE CARD ==========
+
+function FavoriteCard({ productId, onRemove }: { productId: string; onRemove: () => void }) {
+  const { data: product, isLoading } = trpc.products.getById.useQuery(productId);
+  const addItem = useCartStore((state) => state.addItem);
+
+  if (isLoading) {
+    return (
+      <div className="border border-border/30 p-8 flex items-center justify-center" style={{ borderRadius: '2px' }}>
+        <Loader2 size={20} className="animate-spin text-accent/40" />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="border border-border/30 p-5 space-y-3" style={{ borderRadius: '2px' }}>
+        <p className="font-light text-sm text-muted-foreground">Product no longer available</p>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          onClick={onRemove}
+          className="text-xs text-destructive font-light flex items-center gap-1"
+        >
+          <Trash2 size={12} /> Remove
+        </motion.button>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      className="border border-border/30 overflow-hidden hover:border-accent/20 transition-colors"
+      style={{ borderRadius: '2px' }}
+    >
+      <div className="flex gap-4 p-4">
+        {product.imageUrl && (
+          <Link href={`/product/${product.id}`}>
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="w-20 h-20 object-cover flex-shrink-0 cursor-pointer"
+              style={{ borderRadius: '2px' }}
+            />
+          </Link>
+        )}
+        <div className="flex-1 min-w-0 space-y-2">
+          <Link href={`/product/${product.id}`}>
+            <p className="font-serif font-light text-sm hover:text-accent cursor-pointer transition-colors truncate">
+              {product.name}
+            </p>
+          </Link>
+          <p className="text-accent font-serif font-light">${(product.price / 100).toFixed(2)}</p>
+          <div className="flex gap-2 pt-1">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              onClick={() => addItem({
+                productId: product.id,
+                stripePriceId: product.stripePriceId,
+                quantity: 1,
+                price: product.price,
+                name: product.name,
+                imageUrl: product.imageUrl ?? undefined,
+              })}
+              className="btn-primary text-[10px] px-3 py-1.5"
+            >
+              Add to Cart
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              onClick={onRemove}
+              className="text-xs text-muted-foreground hover:text-destructive font-light flex items-center gap-1 px-2 transition-colors"
+            >
+              <Trash2 size={11} />
+            </motion.button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }

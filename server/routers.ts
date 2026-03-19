@@ -2,6 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
 import * as stripe from "./stripe";
@@ -15,6 +16,14 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+    updateProfile: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).optional(),
+        email: z.string().email().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return db.updateUser(ctx.user.id, input);
+      }),
   }),
 
   products: router({
@@ -87,10 +96,22 @@ export const appRouter = router({
     list: protectedProcedure.query(({ ctx }) => db.getUserOrders(ctx.user.id)),
     getById: protectedProcedure
       .input(z.number())
-      .query(({ input }) => db.getOrderById(input)),
+      .query(async ({ ctx, input }) => {
+        const order = await db.getOrderById(input);
+        if (!order || order.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+        return order;
+      }),
     getItems: protectedProcedure
       .input(z.number())
-      .query(({ input }) => db.getOrderItems(input)),
+      .query(async ({ ctx, input }) => {
+        const order = await db.getOrderById(input);
+        if (!order || order.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+        return db.getOrderItems(input);
+      }),
   }),
 
   addresses: router({
@@ -125,19 +146,29 @@ export const appRouter = router({
         country: z.string().optional(),
         isDefault: z.number().optional(),
       }))
-      .mutation(({ input }) =>
-        db.updateAddress(input.id, {
+      .mutation(async ({ ctx, input }) => {
+        const address = await db.getAddressById(input.id);
+        if (!address || address.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+        return db.updateAddress(input.id, {
           street: input.street,
           city: input.city,
           state: input.state,
           postalCode: input.postalCode,
           country: input.country,
           isDefault: input.isDefault,
-        })
-      ),
+        });
+      }),
     delete: protectedProcedure
       .input(z.number())
-      .mutation(({ input }) => db.deleteAddress(input)),
+      .mutation(async ({ ctx, input }) => {
+        const address = await db.getAddressById(input);
+        if (!address || address.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+        return db.deleteAddress(input);
+      }),
   }),
 
   favorites: router({
