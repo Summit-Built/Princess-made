@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ShoppingBag, Eye, Check } from 'lucide-react';
 import { Link } from 'wouter';
+import { proxyImage } from '@/lib/utils';
 
 interface StripeProduct {
   id: string;
@@ -32,6 +33,8 @@ export const ProductCard = ({
   const priceInDollars = (product.price / 100).toFixed(2);
   const [justAdded, setJustAdded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const onImgLoad = useCallback(() => setImgLoaded(true), []);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -62,11 +65,18 @@ export const ProductCard = ({
           {product.imageUrl ? (
             <Link href={`/product/${product.id}`}>
               <a className="block w-full h-full cursor-pointer" aria-label={`View ${product.name}`}>
+                {!imgLoaded && (
+                  <div className="absolute inset-0 bg-cream animate-skeleton" />
+                )}
                 <img
-                  src={product.imageUrl}
+                  src={proxyImage(product.imageUrl) ?? product.imageUrl}
                   alt={product.name}
-                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
+                  className={`w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-[1.08] ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
                   loading="lazy"
+                  decoding="async"
+                  width={400}
+                  height={533}
+                  onLoad={onImgLoad}
                 />
               </a>
             </Link>

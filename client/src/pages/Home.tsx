@@ -15,6 +15,9 @@ export default function Home() {
   usePageMeta({ title: 'Princess Made', description: 'Handcrafted bags and accessories made with love in Australia. 100% handmade, one of a kind.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
+  // Prefetch products so Shop page loads instantly
+  trpc.products.list.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
+
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
   const subscribeMutation = trpc.newsletter.subscribe.useMutation({

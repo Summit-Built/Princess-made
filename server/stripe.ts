@@ -24,7 +24,36 @@ export type StripeProduct = {
   images: string[];
 };
 
-export async function getProducts(): Promise<StripeProduct[]> {
+// ============ PRODUCT CACHE ============
+// Cache products in memory to avoid hitting Stripe API on every request.
+// TTL of 5 minutes keeps data fresh while massively reducing API calls.
+
+interface ProductCache {
+  products: StripeProduct[];
+  timestamp: number;
+}
+
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+let productCache: ProductCache | null = null;
+let cachePromise: Promise<StripeProduct[]> | null = null;
+
+function mapStripeProduct(p: Stripe.Product): StripeProduct | null {
+  if (!p.default_price || typeof p.default_price === "string") return null;
+  const price = p.default_price as Stripe.Price;
+  return {
+    id: p.id,
+    stripeProductId: p.id,
+    stripePriceId: price.id,
+    name: p.name,
+    description: p.description,
+    price: price.unit_amount ?? 0,
+    imageUrl: p.images?.[0] ?? null,
+    category: p.metadata?.category ?? "Uncategorized",
+    images: p.images ?? [],
+  };
+}
+
+async function fetchProductsFromStripe(): Promise<StripeProduct[]> {
   const stripe = getStripe();
   const products = await stripe.products.list({
     active: true,
@@ -33,47 +62,61 @@ export async function getProducts(): Promise<StripeProduct[]> {
   });
 
   return products.data
-    .filter((p) => p.default_price && typeof p.default_price !== "string")
-    .map((p) => {
-      const price = p.default_price as Stripe.Price;
-      return {
-        id: p.id,
-        stripeProductId: p.id,
-        stripePriceId: price.id,
-        name: p.name,
-        description: p.description,
-        price: price.unit_amount ?? 0,
-        imageUrl: p.images?.[0] ?? null,
-        category: p.metadata?.category ?? "Uncategorized",
-        images: p.images ?? [],
-      };
-    });
+    .map(mapStripeProduct)
+    .filter((p): p is StripeProduct => p !== null);
+}
+
+export async function getProducts(): Promise<StripeProduct[]> {
+  const now = Date.now();
+
+  // Return cached data if still fresh
+  if (productCache && (now - productCache.timestamp) < CACHE_TTL_MS) {
+    return productCache.products;
+  }
+
+  // Deduplicate concurrent requests - only one Stripe call at a time
+  if (!cachePromise) {
+    cachePromise = fetchProductsFromStripe()
+      .then((products) => {
+        productCache = { products, timestamp: Date.now() };
+        cachePromise = null;
+        return products;
+      })
+      .catch((err) => {
+        cachePromise = null;
+        // Return stale cache on error rather than failing
+        if (productCache) return productCache.products;
+        throw err;
+      });
+  }
+
+  return cachePromise;
 }
 
 export async function getProductById(productId: string): Promise<StripeProduct | null> {
+  // Try cache first
+  const cached = productCache?.products.find(p => p.id === productId);
+  if (cached && productCache && (Date.now() - productCache.timestamp) < CACHE_TTL_MS) {
+    return cached;
+  }
+
+  // Fall back to direct API call
   const stripe = getStripe();
   try {
     const product = await stripe.products.retrieve(productId, {
       expand: ["default_price"],
     });
-    if (!product.active || !product.default_price || typeof product.default_price === "string") {
-      return null;
-    }
-    const price = product.default_price as Stripe.Price;
-    return {
-      id: product.id,
-      stripeProductId: product.id,
-      stripePriceId: price.id,
-      name: product.name,
-      description: product.description,
-      price: price.unit_amount ?? 0,
-      imageUrl: product.images?.[0] ?? null,
-      category: product.metadata?.category ?? "Uncategorized",
-      images: product.images ?? [],
-    };
+    if (!product.active) return null;
+    return mapStripeProduct(product);
   } catch {
-    return null;
+    // Last resort: check stale cache
+    return cached ?? null;
   }
+}
+
+// Invalidate cache (call after product changes)
+export function invalidateProductCache() {
+  productCache = null;
 }
 
 export async function createCheckoutSession(options: {

@@ -86,6 +86,43 @@ async function startServer() {
     }
   });
 
+  // Image proxy - resolves Stripe redirect URLs and caches with long TTL
+  // This avoids the 302 redirect hop for every image load
+  const imageCache = new Map<string, { url: string; expires: number }>();
+  const IMAGE_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+  app.get("/api/img", async (req, res) => {
+    const src = req.query.src as string;
+    if (!src || !src.startsWith("https://files.stripe.com/")) {
+      res.status(400).send("Invalid image source");
+      return;
+    }
+
+    try {
+      // Check if we already resolved this URL
+      const cached = imageCache.get(src);
+      if (cached && cached.expires > Date.now()) {
+        res.set("Cache-Control", "public, max-age=86400, immutable");
+        res.redirect(301, cached.url);
+        return;
+      }
+
+      // Follow redirects to get the final direct URL
+      const response = await fetch(src, { method: "HEAD", redirect: "follow" });
+      const finalUrl = response.url;
+
+      // Cache the resolved URL
+      imageCache.set(src, { url: finalUrl, expires: Date.now() + IMAGE_CACHE_TTL });
+
+      // 301 with long cache - browser won't re-request
+      res.set("Cache-Control", "public, max-age=86400, immutable");
+      res.redirect(301, finalUrl);
+    } catch {
+      // Fall back to original URL
+      res.redirect(302, src);
+    }
+  });
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

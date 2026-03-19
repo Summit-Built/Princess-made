@@ -7,7 +7,16 @@ import superjson from "superjson";
 import App from "./App";
 import "./index.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Show cached data instantly, refetch in background
+      staleTime: 2 * 60 * 1000,       // 2 min before considered stale
+      gcTime: 10 * 60 * 1000,          // 10 min in cache
+      refetchOnWindowFocus: false,      // Don't refetch on tab switch
+    },
+  },
+});
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
