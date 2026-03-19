@@ -31,23 +31,36 @@ export default function Home() {
     },
   });
 
+  // Hero content renders visible immediately to avoid delaying LCP.
+  // Only non-critical sections below the fold use entrance animations.
   const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: {},
     visible: {
-      opacity: 1,
       transition: {
         staggerChildren: 0.12,
-        delayChildren: 0.2,
       },
     },
   };
 
   const itemVariants = {
+    hidden: {},
+    visible: {},
+  };
+
+  // Animations only for below-the-fold sections
+  const fadeInVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
       transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] as const },
+    },
+  };
+
+  const fadeInContainerVariants = {
+    hidden: {},
+    visible: {
+      transition: { staggerChildren: 0.12 },
     },
   };
 
@@ -189,7 +202,7 @@ export default function Home() {
             </motion.div>
 
             <motion.div
-              variants={containerVariants}
+              variants={fadeInContainerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
@@ -215,7 +228,7 @@ export default function Home() {
                   accent: 'from-[#e8ddd8] to-[#d4c4be]',
                 },
               ].map((category, index) => (
-                <motion.div key={index} variants={itemVariants}>
+                <motion.div key={index} variants={fadeInVariants}>
                   <Link href={category.href}>
                     <motion.div
                       whileHover={{ y: -6 }}
@@ -252,23 +265,23 @@ export default function Home() {
 
           <div className="container relative">
             <motion.div
-              variants={containerVariants}
+              variants={fadeInContainerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
               className="max-w-3xl mx-auto text-center space-y-8"
             >
-              <motion.p variants={itemVariants} className="font-script text-xl text-accent">
+              <motion.p variants={fadeInVariants} className="font-script text-xl text-accent">
                 Our Promise
               </motion.p>
               <motion.h2
-                variants={itemVariants}
+                variants={fadeInVariants}
                 className="text-3xl sm:text-4xl md:text-5xl font-serif font-light leading-tight"
               >
                 Every Bag Tells <span className="italic">a Story</span>
               </motion.h2>
               <motion.p
-                variants={itemVariants}
+                variants={fadeInVariants}
                 className="text-muted-foreground font-light leading-relaxed text-base sm:text-lg px-4 sm:px-0"
               >
                 At Princess Made, we believe in the beauty of slow fashion. Each bag is handcrafted
@@ -277,7 +290,7 @@ export default function Home() {
               </motion.p>
 
               <motion.div
-                variants={containerVariants}
+                variants={fadeInContainerVariants}
                 className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-8"
               >
                 {[
@@ -285,7 +298,7 @@ export default function Home() {
                   { icon: Heart, title: 'Made with Love', description: 'Passion poured into every single piece' },
                   { icon: Sparkles, title: 'Unique', description: 'No two bags are exactly the same' },
                 ].map((value, index) => (
-                  <motion.div key={index} variants={itemVariants} className="space-y-3">
+                  <motion.div key={index} variants={fadeInVariants} className="space-y-3">
                     <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-accent/10 border border-accent/20">
                       <value.icon size={20} className="text-accent" aria-hidden="true" />
                     </div>
@@ -317,7 +330,7 @@ export default function Home() {
             </motion.div>
 
             <motion.div
-              variants={containerVariants}
+              variants={fadeInContainerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
@@ -345,7 +358,7 @@ export default function Home() {
               ].map((testimonial, index) => (
                 <motion.div
                   key={index}
-                  variants={itemVariants}
+                  variants={fadeInVariants}
                   className="p-6 md:p-8 bg-card border border-border/40 text-left space-y-4 relative"
                   style={{ borderRadius: '2px' }}
                 >
