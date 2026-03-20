@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingBag, Trash2, Sparkles, Truck } from 'lucide-react';
 import { Link } from 'wouter';
 import { useCartStore } from '@/stores/cartStore';
-import { proxyImage } from '@/lib/utils';
+
 
 const FREE_SHIPPING_THRESHOLD = 5000; // A$50.00 in cents
 
@@ -102,7 +102,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                       {/* Image */}
                       {item.imageUrl ? (
                         <img
-                          src={proxyImage(item.imageUrl) ?? item.imageUrl}
+                          src={item.imageUrl}
                           alt={item.name}
                           className="w-20 h-20 object-cover flex-shrink-0"
                           loading="lazy"

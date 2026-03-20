@@ -9,7 +9,6 @@ import { MiniLoader } from '@/components/LoadingScreen';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-import { proxyImage } from '@/lib/utils';
 import { Heart, ShoppingBag, Check, ChevronLeft, Share2, Truck, Shield, Scissors } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePageMeta } from '@/lib/usePageMeta';
@@ -131,11 +130,9 @@ export default function ProductDetail() {
   }
 
   const priceInDollars = (product.price / 100).toFixed(2);
-  // Use actual images array from Stripe (may have multiple), proxied for speed
-  const productImages = (product.images && product.images.length > 0
+  const productImages = product.images && product.images.length > 0
     ? product.images
-    : product.imageUrl ? [product.imageUrl] : []
-  ).map(img => proxyImage(img) ?? img);
+    : product.imageUrl ? [product.imageUrl] : [];
 
   // Filter related products to exclude current product, limit to 4
   const filteredRelated = relatedProducts

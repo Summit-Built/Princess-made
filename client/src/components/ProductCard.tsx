@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ShoppingBag, Eye, Check } from 'lucide-react';
 import { Link } from 'wouter';
-import { proxyImage } from '@/lib/utils';
+
 
 interface StripeProduct {
   id: string;
@@ -68,7 +68,7 @@ export const ProductCard = ({
                 <div className="absolute inset-0 bg-cream animate-skeleton" />
               )}
               <img
-                src={proxyImage(product.imageUrl) ?? product.imageUrl}
+                src={product.imageUrl}
                 alt={product.name}
                 className={`w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-[1.08] ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
                 loading="lazy"

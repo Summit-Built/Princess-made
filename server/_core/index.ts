@@ -97,57 +97,6 @@ async function startServer() {
     next();
   });
 
-  // Image proxy - streams Stripe images through our server with proper cache headers.
-  // This avoids the 302 redirect hop and ensures long Cache-Control on responses.
-  const resolvedUrlCache = new Map<string, { url: string; expires: number }>();
-  const IMAGE_CACHE_TTL = 60 * 60 * 1000; // 1 hour
-
-  app.get("/api/img", async (req, res) => {
-    const src = req.query.src as string;
-    if (!src || !src.startsWith("https://files.stripe.com/")) {
-      res.status(400).send("Invalid image source");
-      return;
-    }
-
-    try {
-      // Resolve the final URL (follow Stripe redirects)
-      let finalUrl: string;
-      const cached = resolvedUrlCache.get(src);
-      if (cached && cached.expires > Date.now()) {
-        finalUrl = cached.url;
-      } else {
-        const headResp = await fetch(src, { method: "HEAD", redirect: "follow" });
-        finalUrl = headResp.url;
-        resolvedUrlCache.set(src, { url: finalUrl, expires: Date.now() + IMAGE_CACHE_TTL });
-      }
-
-      // Stream the image through with proper cache headers
-      const imgResp = await fetch(finalUrl);
-      if (!imgResp.ok || !imgResp.body) {
-        res.redirect(302, finalUrl);
-        return;
-      }
-
-      const contentType = imgResp.headers.get("content-type") || "image/png";
-      res.set("Content-Type", contentType);
-      res.set("Cache-Control", "public, max-age=31536000, immutable");
-
-      const reader = imgResp.body.getReader();
-      const pump = async () => {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          res.write(Buffer.from(value));
-        }
-        res.end();
-      };
-      await pump();
-    } catch {
-      // Fall back to redirect
-      res.redirect(302, src);
-    }
-  });
-
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

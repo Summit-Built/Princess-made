@@ -53,6 +53,32 @@ function mapStripeProduct(p: Stripe.Product): StripeProduct | null {
   };
 }
 
+// Resolve Stripe file URLs (files.stripe.com) to their final CDN URLs.
+// Stripe file URLs do a 302 redirect; resolving server-side saves the client a round trip.
+const resolvedImageCache = new Map<string, string>();
+
+async function resolveImageUrl(url: string): Promise<string> {
+  if (!url.startsWith("https://files.stripe.com/")) return url;
+  const cached = resolvedImageCache.get(url);
+  if (cached) return cached;
+  try {
+    const resp = await fetch(url, { method: "HEAD", redirect: "follow" });
+    const finalUrl = resp.url;
+    resolvedImageCache.set(url, finalUrl);
+    return finalUrl;
+  } catch {
+    return url;
+  }
+}
+
+async function resolveProductImages(product: StripeProduct): Promise<StripeProduct> {
+  const [imageUrl, ...resolvedImages] = await Promise.all([
+    product.imageUrl ? resolveImageUrl(product.imageUrl) : Promise.resolve(null),
+    ...product.images.map(resolveImageUrl),
+  ]);
+  return { ...product, imageUrl, images: resolvedImages };
+}
+
 async function fetchProductsFromStripe(): Promise<StripeProduct[]> {
   const stripe = getStripe();
   const products = await stripe.products.list({
@@ -61,9 +87,12 @@ async function fetchProductsFromStripe(): Promise<StripeProduct[]> {
     limit: 100,
   });
 
-  return products.data
+  const mapped = products.data
     .map(mapStripeProduct)
     .filter((p): p is StripeProduct => p !== null);
+
+  // Resolve all image URLs in parallel
+  return Promise.all(mapped.map(resolveProductImages));
 }
 
 export async function getProducts(): Promise<StripeProduct[]> {
