@@ -118,7 +118,25 @@ export default function TrackOrder() {
                 </motion.div>
               )}
 
-              {searchEmail && !isLoading && orders && orders.length === 0 && (
+              {searchEmail && !isLoading && isError && (
+                <motion.div
+                  key="error"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="text-center py-16 border border-destructive/20 space-y-4"
+                  style={{ borderRadius: '2px' }}
+                  role="alert"
+                >
+                  <Package size={32} className="mx-auto text-destructive/30" />
+                  <p className="font-serif font-light text-destructive">Something went wrong</p>
+                  <p className="text-sm text-muted-foreground font-light">
+                    We couldn't look up your orders. Please try again.
+                  </p>
+                </motion.div>
+              )}
+
+              {searchEmail && !isLoading && !isError && orders && orders.length === 0 && (
                 <motion.div
                   key="empty"
                   initial={{ opacity: 0, y: 10 }}
