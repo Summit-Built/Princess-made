@@ -162,28 +162,28 @@ export default function Home() {
                 <div key={index}>
                   <Link href={category.href}>
                     <div className="block cursor-pointer group hover:-translate-y-1.5 transition-transform duration-300">
-                      <div className={`${!bgImage ? `bg-gradient-to-br ${category.accent}` : ''} p-10 sm:p-12 md:p-14 text-center border border-accent/10 hover:border-accent/30 transition-all duration-500 relative overflow-hidden`} style={{ borderRadius: '2px', minHeight: '220px' }}>
+                      <div className={`${!bgImage ? `bg-gradient-to-br ${category.accent}` : ''} text-center border border-accent/10 hover:border-accent/30 transition-all duration-500 relative overflow-hidden aspect-[4/3] sm:aspect-[3/4]`} style={{ borderRadius: '2px' }}>
                         {/* Product image background */}
                         {bgImage && (
                           <div
-                            className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-105"
+                            className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110"
                             style={{ backgroundImage: `url(${bgImage})` }}
                           />
                         )}
-                        {/* Warm tint overlay for readability */}
+                        {/* Bottom-heavy gradient overlay for text readability */}
                         {bgImage ? (
-                          <div className="absolute inset-0 bg-gradient-to-b from-[#fdf8f6]/60 via-[#f0ddd8]/50 to-[#e8c4c0]/70" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#3d2c2a]/80 via-[#3d2c2a]/25 to-transparent" />
                         ) : (
                           <div className="absolute inset-0 texture-linen opacity-50" />
                         )}
-                        <div className="relative flex flex-col items-center justify-center h-full">
-                          <h3 className="text-xl sm:text-2xl md:text-3xl font-serif font-light mb-3 text-foreground">
+                        <div className="relative flex flex-col items-center justify-end h-full p-6 sm:p-8 md:p-10 pb-8 sm:pb-10 md:pb-12">
+                          <h3 className={`text-2xl sm:text-3xl md:text-4xl font-serif font-light mb-2 ${bgImage ? 'text-white' : 'text-foreground'}`} style={bgImage ? { textShadow: '0 1px 8px rgba(0,0,0,0.3)' } : undefined}>
                             {category.title}
                           </h3>
-                          <p className="text-sm text-muted-foreground font-light tracking-wide mb-6">
+                          <p className={`text-sm font-light tracking-wide mb-5 ${bgImage ? 'text-white/80' : 'text-muted-foreground'}`} style={bgImage ? { textShadow: '0 1px 4px rgba(0,0,0,0.3)' } : undefined}>
                             {category.description}
                           </p>
-                          <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-accent font-light group-hover:gap-3 transition-all">
+                          <span className={`inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] font-light group-hover:gap-3 transition-all ${bgImage ? 'text-white/90' : 'text-accent'}`}>
                             Discover
                             <ArrowRight size={14} />
                           </span>
