@@ -70,6 +70,7 @@ export const Header = ({
               width={160}
               height={50}
               className="h-8 md:h-10 w-auto"
+              style={{ filter: 'invert(0.35) sepia(1) saturate(2.5) hue-rotate(330deg) brightness(0.75)' }}
             />
           </div>
         </Link>
