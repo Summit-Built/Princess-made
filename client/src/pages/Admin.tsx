@@ -8,6 +8,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
+import { usePageMeta } from '@/lib/usePageMeta';
 import {
   ShieldCheck,
   Package,
@@ -178,6 +179,7 @@ function AdminLogin({ cartItems }: { cartItems: number }) {
 }
 
 export default function Admin() {
+  usePageMeta({ title: 'Admin', description: 'Princess Made admin dashboard.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');

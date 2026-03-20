@@ -6,8 +6,10 @@ import { PageTransition } from '@/components/PageTransition';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Loader2, Sparkles, Eye, EyeOff, Scissors, Heart, ShoppingBag } from 'lucide-react';
+import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function Login() {
+  usePageMeta({ title: 'Sign In', description: 'Sign in to your Princess Made account.' });
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const [email, setEmail] = useState('');

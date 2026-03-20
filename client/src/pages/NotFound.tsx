@@ -4,8 +4,10 @@ import { PageTransition } from '@/components/PageTransition';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Sparkles, ArrowRight, Search, Home, ShoppingBag } from 'lucide-react';
+import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function NotFound() {
+  usePageMeta({ title: 'Page Not Found', description: 'The page you are looking for does not exist.' });
   const [, setLocation] = useLocation();
 
   const popularLinks = [

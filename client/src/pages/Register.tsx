@@ -6,8 +6,10 @@ import { PageTransition } from '@/components/PageTransition';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Loader2, Heart, Eye, EyeOff, Sparkles, Scissors, ShoppingBag } from 'lucide-react';
+import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function Register() {
+  usePageMeta({ title: 'Create Account', description: 'Join the Princess Made family. Create your account.' });
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
