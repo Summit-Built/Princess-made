@@ -71,6 +71,8 @@ export const Header = ({
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310419663031002008/Hy2VZfwLraitLwcA3hcpuJ/Princess(1)_e208d2f4.png"
               alt="Princess Made"
+              width={120}
+              height={40}
               className="h-10 w-auto"
             />
           </motion.div>
