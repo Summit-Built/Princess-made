@@ -14,8 +14,18 @@ export default function Home() {
   usePageMeta({ title: 'Princess Made', description: 'Handcrafted bags and accessories made with love in Australia. 100% handmade, one of a kind.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
-  // Prefetch products so Shop page loads instantly
-  trpc.products.list.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
+  // Prefetch products so Shop page loads instantly (also used for category images)
+  const { data: products } = trpc.products.list.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
+
+  // Pick the first product image per category for the category card backgrounds
+  const categoryImages: Record<string, string | undefined> = {};
+  if (products) {
+    for (const p of products) {
+      if (p.imageUrl && !categoryImages[p.category]) {
+        categoryImages[p.category] = p.imageUrl;
+      }
+    }
+  }
 
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
@@ -129,27 +139,44 @@ export default function Home() {
                   title: 'Laptop Cases',
                   description: 'Quilted & faux fur protection for your tech',
                   href: '/shop?category=Laptop%20Cases',
+                  categoryKey: 'Laptop Cases',
                   accent: 'from-[#f0ddd8] to-[#e8c4c0]',
                 },
                 {
                   title: 'Pouches',
                   description: 'Beautiful pouches for every occasion',
                   href: '/shop?category=Pouches',
+                  categoryKey: 'Pouches',
                   accent: 'from-[#f5eeeb] to-[#e8ddd8]',
                 },
                 {
                   title: 'Pencil Cases',
                   description: 'Soft & stylish cases for your stationery',
                   href: '/shop?category=Pencil%20Cases',
+                  categoryKey: 'Pencil Cases',
                   accent: 'from-[#e8ddd8] to-[#d4c4be]',
                 },
-              ].map((category, index) => (
+              ].map((category, index) => {
+                const bgImage = categoryImages[category.categoryKey];
+                return (
                 <div key={index}>
                   <Link href={category.href}>
                     <div className="block cursor-pointer group hover:-translate-y-1.5 transition-transform duration-300">
-                      <div className={`bg-gradient-to-br ${category.accent} p-10 sm:p-12 md:p-14 text-center border border-accent/10 hover:border-accent/30 transition-all duration-500 relative overflow-hidden`} style={{ borderRadius: '2px' }}>
-                        <div className="absolute inset-0 texture-linen opacity-50" />
-                        <div className="relative">
+                      <div className={`${!bgImage ? `bg-gradient-to-br ${category.accent}` : ''} p-10 sm:p-12 md:p-14 text-center border border-accent/10 hover:border-accent/30 transition-all duration-500 relative overflow-hidden`} style={{ borderRadius: '2px', minHeight: '220px' }}>
+                        {/* Product image background */}
+                        {bgImage && (
+                          <div
+                            className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-105"
+                            style={{ backgroundImage: `url(${bgImage})` }}
+                          />
+                        )}
+                        {/* Warm tint overlay for readability */}
+                        {bgImage ? (
+                          <div className="absolute inset-0 bg-gradient-to-b from-[#fdf8f6]/60 via-[#f0ddd8]/50 to-[#e8c4c0]/70" />
+                        ) : (
+                          <div className="absolute inset-0 texture-linen opacity-50" />
+                        )}
+                        <div className="relative flex flex-col items-center justify-center h-full">
                           <h3 className="text-xl sm:text-2xl md:text-3xl font-serif font-light mb-3 text-foreground">
                             {category.title}
                           </h3>
@@ -165,7 +192,8 @@ export default function Home() {
                     </div>
                   </Link>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
