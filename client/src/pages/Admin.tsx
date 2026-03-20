@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 import { PageTransition } from '@/components/PageTransition';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -24,6 +25,8 @@ import {
   Send,
   MapPin,
   Eye,
+  EyeOff,
+  Lock,
 } from 'lucide-react';
 
 type TabType = 'dashboard' | 'orders' | 'users' | 'newsletter';
@@ -41,20 +44,156 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
+function AdminLogin({ cartItems }: { cartItems: number }) {
+  const queryClient = useQueryClient();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Login failed');
+        setIsLoading(false);
+        return;
+      }
+
+      await queryClient.invalidateQueries({ queryKey: [['auth', 'me']] });
+    } catch {
+      setError('Something went wrong. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <Header cartCount={cartItems} />
+        <section className="py-20 md:py-28 relative">
+          <div className="absolute inset-0 gradient-rose-subtle" />
+          <div className="container relative max-w-md mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="border border-border/40 bg-card p-8 md:p-10 space-y-8"
+              style={{ borderRadius: '2px' }}
+            >
+              <div className="text-center space-y-3">
+                <Lock size={20} className="text-accent mx-auto" />
+                <h1 className="text-3xl font-serif font-light">Admin Login</h1>
+                <p className="text-sm text-muted-foreground font-light">
+                  Sign in to access the admin panel
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 bg-destructive/5 border border-destructive/15 text-sm text-destructive text-center font-light"
+                    style={{ borderRadius: '2px' }}
+                    role="alert"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label htmlFor="admin-email" className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 font-light">
+                    Email
+                  </label>
+                  <input
+                    id="admin-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="input-elegant"
+                    placeholder="admin@email.com"
+                    autoComplete="email"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="admin-password" className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 font-light">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="admin-password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="input-elegant pr-12"
+                      placeholder="Enter your password"
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="password-toggle"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  type="submit"
+                  disabled={isLoading}
+                  className="btn-primary w-full py-3.5 flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isLoading && <Loader2 size={16} className="animate-spin" />}
+                  {isLoading ? 'Signing in...' : 'Sign In'}
+                </motion.button>
+              </form>
+            </motion.div>
+          </div>
+        </section>
+        <Footer />
+      </div>
+    </PageTransition>
+  );
+}
+
 export default function Admin() {
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
 
-  if (!isAuthenticated || user?.role !== 'admin') {
+  if (!isAuthenticated) {
+    return <AdminLogin cartItems={cartItems} />;
+  }
+
+  if (user?.role !== 'admin') {
     return (
       <PageTransition>
         <div className="min-h-screen bg-background">
           <Header
             cartCount={cartItems}
             isAuthenticated={isAuthenticated}
-            onLoginClick={() => (window.location.href = '/login')}
             onLogoutClick={logout}
           />
           <div className="container py-24 text-center space-y-6">

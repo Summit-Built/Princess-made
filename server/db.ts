@@ -141,12 +141,12 @@ export async function getUserByEmail(email: string) {
   return result ?? null;
 }
 
-export async function createUser(data: { email: string; name: string | null; passwordHash: string }) {
+export async function createUser(data: { email: string; name: string | null; passwordHash: string; role?: "user" | "admin" }) {
   const result = db.insert(schema.users).values({
     email: data.email,
     name: data.name,
     passwordHash: data.passwordHash,
-    role: "user",
+    role: data.role ?? "user",
     createdAt: new Date(),
     updatedAt: new Date(),
     lastSignedIn: new Date(),

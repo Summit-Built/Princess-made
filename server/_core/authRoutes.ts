@@ -2,6 +2,7 @@ import type { Express, Request, Response } from "express";
 import { hashPassword, verifyPassword, createSessionToken } from "../auth";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
+import { ENV } from "./env";
 
 const COOKIE_NAME = "app_session_id";
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
@@ -23,7 +24,8 @@ export function registerAuthRoutes(app: Express) {
       }
 
       const passwordHash = await hashPassword(password);
-      const user = await db.createUser({ email, name: name || null, passwordHash });
+      const isAdmin = ENV.adminEmail && email.toLowerCase() === ENV.adminEmail.toLowerCase();
+      const user = await db.createUser({ email, name: name || null, passwordHash, role: isAdmin ? "admin" : "user" });
 
       if (!user) {
         res.status(500).json({ error: "Failed to create user" });
