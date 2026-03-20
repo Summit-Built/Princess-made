@@ -8,7 +8,8 @@ import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { usePageMeta } from '@/lib/usePageMeta';
-import { Check, Package, ArrowRight, Sparkles, Loader2, MapPin } from 'lucide-react';
+import { Check, Package, ArrowRight, Sparkles, MapPin } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 
 function OrderItemDisplay({ item }: { item: { productId: string; quantity: number; priceAtTime: number } }) {
   const { data: product } = trpc.products.getById.useQuery(item.productId, {
@@ -121,7 +122,7 @@ export default function OrderConfirmation() {
                       <p className="font-serif font-light text-lg">
                         {order ? order.orderNumber : (
                           <span className="inline-flex items-center gap-2 text-muted-foreground/60 text-sm">
-                            <Loader2 size={14} className="animate-spin" /> Loading...
+                            <Spinner size={14} /> Loading...
                           </span>
                         )}
                       </p>

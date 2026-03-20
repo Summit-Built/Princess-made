@@ -5,7 +5,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { PageTransition } from '@/components/PageTransition';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { Loader2, Heart, Eye, EyeOff, Sparkles, Scissors, ShoppingBag } from 'lucide-react';
+import { Heart, Eye, EyeOff, Sparkles, Scissors, ShoppingBag } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function Register() {
@@ -186,7 +187,7 @@ export default function Register() {
                       disabled={isLoading}
                       className="btn-primary w-full py-3.5 flex items-center justify-center gap-2 disabled:opacity-50"
                     >
-                      {isLoading && <Loader2 size={16} className="animate-spin" />}
+                      {isLoading && <Spinner size={16} />}
                       {isLoading ? 'Creating account...' : 'Create Account'}
                     </motion.button>
                   </form>

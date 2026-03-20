@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Loader2, Send, User, Sparkles } from "lucide-react";
+import { Send, User, Sparkles } from "lucide-react";
+import { Spinner } from '@/components/ui/spinner';
 import { useState, useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
 
@@ -293,7 +294,7 @@ export function AIChatBox({
                     <Sparkles className="size-4 text-primary" />
                   </div>
                   <div className="rounded-lg bg-muted px-4 py-2.5">
-                    <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                    <Spinner size={16} className="border-muted-foreground border-t-transparent" />
                   </div>
                 </div>
               )}
@@ -324,7 +325,7 @@ export function AIChatBox({
           className="shrink-0 h-[38px] w-[38px]"
         >
           {isLoading ? (
-            <Loader2 className="size-4 animate-spin" />
+            <Spinner size={16} />
           ) : (
             <Send className="size-4" />
           )}

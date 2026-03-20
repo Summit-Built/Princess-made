@@ -8,7 +8,8 @@ import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { usePageMeta } from '@/lib/usePageMeta';
-import { ChevronLeft, Loader2, Shield, Sparkles, Truck, ChevronDown, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, Shield, Sparkles, Truck, ChevronDown, ShoppingBag } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
 
 const AU_STATES = [
@@ -413,7 +414,7 @@ export default function Checkout() {
                     disabled={isProcessing}
                     className="btn-primary w-full py-4 flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    {isProcessing && <Loader2 size={16} className="animate-spin" />}
+                    {isProcessing && <Spinner size={16} />}
                     {isProcessing ? 'Processing...' : `Pay A$${totalPriceInDollars}`}
                   </motion.button>
                 </form>

@@ -18,10 +18,10 @@ import {
   Plus,
   Trash2,
   Sparkles,
-  Loader2,
   Check,
   KeyRound,
 } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
 import { usePageMeta } from '@/lib/usePageMeta';
 
@@ -358,7 +358,7 @@ export default function Dashboard() {
                               disabled={createAddress.isPending}
                               className="btn-primary text-xs px-5 py-2 flex items-center gap-2"
                             >
-                              {createAddress.isPending && <Loader2 size={12} className="animate-spin" />}
+                              {createAddress.isPending && <Spinner size={12} />}
                               Save
                             </motion.button>
                             <motion.button
@@ -487,7 +487,7 @@ export default function Dashboard() {
                           disabled={updateProfile.isPending}
                           className="btn-primary text-xs px-6 py-2.5 flex items-center gap-2"
                         >
-                          {updateProfile.isPending && <Loader2 size={12} className="animate-spin" />}
+                          {updateProfile.isPending && <Spinner size={12} />}
                           {settingsSaved ? (
                             <>
                               <Check size={12} /> Saved
@@ -548,7 +548,7 @@ export default function Dashboard() {
                         disabled={changePassword.isPending}
                         className="btn-primary text-xs px-6 py-2.5 flex items-center gap-2"
                       >
-                        {changePassword.isPending && <Loader2 size={12} className="animate-spin" />}
+                        {changePassword.isPending && <Spinner size={12} />}
                         Update Password
                       </motion.button>
                     </form>
@@ -678,7 +678,7 @@ function OrderCard({ order, isExpanded, onToggle }: { order: any; isExpanded: bo
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Loader2 size={12} className="animate-spin" /> Loading items...
+                    <Spinner size={12} /> Loading items...
                   </div>
                 )}
               </div>
@@ -720,7 +720,7 @@ function FavoriteCard({ productId, onRemove }: { productId: string; onRemove: ()
   if (isLoading) {
     return (
       <div className="border border-border/30 p-8 flex items-center justify-center" style={{ borderRadius: '2px' }}>
-        <Loader2 size={20} className="animate-spin text-accent/40" />
+        <Spinner size={20} />
       </div>
     );
   }

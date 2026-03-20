@@ -14,7 +14,6 @@ import {
   Package,
   Users,
   ChevronDown,
-  Loader2,
   Truck,
   Save,
   AlertTriangle,
@@ -29,6 +28,7 @@ import {
   EyeOff,
   Lock,
 } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 
 type TabType = 'dashboard' | 'orders' | 'users' | 'newsletter';
 
@@ -165,7 +165,7 @@ function AdminLogin({ cartItems }: { cartItems: number }) {
                   disabled={isLoading}
                   className="btn-primary w-full py-3.5 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  {isLoading && <Loader2 size={16} className="animate-spin" />}
+                  {isLoading && <Spinner size={16} />}
                   {isLoading ? 'Signing in...' : 'Sign In'}
                 </motion.button>
               </form>
@@ -323,7 +323,7 @@ function DashboardTab() {
   if (isLoading) {
     return (
       <div className="border border-border/30 p-16 flex items-center justify-center" style={{ borderRadius: '2px' }}>
-        <Loader2 size={24} className="animate-spin text-accent/40" />
+        <Spinner size={24} />
       </div>
     );
   }
@@ -539,7 +539,7 @@ function OrdersTab({
 
       {isLoading ? (
         <div className="border border-border/30 p-16 flex items-center justify-center" style={{ borderRadius: '2px' }}>
-          <Loader2 size={24} className="animate-spin text-accent/40" />
+          <Spinner size={24} />
         </div>
       ) : filteredOrders.length > 0 ? (
         <>
@@ -732,7 +732,7 @@ function AdminOrderCard({
                     className="btn-primary text-xs px-4 py-2.5 flex items-center gap-1.5 disabled:opacity-40"
                   >
                     {updateStatus.isPending ? (
-                      <Loader2 size={12} className="animate-spin" />
+                      <Spinner size={12} />
                     ) : (
                       <Save size={12} />
                     )}
@@ -785,7 +785,7 @@ function AdminOrderCard({
                     className="btn-primary text-xs px-4 py-2.5 flex items-center gap-1.5 disabled:opacity-40"
                   >
                     {updateTracking.isPending ? (
-                      <Loader2 size={12} className="animate-spin" />
+                      <Spinner size={12} />
                     ) : (
                       <Truck size={12} />
                     )}
@@ -801,7 +801,7 @@ function AdminOrderCard({
                       style={{ borderRadius: '2px' }}
                     >
                       {sendShippingEmail.isPending ? (
-                        <Loader2 size={12} className="animate-spin" />
+                        <Spinner size={12} />
                       ) : (
                         <Send size={12} />
                       )}
@@ -875,7 +875,7 @@ function AdminOrderCard({
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Loader2 size={12} className="animate-spin" /> Loading items...
+                    <Spinner size={12} /> Loading items...
                   </div>
                 )}
               </div>
@@ -899,7 +899,7 @@ function UsersTab() {
 
       {isLoading ? (
         <div className="border border-border/30 p-16 flex items-center justify-center" style={{ borderRadius: '2px' }}>
-          <Loader2 size={24} className="animate-spin text-accent/40" />
+          <Spinner size={24} />
         </div>
       ) : users && users.length > 0 ? (
         <div className="border border-border/30 overflow-hidden" style={{ borderRadius: '2px' }}>
@@ -1013,7 +1013,7 @@ function UserOrdersPanel({ userId }: { userId: number }) {
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-xs text-muted-foreground py-3">
-        <Loader2 size={12} className="animate-spin" /> Loading orders...
+        <Spinner size={12} /> Loading orders...
       </div>
     );
   }
@@ -1072,7 +1072,7 @@ function NewsletterTab() {
 
       {isLoading ? (
         <div className="border border-border/30 p-16 flex items-center justify-center" style={{ borderRadius: '2px' }}>
-          <Loader2 size={24} className="animate-spin text-accent/40" />
+          <Spinner size={24} />
         </div>
       ) : subscribers && subscribers.length > 0 ? (
         <div className="border border-border/30 overflow-hidden" style={{ borderRadius: '2px' }}>

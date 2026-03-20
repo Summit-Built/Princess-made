@@ -8,7 +8,8 @@ import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { usePageMeta } from '@/lib/usePageMeta';
-import { Search, Package, Truck, Check, MapPin, Loader2, ExternalLink } from 'lucide-react';
+import { Search, Package, Truck, Check, MapPin, ExternalLink } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function TrackOrder() {
   usePageMeta({ title: 'Track Order', description: 'Track your Princess Made order status and shipping.' });
@@ -99,7 +100,7 @@ export default function TrackOrder() {
                 disabled={isLoading}
                 className="btn-primary px-8 flex items-center justify-center gap-2"
               >
-                {isLoading && <Loader2 size={14} className="animate-spin" />}
+                {isLoading && <Spinner size={14} />}
                 Find Orders
               </motion.button>
             </motion.form>
@@ -114,7 +115,7 @@ export default function TrackOrder() {
                   exit={{ opacity: 0 }}
                   className="text-center py-12"
                 >
-                  <Loader2 size={24} className="animate-spin text-accent mx-auto" />
+                  <Spinner size={24} className="mx-auto" />
                 </motion.div>
               )}
 

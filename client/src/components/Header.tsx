@@ -65,11 +65,11 @@ export const Header = ({
         <Link href="/" aria-label="Princess Made - Home">
           <div className="flex items-center gap-3 cursor-pointer hover:scale-[1.02] transition-transform">
             <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310419663031002008/Hy2VZfwLraitLwcA3hcpuJ/Princess(1)_e208d2f4.png"
+              src="/princess-made-logo.png"
               alt="Princess Made"
-              width={120}
-              height={40}
-              className="h-10 w-auto"
+              width={160}
+              height={50}
+              className="h-8 md:h-10 w-auto"
             />
           </div>
         </Link>

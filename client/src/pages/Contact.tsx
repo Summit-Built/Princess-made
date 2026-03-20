@@ -6,7 +6,8 @@ import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-import { Instagram, Mail, Clock, MessageCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { Instagram, Mail, Clock, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import { usePageMeta } from '@/lib/usePageMeta';
 import { toast } from 'sonner';
 
@@ -288,7 +289,7 @@ export default function Contact() {
                     disabled={isPending}
                     className="btn-primary w-full py-4 flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    {isPending && <Loader2 size={16} className="animate-spin" />}
+                    {isPending && <Spinner size={16} />}
                     {isPending ? 'Sending...' : 'Send Message'}
                   </motion.button>
                 </form>

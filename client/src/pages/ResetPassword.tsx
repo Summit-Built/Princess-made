@@ -7,7 +7,8 @@ import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-import { KeyRound, Mail, Check, Loader2 } from 'lucide-react';
+import { KeyRound, Mail, Check } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function ResetPassword() {
   const cartItems = useCartStore((state) => state.getTotalItems());
@@ -133,7 +134,7 @@ export default function ResetPassword() {
                     className="btn-primary w-full py-3.5 flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {requestReset.isPending ? (
-                      <Loader2 size={16} className="animate-spin" />
+                      <Spinner size={16} />
                     ) : (
                       <Mail size={16} />
                     )}
@@ -213,7 +214,7 @@ export default function ResetPassword() {
                     className="btn-primary w-full py-3.5 flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {resetPassword.isPending ? (
-                      <Loader2 size={16} className="animate-spin" />
+                      <Spinner size={16} />
                     ) : (
                       <KeyRound size={16} />
                     )}

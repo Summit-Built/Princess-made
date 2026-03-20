@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
-import { Instagram, Sparkles, Mail, ExternalLink, Loader2, Check } from 'lucide-react';
+import { Instagram, Sparkles, Mail, ExternalLink, Check } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 
@@ -154,7 +155,7 @@ export const Footer = () => {
                   className="w-full px-3 py-2.5 bg-blush/20 border border-blush/30 text-blush text-xs font-light tracking-[0.1em] uppercase hover:bg-blush/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 min-h-[44px]"
                   style={{ borderRadius: '2px' }}
                 >
-                  {subscribeMutation.isPending && <Loader2 size={12} className="animate-spin" />}
+                  {subscribeMutation.isPending && <Spinner size={12} />}
                   Subscribe
                 </button>
               </form>

@@ -6,7 +6,8 @@ import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-import { ArrowRight, Scissors, Heart, Sparkles, Instagram, Check, Loader2, Star } from 'lucide-react';
+import { ArrowRight, Scissors, Heart, Sparkles, Instagram, Check, Star } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
 import { usePageMeta } from '@/lib/usePageMeta';
 
@@ -51,9 +52,10 @@ export default function Home() {
 
         {/* Hero Section — plain HTML for instant FCP/LCP, no motion dependency */}
         <section className="relative overflow-hidden">
-          {/* Background texture */}
+          {/* Background textures */}
           <div className="absolute inset-0 texture-linen" />
           <div className="absolute inset-0 gradient-blush opacity-40" />
+          <div className="absolute inset-0 opacity-[0.018]" style={{ backgroundImage: 'url(/princess-made-logo.png)', backgroundSize: '140px auto', backgroundRepeat: 'repeat', backgroundPosition: '0 0', padding: '20px' }} aria-hidden="true" />
 
           <div className="container relative">
             <div className="flex flex-col items-center text-center py-20 sm:py-28 md:py-44 space-y-6 sm:space-y-8 md:space-y-10">
@@ -345,7 +347,7 @@ export default function Home() {
                     disabled={subscribeMutation.isPending}
                     className="btn-primary px-8 flex items-center justify-center gap-2 min-h-[48px] active:scale-[0.98]"
                   >
-                    {subscribeMutation.isPending && <Loader2 size={14} className="animate-spin" />}
+                    {subscribeMutation.isPending && <Spinner size={14} />}
                     Subscribe
                   </button>
                 </form>
