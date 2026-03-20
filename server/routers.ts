@@ -287,6 +287,15 @@ export const appRouter = router({
         }
         return db.getOrderItems(input);
       }),
+    cancel: protectedProcedure
+      .input(z.number())
+      .mutation(async ({ ctx, input }) => {
+        const result = await db.cancelPendingOrder(input, ctx.user.id);
+        if (!result) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Order cannot be cancelled" });
+        }
+        return result;
+      }),
     // Guest order lookup by email
     lookupByEmail: publicProcedure
       .input(z.object({ email: z.string().email() }))

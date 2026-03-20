@@ -577,8 +577,16 @@ export default function Dashboard() {
 // ========== ORDER CARD COMPONENT ==========
 
 function OrderCard({ order, isExpanded, onToggle }: { order: any; isExpanded: boolean; onToggle: () => void }) {
+  const utils = trpc.useUtils();
   const { data: orderItems } = trpc.orders.getItems.useQuery(order.id, {
     enabled: isExpanded,
+  });
+  const cancelMutation = trpc.orders.cancel.useMutation({
+    onSuccess: () => {
+      utils.orders.list.invalidate();
+      toast.success('Order cancelled');
+    },
+    onError: () => toast.error('Could not cancel order'),
   });
 
   const orderNumber = `PM-${1000 + order.id}`;
@@ -682,6 +690,18 @@ function OrderCard({ order, isExpanded, onToggle }: { order: any; isExpanded: bo
                   </div>
                 )}
               </div>
+
+              {/* Cancel button for pending orders */}
+              {order.status === 'pending' && (
+                <button
+                  onClick={() => cancelMutation.mutate(order.id)}
+                  disabled={cancelMutation.isPending}
+                  className="text-xs font-light text-red-500 hover:text-red-700 transition-colors flex items-center gap-1.5 pt-2 border-t border-border/20"
+                >
+                  {cancelMutation.isPending ? <Spinner size={12} /> : <Trash2 size={12} />}
+                  Cancel Order
+                </button>
+              )}
             </div>
           </motion.div>
         )}

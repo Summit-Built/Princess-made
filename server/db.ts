@@ -245,6 +245,14 @@ export async function getUserOrders(userId: number) {
     .all();
 }
 
+export async function cancelPendingOrder(orderId: number, userId: number) {
+  return db.update(schema.orders)
+    .set({ status: "cancelled", updatedAt: new Date() })
+    .where(and(eq(schema.orders.id, orderId), eq(schema.orders.userId, userId), eq(schema.orders.status, "pending")))
+    .returning()
+    .get() ?? null;
+}
+
 export async function getOrderById(orderId: number) {
   return db.select().from(schema.orders)
     .where(eq(schema.orders.id, orderId))
@@ -484,7 +492,7 @@ export async function getOrderWithUser(orderId: number) {
 
 export async function getAdminStats() {
   const totalOrders = db.select({ count: sql<number>`count(*)` }).from(schema.orders).get();
-  const totalRevenue = db.select({ total: sql<number>`coalesce(sum(${schema.orders.totalAmount}), 0)` }).from(schema.orders).get();
+  const totalRevenue = db.select({ total: sql<number>`coalesce(sum(${schema.orders.totalAmount}), 0)` }).from(schema.orders).where(eq(schema.orders.status, "completed")).get();
   const totalUsers = db.select({ count: sql<number>`count(*)` }).from(schema.users).get();
   const totalSubscribers = db.select({ count: sql<number>`count(*)` }).from(schema.newsletterSubscribers).get();
 
