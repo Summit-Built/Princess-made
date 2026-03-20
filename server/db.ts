@@ -5,8 +5,8 @@ import * as schema from "../drizzle/schema";
 import path from "path";
 import fs from "fs";
 
-// Ensure data directory exists
-const dataDir = path.join(process.cwd(), "data");
+// Ensure data directory exists — use DATABASE_DIR env var for persistent volumes (e.g. Railway)
+const dataDir = process.env.DATABASE_DIR || path.join(process.cwd(), "data");
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
