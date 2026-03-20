@@ -55,7 +55,7 @@ export default function Home() {
           {/* Background textures */}
           <div className="absolute inset-0 texture-linen" />
           <div className="absolute inset-0 gradient-blush opacity-40" />
-          <div className="absolute inset-0 opacity-[0.018]" style={{ backgroundImage: 'url(/princess-made-logo.png)', backgroundSize: '420px auto', backgroundRepeat: 'space', transform: 'rotate(-8deg) scale(1.15)' }} aria-hidden="true" />
+          <div className="absolute inset-0 hero-hearts opacity-50" aria-hidden="true" />
 
           <div className="container relative">
             <div className="flex flex-col items-center text-center py-20 sm:py-28 md:py-44 space-y-6 sm:space-y-8 md:space-y-10">
