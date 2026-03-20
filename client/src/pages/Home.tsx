@@ -31,22 +31,6 @@ export default function Home() {
     },
   });
 
-  // Hero content renders visible immediately to avoid delaying LCP.
-  // Only non-critical sections below the fold use entrance animations.
-  const containerVariants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.12,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: {},
-    visible: {},
-  };
-
   // Animations only for below-the-fold sections
   const fadeInVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -73,82 +57,50 @@ export default function Home() {
           onLogoutClick={logout}
         />
 
-        {/* Hero Section */}
+        {/* Hero Section — plain HTML for instant FCP/LCP, no motion dependency */}
         <section className="relative overflow-hidden">
           {/* Background texture */}
           <div className="absolute inset-0 texture-linen" />
           <div className="absolute inset-0 gradient-blush opacity-40" />
 
           <div className="container relative">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="flex flex-col items-center text-center py-20 sm:py-28 md:py-44 space-y-6 sm:space-y-8 md:space-y-10"
-            >
+            <div className="flex flex-col items-center text-center py-20 sm:py-28 md:py-44 space-y-6 sm:space-y-8 md:space-y-10">
               {/* Script tagline */}
-              <motion.p
-                variants={itemVariants}
-                className="font-script text-xl sm:text-2xl md:text-3xl text-accent"
-              >
+              <p className="font-script text-xl sm:text-2xl md:text-3xl text-accent">
                 Just a girl with a dream
-              </motion.p>
+              </p>
 
               {/* Main heading - properly sized for mobile */}
-              <motion.h1
-                variants={itemVariants}
-                className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-light leading-[1.1] tracking-tight max-w-4xl"
-              >
+              <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-light leading-[1.1] tracking-tight max-w-4xl">
                 Handcrafted
                 <br />
                 <span className="italic text-accent">with Love</span>
-              </motion.h1>
+              </h1>
 
               {/* Decorative divider */}
-              <motion.div
-                variants={itemVariants}
-                className="flex items-center gap-4 w-full max-w-xs"
-                aria-hidden="true"
-              >
+              <div className="flex items-center gap-4 w-full max-w-xs" aria-hidden="true">
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent to-accent/30" />
                 <Sparkles size={16} className="text-accent/50" />
                 <div className="flex-1 h-px bg-gradient-to-l from-transparent to-accent/30" />
-              </motion.div>
+              </div>
 
               {/* Subheading */}
-              <motion.p
-                variants={itemVariants}
-                className="text-base sm:text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl px-4 sm:px-0"
-              >
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl px-4 sm:px-0">
                 100% handmade bags, lovingly crafted one stitch at a time.
                 Each piece is unique, just like you.
-              </motion.p>
+              </p>
 
               {/* CTA */}
-              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 w-full sm:w-auto px-4 sm:px-0">
-                <Link href="/shop">
-                  <motion.div
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-accent text-accent-foreground font-light tracking-[0.15em] uppercase text-sm hover:bg-accent/90 transition-all cursor-pointer min-h-[48px] w-full sm:w-auto"
-                    style={{ borderRadius: '2px' }}
-                  >
-                    Shop Collection
-                    <ArrowRight size={16} />
-                  </motion.div>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 w-full sm:w-auto px-4 sm:px-0">
+                <Link href="/shop" className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-accent text-accent-foreground font-light tracking-[0.15em] uppercase text-sm hover:bg-accent/90 transition-all cursor-pointer min-h-[48px] w-full sm:w-auto" style={{ borderRadius: '2px' }}>
+                  Shop Collection
+                  <ArrowRight size={16} />
                 </Link>
-                <Link href="/about">
-                  <motion.div
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="inline-flex items-center justify-center gap-3 px-8 py-4 border border-accent/30 text-foreground font-light tracking-[0.15em] uppercase text-sm hover:border-accent/60 transition-all cursor-pointer min-h-[48px] w-full sm:w-auto"
-                    style={{ borderRadius: '2px' }}
-                  >
-                    Our Story
-                  </motion.div>
+                <Link href="/about" className="inline-flex items-center justify-center gap-3 px-8 py-4 border border-accent/30 text-foreground font-light tracking-[0.15em] uppercase text-sm hover:border-accent/60 transition-all cursor-pointer min-h-[48px] w-full sm:w-auto" style={{ borderRadius: '2px' }}>
+                  Our Story
                 </Link>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           </div>
         </section>
 

@@ -48,10 +48,7 @@ export const Header = ({
   const isActive = (path: string) => location === path;
 
   return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
+    <header
       className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/50"
       role="banner"
     >
@@ -303,6 +300,6 @@ export const Header = ({
 
       {/* Cart Drawer */}
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-    </motion.header>
+    </header>
   );
 };
