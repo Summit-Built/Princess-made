@@ -70,6 +70,13 @@ export function registerAuthRoutes(app: Express) {
 
       await db.updateUserLastSignedIn(user.id);
 
+      // Auto-promote admin email if not already admin
+      const isAdmin = ENV.adminEmail && email.toLowerCase() === ENV.adminEmail.toLowerCase();
+      if (isAdmin && user.role !== 'admin') {
+        await db.updateUserRole(user.id, 'admin');
+        user.role = 'admin';
+      }
+
       const token = await createSessionToken({
         userId: user.id,
         email: user.email,

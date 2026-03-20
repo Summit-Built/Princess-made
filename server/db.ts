@@ -161,6 +161,13 @@ export async function updateUserLastSignedIn(id: number) {
     .run();
 }
 
+export async function updateUserRole(id: number, role: "user" | "admin") {
+  db.update(schema.users)
+    .set({ role, updatedAt: new Date() })
+    .where(eq(schema.users.id, id))
+    .run();
+}
+
 export async function updateUser(id: number, data: Partial<{ name: string; email: string }>) {
   db.update(schema.users)
     .set({ ...data, updatedAt: new Date() })
