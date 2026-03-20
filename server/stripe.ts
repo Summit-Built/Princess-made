@@ -54,7 +54,8 @@ function mapStripeProduct(p: Stripe.Product): StripeProduct | null {
 }
 
 // Resolve Stripe file URLs (files.stripe.com) to their final CDN URLs.
-// Stripe file URLs do a 302 redirect; resolving server-side saves the client a round trip.
+// Stripe rejects HEAD requests with 403, so we use a GET with redirect: "manual"
+// to capture the redirect target without downloading the full image body.
 const resolvedImageCache = new Map<string, string>();
 
 async function resolveImageUrl(url: string): Promise<string> {
@@ -62,8 +63,15 @@ async function resolveImageUrl(url: string): Promise<string> {
   const cached = resolvedImageCache.get(url);
   if (cached) return cached;
   try {
-    const resp = await fetch(url, { method: "HEAD", redirect: "follow" });
-    const finalUrl = resp.url;
+    // Use redirect: "manual" to capture the Location header without following it.
+    // If Stripe serves directly (no redirect), we just keep the original URL.
+    const resp = await fetch(url, { method: "GET", redirect: "manual" });
+    const location = resp.headers.get("location");
+    // Consume/discard body to free the connection
+    if (resp.body) {
+      try { resp.body.cancel(); } catch {}
+    }
+    const finalUrl = location || url;
     resolvedImageCache.set(url, finalUrl);
     return finalUrl;
   } catch {
