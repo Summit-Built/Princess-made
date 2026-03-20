@@ -24,7 +24,7 @@ export function registerAuthRoutes(app: Express) {
       }
 
       const passwordHash = await hashPassword(password);
-      const isAdmin = ENV.adminEmail && email.toLowerCase() === ENV.adminEmail.toLowerCase();
+      const isAdmin = ENV.adminEmails.includes(email.toLowerCase());
       const user = await db.createUser({ email, name: name || null, passwordHash, role: isAdmin ? "admin" : "user" });
 
       if (!user) {
@@ -71,7 +71,7 @@ export function registerAuthRoutes(app: Express) {
       await db.updateUserLastSignedIn(user.id);
 
       // Auto-promote admin email if not already admin
-      const isAdmin = ENV.adminEmail && email.toLowerCase() === ENV.adminEmail.toLowerCase();
+      const isAdmin = ENV.adminEmails.includes(email.toLowerCase());
       if (isAdmin && user.role !== 'admin') {
         await db.updateUserRole(user.id, 'admin');
         user.role = 'admin';

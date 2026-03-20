@@ -20,7 +20,7 @@ export const appRouter = router({
   auth: router({
     me: publicProcedure.query(async (opts) => {
       const user = opts.ctx.user;
-      if (user && ENV.adminEmail && user.email.toLowerCase() === ENV.adminEmail.toLowerCase() && user.role !== 'admin') {
+      if (user && ENV.adminEmails.includes(user.email.toLowerCase()) && user.role !== 'admin') {
         await db.updateUserRole(user.id, 'admin');
         user.role = 'admin';
       }
