@@ -1,4 +1,3 @@
-import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Heart, User, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
@@ -64,10 +63,7 @@ export const Header = ({
       <div className="container flex items-center justify-between h-16 md:h-18">
         {/* Logo */}
         <Link href="/" aria-label="Princess Made - Home">
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="flex items-center gap-3 cursor-pointer"
-          >
+          <div className="flex items-center gap-3 cursor-pointer hover:scale-[1.02] transition-transform">
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310419663031002008/Hy2VZfwLraitLwcA3hcpuJ/Princess(1)_e208d2f4.png"
               alt="Princess Made"
@@ -75,7 +71,7 @@ export const Header = ({
               height={40}
               className="h-10 w-auto"
             />
-          </motion.div>
+          </div>
         </Link>
 
         {/* Desktop Navigation */}
@@ -93,11 +89,7 @@ export const Header = ({
             >
               {link.label}
               {isActive(link.href) && (
-                <motion.div
-                  layoutId="nav-underline"
-                  className="absolute -bottom-1 left-0 right-0 h-px bg-accent"
-                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                />
+                <div className="absolute -bottom-1 left-0 right-0 h-px bg-accent" />
               )}
             </Link>
           ))}
@@ -108,197 +100,149 @@ export const Header = ({
           {/* Favorites */}
           {isAuthenticated && (
             <Link href="/dashboard" aria-label="My favorites">
-              <motion.div
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-2.5 hover:bg-accent/5 rounded-full transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-              >
+              <div className="p-2.5 hover:bg-accent/5 rounded-full transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center hover:scale-[1.08] active:scale-95 transition-transform">
                 <Heart size={18} className="text-foreground/70" />
-              </motion.div>
+              </div>
             </Link>
           )}
 
           {/* Cart */}
-          <motion.button
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={() => setIsCartOpen(true)}
-            className="relative p-2.5 hover:bg-accent/5 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="relative p-2.5 hover:bg-accent/5 rounded-full transition-all min-w-[44px] min-h-[44px] flex items-center justify-center hover:scale-[1.08] active:scale-95"
             aria-label={`Shopping cart${cartCount > 0 ? `, ${cartCount} item${cartCount !== 1 ? 's' : ''}` : ', empty'}`}
           >
             <ShoppingBag size={18} className="text-foreground/70" />
-            <AnimatePresence mode="wait">
-              {cartCount > 0 && (
-                <motion.span
-                  key={cartCount}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0, opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                  className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-accent text-accent-foreground text-[10px] font-medium rounded-full flex items-center justify-center pointer-events-none"
-                  aria-hidden="true"
-                >
-                  {cartCount > 99 ? '99+' : cartCount}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.button>
+            {cartCount > 0 && (
+              <span
+                className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-accent text-accent-foreground text-[10px] font-medium rounded-full flex items-center justify-center pointer-events-none animate-[scale-in_0.2s_ease-out]"
+                aria-hidden="true"
+              >
+                {cartCount > 99 ? '99+' : cartCount}
+              </span>
+            )}
+          </button>
 
           {/* User Account */}
           {isAuthenticated ? (
             <Link href="/dashboard" aria-label="My account">
-              <motion.div
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-2.5 hover:bg-accent/5 rounded-full transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-              >
+              <div className="p-2.5 hover:bg-accent/5 rounded-full transition-all cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center hover:scale-[1.08] active:scale-95">
                 <User size={18} className="text-foreground/70" />
-              </motion.div>
+              </div>
             </Link>
           ) : (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               onClick={onLoginClick}
-              className="hidden md:inline-flex px-5 py-2 text-[13px] font-light tracking-[0.1em] uppercase border border-accent/30 text-foreground hover:bg-accent hover:text-accent-foreground transition-all min-h-[44px] items-center"
+              className="hidden md:inline-flex px-5 py-2 text-[13px] font-light tracking-[0.1em] uppercase border border-accent/30 text-foreground hover:bg-accent hover:text-accent-foreground transition-all min-h-[44px] items-center active:scale-[0.98]"
               style={{ borderRadius: '2px' }}
             >
               Sign In
-            </motion.button>
+            </button>
           )}
 
           {/* Mobile Menu Toggle */}
-          <motion.button
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2.5 hover:bg-accent/5 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="md:hidden p-2.5 hover:bg-accent/5 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95"
             aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={isMenuOpen}
           >
-            <AnimatePresence mode="wait" initial={false}>
-              {isMenuOpen ? (
-                <motion.div
-                  key="close"
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <X size={20} className="text-foreground" />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="menu"
-                  initial={{ rotate: 90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: -90, opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <Menu size={20} className="text-foreground" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.button>
+            {isMenuOpen ? (
+              <X size={20} className="text-foreground" />
+            ) : (
+              <Menu size={20} className="text-foreground" />
+            )}
+          </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="md:hidden fixed inset-0 top-16 bg-foreground/20 backdrop-blur-sm z-40"
-              onClick={() => setIsMenuOpen(false)}
-              aria-hidden="true"
-            />
+      {isMenuOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="md:hidden fixed inset-0 top-16 bg-foreground/20 backdrop-blur-sm z-40"
+            onClick={() => setIsMenuOpen(false)}
+            aria-hidden="true"
+          />
 
-            <motion.nav
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="md:hidden absolute left-0 right-0 top-full border-t border-border/50 bg-background shadow-lg z-50"
-              aria-label="Mobile navigation"
-            >
-              <div className="container py-6 space-y-1">
-                {/* Promo bar for mobile */}
-                <p className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground/60 font-light text-center pb-4 border-b border-border/30 mb-2">
-                  Free shipping on orders over A$50
-                </p>
+          <nav
+            className="md:hidden absolute left-0 right-0 top-full border-t border-border/50 bg-background shadow-lg z-50"
+            aria-label="Mobile navigation"
+          >
+            <div className="container py-6 space-y-1">
+              {/* Promo bar for mobile */}
+              <p className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground/60 font-light text-center pb-4 border-b border-border/30 mb-2">
+                Free shipping on orders over A$50
+              </p>
 
-                {navLinks.map((link, index) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center justify-between py-3.5 text-sm font-light tracking-[0.1em] uppercase transition-colors cursor-pointer min-h-[44px] ${
-                      isActive(link.href)
-                        ? 'text-accent'
-                        : 'text-foreground/70 hover:text-foreground'
-                    }`}
-                    aria-current={isActive(link.href) ? 'page' : undefined}
-                  >
-                    {link.label}
-                    {isActive(link.href) && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent" aria-hidden="true" />
-                    )}
-                  </Link>
-                ))}
-
-                <div className="pt-4 border-t border-border/30 space-y-2">
-                  {isAuthenticated ? (
-                    <>
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="flex items-center gap-3 py-3.5 text-sm font-light tracking-[0.1em] uppercase text-foreground/70 hover:text-foreground cursor-pointer min-h-[44px]"
-                      >
-                        <User size={16} />
-                        My Account
-                      </Link>
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="flex items-center gap-3 py-3.5 text-sm font-light tracking-[0.1em] uppercase text-foreground/70 hover:text-foreground cursor-pointer min-h-[44px]"
-                      >
-                        <Heart size={16} />
-                        My Favorites
-                      </Link>
-                      <motion.button
-                        onClick={() => { onLogoutClick?.(); setIsMenuOpen(false); }}
-                        className="btn-outline w-full text-sm py-2.5 mt-2"
-                      >
-                        Sign Out
-                      </motion.button>
-                    </>
-                  ) : (
-                    <div className="space-y-3 pt-2">
-                      <motion.button
-                        onClick={() => { onLoginClick?.(); setIsMenuOpen(false); }}
-                        className="btn-primary w-full text-sm py-3"
-                      >
-                        Sign In
-                      </motion.button>
-                      <Link
-                        href="/register"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="block text-center text-sm text-muted-foreground font-light hover:text-accent transition-colors cursor-pointer py-2 min-h-[44px] leading-[44px]"
-                      >
-                        Create an account
-                      </Link>
-                    </div>
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex items-center justify-between py-3.5 text-sm font-light tracking-[0.1em] uppercase transition-colors cursor-pointer min-h-[44px] ${
+                    isActive(link.href)
+                      ? 'text-accent'
+                      : 'text-foreground/70 hover:text-foreground'
+                  }`}
+                  aria-current={isActive(link.href) ? 'page' : undefined}
+                >
+                  {link.label}
+                  {isActive(link.href) && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent" aria-hidden="true" />
                   )}
-                </div>
+                </Link>
+              ))}
+
+              <div className="pt-4 border-t border-border/30 space-y-2">
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center gap-3 py-3.5 text-sm font-light tracking-[0.1em] uppercase text-foreground/70 hover:text-foreground cursor-pointer min-h-[44px]"
+                    >
+                      <User size={16} />
+                      My Account
+                    </Link>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center gap-3 py-3.5 text-sm font-light tracking-[0.1em] uppercase text-foreground/70 hover:text-foreground cursor-pointer min-h-[44px]"
+                    >
+                      <Heart size={16} />
+                      My Favorites
+                    </Link>
+                    <button
+                      onClick={() => { onLogoutClick?.(); setIsMenuOpen(false); }}
+                      className="btn-outline w-full text-sm py-2.5 mt-2"
+                    >
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <div className="space-y-3 pt-2">
+                    <button
+                      onClick={() => { onLoginClick?.(); setIsMenuOpen(false); }}
+                      className="btn-primary w-full text-sm py-3"
+                    >
+                      Sign In
+                    </button>
+                    <Link
+                      href="/register"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block text-center text-sm text-muted-foreground font-light hover:text-accent transition-colors cursor-pointer py-2 min-h-[44px] leading-[44px]"
+                    >
+                      Create an account
+                    </Link>
+                  </div>
+                )}
               </div>
-            </motion.nav>
-          </>
-        )}
-      </AnimatePresence>
+            </div>
+          </nav>
+        </>
+      )}
 
       {/* Cart Drawer */}
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />

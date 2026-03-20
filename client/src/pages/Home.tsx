@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Link } from 'wouter';
 // Home page does NOT use PageTransition to avoid opacity:0 delaying LCP/FCP
 import { Header } from '@/components/Header';
@@ -30,23 +29,6 @@ export default function Home() {
       toast.error('Something went wrong. Please try again.');
     },
   });
-
-  // Animations only for below-the-fold sections
-  const fadeInVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] as const },
-    },
-  };
-
-  const fadeInContainerVariants = {
-    hidden: {},
-    visible: {
-      transition: { staggerChildren: 0.12 },
-    },
-  };
 
   return (
       <div className="min-h-screen bg-background">
@@ -106,12 +88,7 @@ export default function Home() {
 
         {/* Marquee / Feature Strip */}
         <section className="bg-accent/5 border-y border-accent/10 py-5 overflow-hidden">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="flex items-center justify-center gap-6 sm:gap-8 md:gap-16 text-[10px] sm:text-xs tracking-[0.2em] sm:tracking-[0.25em] uppercase text-muted-foreground font-light flex-wrap"
-          >
+          <div className="flex items-center justify-center gap-6 sm:gap-8 md:gap-16 text-[10px] sm:text-xs tracking-[0.2em] sm:tracking-[0.25em] uppercase text-muted-foreground font-light flex-wrap">
             <span className="flex items-center gap-2">
               <Scissors size={14} className="text-accent" aria-hidden="true" />
               100% Handmade
@@ -128,19 +105,13 @@ export default function Home() {
               <Instagram size={14} className="text-accent" aria-hidden="true" />
               @princessmadefashion
             </span>
-          </motion.div>
+          </div>
         </section>
 
         {/* Featured Categories */}
         <section className="py-16 sm:py-24 md:py-32">
           <div className="container">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-center mb-12 md:mb-16 space-y-4"
-            >
+            <div className="text-center mb-12 md:mb-16 space-y-4">
               <p className="font-script text-xl text-accent">Explore</p>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-light">
                 Our Collections
@@ -150,15 +121,9 @@ export default function Home() {
                 <div className="w-1.5 h-1.5 rounded-full bg-accent/30" />
                 <div className="flex-1 h-px bg-gradient-to-l from-transparent to-accent/20" />
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              variants={fadeInContainerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8"
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
               {[
                 {
                   title: 'Laptop Cases',
@@ -179,13 +144,9 @@ export default function Home() {
                   accent: 'from-[#e8ddd8] to-[#d4c4be]',
                 },
               ].map((category, index) => (
-                <motion.div key={index} variants={fadeInVariants}>
+                <div key={index}>
                   <Link href={category.href}>
-                    <motion.div
-                      whileHover={{ y: -6 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                      className="block cursor-pointer group"
-                    >
+                    <div className="block cursor-pointer group hover:-translate-y-1.5 transition-transform duration-300">
                       <div className={`bg-gradient-to-br ${category.accent} p-10 sm:p-12 md:p-14 text-center border border-accent/10 hover:border-accent/30 transition-all duration-500 relative overflow-hidden`} style={{ borderRadius: '2px' }}>
                         <div className="absolute inset-0 texture-linen opacity-50" />
                         <div className="relative">
@@ -201,11 +162,11 @@ export default function Home() {
                           </span>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   </Link>
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </section>
 
@@ -215,41 +176,26 @@ export default function Home() {
           <div className="absolute inset-0 texture-linen" />
 
           <div className="container relative">
-            <motion.div
-              variants={fadeInContainerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="max-w-3xl mx-auto text-center space-y-8"
-            >
-              <motion.p variants={fadeInVariants} className="font-script text-xl text-accent">
+            <div className="max-w-3xl mx-auto text-center space-y-8">
+              <p className="font-script text-xl text-accent">
                 Our Promise
-              </motion.p>
-              <motion.h2
-                variants={fadeInVariants}
-                className="text-3xl sm:text-4xl md:text-5xl font-serif font-light leading-tight"
-              >
+              </p>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-light leading-tight">
                 Every Bag Tells <span className="italic">a Story</span>
-              </motion.h2>
-              <motion.p
-                variants={fadeInVariants}
-                className="text-muted-foreground font-light leading-relaxed text-base sm:text-lg px-4 sm:px-0"
-              >
+              </h2>
+              <p className="text-muted-foreground font-light leading-relaxed text-base sm:text-lg px-4 sm:px-0">
                 At Princess Made, we believe in the beauty of slow fashion. Each bag is handcrafted
                 from carefully selected materials, sewn with attention to every detail. No two pieces
                 are exactly alike — that's the magic of handmade.
-              </motion.p>
+              </p>
 
-              <motion.div
-                variants={fadeInContainerVariants}
-                className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-8"
-              >
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-8">
                 {[
                   { icon: Scissors, title: 'Handcrafted', description: 'Every stitch placed with care and intention' },
                   { icon: Heart, title: 'Made with Love', description: 'Passion poured into every single piece' },
                   { icon: Sparkles, title: 'Unique', description: 'No two bags are exactly the same' },
                 ].map((value, index) => (
-                  <motion.div key={index} variants={fadeInVariants} className="space-y-3">
+                  <div key={index} className="space-y-3">
                     <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-accent/10 border border-accent/20">
                       <value.icon size={20} className="text-accent" aria-hidden="true" />
                     </div>
@@ -257,36 +203,24 @@ export default function Home() {
                     <p className="text-muted-foreground text-sm font-light leading-relaxed">
                       {value.description}
                     </p>
-                  </motion.div>
+                  </div>
                 ))}
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           </div>
         </section>
 
         {/* Customer love / Social Proof Section */}
         <section className="py-16 sm:py-24 md:py-32 border-y border-accent/10">
           <div className="container">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-center space-y-6 mb-12"
-            >
+            <div className="text-center space-y-6 mb-12">
               <p className="font-script text-xl text-accent">Customer Love</p>
               <h2 className="text-3xl sm:text-4xl font-serif font-light">
                 What Our Customers Say
               </h2>
-            </motion.div>
+            </div>
 
-            <motion.div
-              variants={fadeInContainerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
-            >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {[
                 {
                   quote: 'Absolutely love my laptop case! The quilting is so soft and it fits my MacBook perfectly. You can really tell it was made with care.',
@@ -307,9 +241,8 @@ export default function Home() {
                   product: 'Pencil Case',
                 },
               ].map((testimonial, index) => (
-                <motion.div
+                <div
                   key={index}
-                  variants={fadeInVariants}
                   className="p-6 md:p-8 bg-card border border-border/40 text-left space-y-4 relative"
                   style={{ borderRadius: '2px' }}
                 >
@@ -332,9 +265,9 @@ export default function Home() {
                       {testimonial.location} · {testimonial.product}
                     </p>
                   </div>
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </section>
 
@@ -344,11 +277,7 @@ export default function Home() {
           <div className="absolute inset-0 texture-linen opacity-20" />
 
           <div className="container max-w-xl mx-auto text-center relative">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
+            <div
               className="space-y-6 sm:space-y-8 p-6 sm:p-10 md:p-12 bg-card/50 backdrop-blur-sm border border-border/30"
               style={{ borderRadius: '2px' }}
             >
@@ -360,16 +289,12 @@ export default function Home() {
                 Be the first to know about new drops, exclusive offers, and behind-the-scenes peeks.
               </p>
               {newsletterSubscribed ? (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex items-center justify-center gap-2 text-accent font-light py-4"
-                >
+                <div className="flex items-center justify-center gap-2 text-accent font-light py-4">
                   <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
                     <Check size={16} className="text-accent" />
                   </div>
                   <span>You're in! Thanks for subscribing.</span>
-                </motion.div>
+                </div>
               ) : (
                 <form
                   onSubmit={(e) => {
@@ -387,34 +312,27 @@ export default function Home() {
                     className="input-elegant flex-1"
                     aria-label="Email address for newsletter"
                   />
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <button
                     type="submit"
                     disabled={subscribeMutation.isPending}
-                    className="btn-primary px-8 flex items-center justify-center gap-2 min-h-[48px]"
+                    className="btn-primary px-8 flex items-center justify-center gap-2 min-h-[48px] active:scale-[0.98]"
                   >
                     {subscribeMutation.isPending && <Loader2 size={14} className="animate-spin" />}
                     Subscribe
-                  </motion.button>
+                  </button>
                 </form>
               )}
               <p className="text-xs text-muted-foreground/50 font-light">
                 No spam, ever. Unsubscribe anytime.
               </p>
-            </motion.div>
+            </div>
           </div>
         </section>
 
         {/* Instagram CTA */}
         <section className="py-12 sm:py-16 border-t border-accent/10">
           <div className="container text-center">
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="space-y-4"
-            >
+            <div className="space-y-4">
               <p className="font-script text-xl text-accent">Follow Along</p>
               <a
                 href="https://www.instagram.com/princessmadefashion/"
@@ -428,7 +346,7 @@ export default function Home() {
                   @princessmadefashion
                 </span>
               </a>
-            </motion.div>
+            </div>
           </div>
         </section>
 

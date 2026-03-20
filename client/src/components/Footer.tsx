@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Link } from 'wouter';
 import { Instagram, Sparkles, Mail, ExternalLink, Loader2, Check } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
@@ -22,10 +21,7 @@ export const Footer = () => {
   });
 
   return (
-    <motion.footer
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+    <footer
       className="bg-foreground text-background/80 mt-0"
       role="contentinfo"
     >
@@ -33,12 +29,7 @@ export const Footer = () => {
       <div className="container py-16 md:py-20">
         <div className="grid grid-cols-2 md:grid-cols-12 gap-8 md:gap-8">
           {/* Brand Column */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="col-span-2 md:col-span-4 space-y-5"
-          >
+          <div className="col-span-2 md:col-span-4 space-y-5">
             <h3 className="font-script text-3xl text-blush">
               Princess Made
             </h3>
@@ -73,15 +64,10 @@ export const Footer = () => {
                 <Mail size={16} />
               </a>
             </div>
-          </motion.div>
+          </div>
 
           {/* Shop */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="md:col-span-2"
-          >
+          <div className="md:col-span-2">
             <h4 className="text-xs tracking-[0.2em] uppercase text-background/40 mb-5 font-light">Shop</h4>
             <ul className="space-y-3 text-sm">
               {[
@@ -97,15 +83,10 @@ export const Footer = () => {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </div>
 
           {/* Help */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="md:col-span-2"
-          >
+          <div className="md:col-span-2">
             <h4 className="text-xs tracking-[0.2em] uppercase text-background/40 mb-5 font-light">Help</h4>
             <ul className="space-y-3 text-sm">
               {[
@@ -121,15 +102,10 @@ export const Footer = () => {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </div>
 
           {/* Company */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="md:col-span-2"
-          >
+          <div className="md:col-span-2">
             <h4 className="text-xs tracking-[0.2em] uppercase text-background/40 mb-5 font-light">Company</h4>
             <ul className="space-y-3 text-sm">
               {[
@@ -144,15 +120,10 @@ export const Footer = () => {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </div>
 
           {/* Newsletter in footer */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="col-span-2 md:col-span-2"
-          >
+          <div className="col-span-2 md:col-span-2">
             <h4 className="text-xs tracking-[0.2em] uppercase text-background/40 mb-5 font-light">Newsletter</h4>
             {footerSubscribed ? (
               <div className="flex items-center gap-2 text-blush text-sm font-light">
@@ -188,27 +159,22 @@ export const Footer = () => {
                 </button>
               </form>
             )}
-          </motion.div>
+          </div>
         </div>
       </div>
 
       {/* Bottom Bar */}
       <div className="border-t border-background/10">
         <div className="container py-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-background/30 font-light"
-          >
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-background/30 font-light">
             <div className="flex items-center gap-2">
               <Sparkles size={12} aria-hidden="true" />
               <p>&copy; {currentYear} Princess Made. All rights reserved.</p>
             </div>
             <p className="tracking-wider uppercase">Handmade in Australia</p>
-          </motion.div>
+          </div>
         </div>
       </div>
-    </motion.footer>
+    </footer>
   );
 };
