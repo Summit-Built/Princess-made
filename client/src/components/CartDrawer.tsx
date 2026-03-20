@@ -2,6 +2,7 @@ import { X, ShoppingBag, Trash2, Sparkles, Truck } from 'lucide-react';
 import { Link } from 'wouter';
 import { useCartStore } from '@/stores/cartStore';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 const FREE_SHIPPING_THRESHOLD = 5000; // A$50.00 in cents
 
@@ -33,7 +34,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
@@ -209,6 +210,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
           </div>
         )}
       </div>
-    </>
+    </>,
+    document.body
   );
 };
