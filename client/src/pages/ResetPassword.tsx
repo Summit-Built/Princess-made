@@ -188,7 +188,7 @@ export default function ResetPassword() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       className="input-elegant"
-                      placeholder="At least 8 characters"
+                      placeholder="At least 6 characters"
                     />
                   </div>
 

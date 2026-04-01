@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { hashPassword, verifyPassword, createSessionToken } from "../auth";
 import * as db from "../db";
+import * as email from "../email";
 import { getSessionCookieOptions } from "./cookies";
 import { ENV } from "./env";
 
@@ -41,6 +42,11 @@ export function registerAuthRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
       res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+
+      // Send welcome email (non-blocking)
+      email.sendWelcomeEmail({ to: user.email, name: user.name }).catch((err: unknown) =>
+        console.error("[Auth] Failed to send welcome email:", err)
+      );
     } catch (error) {
       console.error("[Auth] Register failed:", error);
       res.status(500).json({ error: "Registration failed" });

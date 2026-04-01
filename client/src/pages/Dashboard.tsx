@@ -20,6 +20,7 @@ import {
   Sparkles,
   Check,
   KeyRound,
+  FileText,
 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
@@ -167,7 +168,14 @@ export default function Dashboard() {
 
   const handleSaveAddress = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addressStreet || !addressCity || !addressState || !addressPostal) return;
+    if (!addressStreet || !addressCity || !addressState || !addressPostal) {
+      toast.error('Please fill in all address fields');
+      return;
+    }
+    if (!/^\d{4}$/.test(addressPostal)) {
+      toast.error('Postal code must be 4 digits');
+      return;
+    }
     createAddress.mutate({
       street: addressStreet,
       city: addressCity,
@@ -691,17 +699,77 @@ function OrderCard({ order, isExpanded, onToggle }: { order: any; isExpanded: bo
                 )}
               </div>
 
-              {/* Cancel button for pending orders */}
-              {order.status === 'pending' && (
-                <button
-                  onClick={() => cancelMutation.mutate(order.id)}
-                  disabled={cancelMutation.isPending}
-                  className="text-xs font-light text-red-500 hover:text-red-700 transition-colors flex items-center gap-1.5 pt-2 border-t border-border/20"
-                >
-                  {cancelMutation.isPending ? <Spinner size={12} /> : <Trash2 size={12} />}
-                  Cancel Order
-                </button>
-              )}
+              {/* Actions */}
+              <div className="flex items-center gap-4 pt-2 border-t border-border/20">
+                {/* Download Receipt for completed orders */}
+                {(order.status === 'completed' || order.status === 'refunded') && (
+                  <button
+                    onClick={() => {
+                      const w = window.open('', '_blank');
+                      if (!w) return;
+                      w.document.write(`
+                        <html><head><title>Receipt — ${orderNumber}</title>
+                        <style>
+                          body { font-family: Georgia, -apple-system, sans-serif; max-width: 600px; margin: 40px auto; color: #3d3530; padding: 20px; }
+                          h1 { font-weight: 300; font-size: 24px; text-align: center; }
+                          .subtitle { text-align: center; color: #8a7a72; font-size: 13px; font-weight: 300; }
+                          .info { display: flex; justify-content: space-between; margin: 24px 0; padding: 16px; background: #faf8f6; border: 1px solid #f0e8e4; }
+                          .info-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #8a7a72; }
+                          .info-value { font-size: 16px; margin-top: 4px; }
+                          table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+                          th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #8a7a72; font-weight: 300; padding: 8px 0; border-bottom: 2px solid #f0e8e4; }
+                          th:last-child { text-align: right; }
+                          td { padding: 12px 0; border-bottom: 1px solid #f0e8e4; font-weight: 300; }
+                          td:last-child { text-align: right; color: #c9a89a; }
+                          .total { display: flex; justify-content: space-between; padding: 16px; background: #faf8f6; border: 1px solid #f0e8e4; margin-top: 16px; }
+                          .total-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #8a7a72; }
+                          .total-value { font-size: 22px; color: #c9a89a; }
+                          .footer { text-align: center; margin-top: 40px; padding-top: 24px; border-top: 1px solid #f0e8e4; font-size: 12px; color: #b0a49c; }
+                          @media print { body { margin: 0; } }
+                        </style></head><body>
+                        <h1>Princess Made</h1>
+                        <p class="subtitle">Receipt / Tax Invoice</p>
+                        <div class="info">
+                          <div><p class="info-label">Order Number</p><p class="info-value">${orderNumber}</p></div>
+                          <div style="text-align:right;"><p class="info-label">Date</p><p class="info-value">${new Date(order.createdAt).toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' })}</p></div>
+                        </div>
+                        <table>
+                          <thead><tr><th>Item</th><th>Qty</th><th style="text-align:right">Price</th></tr></thead>
+                          <tbody>${orderItems ? orderItems.map((item: any) => `<tr><td>${item.productId}</td><td>${item.quantity}</td><td>A$${((item.priceAtTime * item.quantity) / 100).toFixed(2)}</td></tr>`).join('') : ''}</tbody>
+                        </table>
+                        <div class="total">
+                          <span class="total-label">Total</span>
+                          <span class="total-value">A$${(order.totalAmount / 100).toFixed(2)}</span>
+                        </div>
+                        <div class="footer">
+                          <p>Princess Made — Handmade in Australia</p>
+                          <p>princessmadefashion@gmail.com</p>
+                          <p style="margin-top:16px;"><em>Thank you for your purchase!</em></p>
+                        </div>
+                        </body></html>
+                      `);
+                      w.document.close();
+                      w.print();
+                    }}
+                    className="text-xs font-light text-accent hover:text-accent/70 transition-colors flex items-center gap-1.5"
+                  >
+                    <FileText size={12} />
+                    Download Receipt
+                  </button>
+                )}
+
+                {/* Cancel button for pending orders */}
+                {order.status === 'pending' && (
+                  <button
+                    onClick={() => cancelMutation.mutate(order.id)}
+                    disabled={cancelMutation.isPending}
+                    className="text-xs font-light text-red-500 hover:text-red-700 transition-colors flex items-center gap-1.5"
+                  >
+                    {cancelMutation.isPending ? <Spinner size={12} /> : <Trash2 size={12} />}
+                    Cancel Order
+                  </button>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

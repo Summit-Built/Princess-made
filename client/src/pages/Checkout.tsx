@@ -119,8 +119,15 @@ export default function Checkout() {
 
     setIsProcessing(true);
 
+    const missingPriceId = items.find(item => !item.stripePriceId);
+    if (missingPriceId) {
+      toast.error(`Unable to checkout: missing price data for "${missingPriceId.name}". Please remove it and re-add.`);
+      setIsProcessing(false);
+      return;
+    }
+
     const itemsPayload = items.map(item => ({
-      stripePriceId: item.stripePriceId || '',
+      stripePriceId: item.stripePriceId!,
       stripeProductId: item.productId,
       quantity: item.quantity,
       price: item.price,

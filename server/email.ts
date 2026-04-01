@@ -194,6 +194,201 @@ export async function sendPasswordResetEmail(opts: {
   }
 }
 
+export async function sendOrderCancellation(opts: {
+  to: string;
+  orderNumber: string;
+  totalAmount: number;
+}) {
+  const resend = getResend();
+  if (!resend) {
+    console.log("[Email] Resend not configured, skipping order cancellation email");
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: getFrom(),
+      to: opts.to,
+      subject: `Order Cancelled — ${opts.orderNumber}`,
+      html: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, sans-serif; color: #3d3530; background: #faf8f6; padding: 40px 30px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-family: Georgia, serif; font-weight: 300; font-size: 28px; margin: 0;">Order Cancelled</h1>
+            <p style="color: #8a7a72; font-weight: 300; margin-top: 8px;">Your order has been cancelled as requested</p>
+          </div>
+
+          <div style="background: white; border: 1px solid #f0e8e4; padding: 24px; margin-bottom: 24px;">
+            <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #8a7a72; margin: 0 0 8px 0;">Order Number</p>
+            <p style="font-family: Georgia, serif; font-size: 18px; margin: 0 0 16px 0; font-weight: 300;">${opts.orderNumber}</p>
+            <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #8a7a72; margin: 0 0 8px 0;">Refund Amount</p>
+            <p style="font-family: Georgia, serif; font-size: 18px; margin: 0; color: #c9a89a; font-weight: 300;">A$${(opts.totalAmount / 100).toFixed(2)}</p>
+          </div>
+
+          <div style="background: white; border: 1px solid #f0e8e4; padding: 20px 24px; margin-bottom: 24px; text-align: center;">
+            <p style="font-size: 14px; font-weight: 300; margin: 0; color: #8a7a72;">If you were charged, a refund will be processed to your original payment method within 5–10 business days.</p>
+          </div>
+
+          <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f0e8e4;">
+            <p style="font-size: 13px; color: #8a7a72; font-weight: 300;">Changed your mind? We'd love to have you back anytime.</p>
+            <p style="font-size: 12px; color: #b0a49c; margin-top: 16px;">Handmade in Australia 🇦🇺</p>
+            <p style="font-size: 11px; color: #c4b8b0;">Princess Made — princessmadefashion@gmail.com</p>
+          </div>
+        </div>
+      `,
+    });
+    console.log(`[Email] Order cancellation sent to ${opts.to}`);
+  } catch (err) {
+    console.error("[Email] Failed to send order cancellation:", err);
+  }
+}
+
+export async function sendDeliveryConfirmation(opts: {
+  to: string;
+  orderNumber: string;
+}) {
+  const resend = getResend();
+  if (!resend) {
+    console.log("[Email] Resend not configured, skipping delivery confirmation email");
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: getFrom(),
+      to: opts.to,
+      subject: `Delivered! — ${opts.orderNumber} 💕`,
+      html: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, sans-serif; color: #3d3530; background: #faf8f6; padding: 40px 30px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-family: Georgia, serif; font-weight: 300; font-size: 28px; margin: 0;">Your Order Has Arrived! 🎉</h1>
+            <p style="color: #8a7a72; font-weight: 300; margin-top: 8px;">${opts.orderNumber}</p>
+          </div>
+
+          <div style="background: white; border: 1px solid #f0e8e4; padding: 24px; margin-bottom: 24px; text-align: center;">
+            <p style="font-size: 16px; font-weight: 300; margin: 0 0 16px 0;">We hope you love your new handmade piece!</p>
+            <p style="font-size: 14px; font-weight: 300; color: #8a7a72; margin: 0;">Each item is made with so much love and care — we'd be thrilled if you shared it on Instagram and tagged us!</p>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 24px;">
+            <a href="https://www.instagram.com/princessmadefashion/" style="display: inline-block; padding: 12px 32px; background: #c9a89a; color: white; text-decoration: none; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; font-weight: 300;">Tag Us @princessmadefashion</a>
+          </div>
+
+          <div style="background: white; border: 1px solid #f0e8e4; padding: 20px 24px; text-align: center; margin-bottom: 24px;">
+            <p style="font-size: 13px; font-weight: 300; color: #8a7a72; margin: 0;">Something not right with your order? Please reach out within 7 days and we'll sort it out.</p>
+            <p style="margin-top: 8px;"><a href="mailto:princessmadefashion@gmail.com" style="color: #c9a89a; text-decoration: underline; font-size: 13px;">princessmadefashion@gmail.com</a></p>
+          </div>
+
+          <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f0e8e4;">
+            <p style="font-size: 12px; color: #b0a49c;">Handmade in Australia 🇦🇺</p>
+            <p style="font-size: 11px; color: #c4b8b0;">Princess Made — princessmadefashion@gmail.com</p>
+          </div>
+        </div>
+      `,
+    });
+    console.log(`[Email] Delivery confirmation sent to ${opts.to}`);
+  } catch (err) {
+    console.error("[Email] Failed to send delivery confirmation:", err);
+  }
+}
+
+export async function sendWelcomeEmail(opts: {
+  to: string;
+  name: string | null;
+}) {
+  const resend = getResend();
+  if (!resend) {
+    console.log("[Email] Resend not configured, skipping welcome email");
+    return;
+  }
+
+  const greeting = opts.name ? `Welcome, ${opts.name}!` : "Welcome!";
+
+  try {
+    await resend.emails.send({
+      from: getFrom(),
+      to: opts.to,
+      subject: `Welcome to Princess Made! 💕`,
+      html: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, sans-serif; color: #3d3530; background: #faf8f6; padding: 40px 30px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-family: Georgia, serif; font-weight: 300; font-size: 28px; margin: 0;">${greeting}</h1>
+            <p style="color: #8a7a72; font-weight: 300; margin-top: 8px;">You're now part of the Princess Made family</p>
+          </div>
+
+          <div style="background: white; border: 1px solid #f0e8e4; padding: 24px; margin-bottom: 24px; text-align: center;">
+            <p style="font-size: 15px; font-weight: 300; margin: 0 0 16px 0;">Thank you for joining us! Here's what you can do with your account:</p>
+            <div style="text-align: left; padding: 0 16px;">
+              <p style="font-size: 14px; font-weight: 300; color: #8a7a72; margin: 8px 0;">&#10084;&#65039; Save your favourite items to your wishlist</p>
+              <p style="font-size: 14px; font-weight: 300; color: #8a7a72; margin: 8px 0;">&#128230; Track your orders and shipping</p>
+              <p style="font-size: 14px; font-weight: 300; color: #8a7a72; margin: 8px 0;">&#128205; Save shipping addresses for faster checkout</p>
+              <p style="font-size: 14px; font-weight: 300; color: #8a7a72; margin: 8px 0;">&#9997;&#65039; Request custom handmade pieces</p>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 24px;">
+            <a href="https://princessmade.com.au/shop" style="display: inline-block; padding: 14px 36px; background: #c9a89a; color: white; text-decoration: none; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; font-weight: 300;">Start Shopping</a>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 24px;">
+            <p style="font-size: 13px; color: #8a7a72; font-weight: 300;">Follow us for behind-the-scenes and new drops:</p>
+            <a href="https://www.instagram.com/princessmadefashion/" style="color: #c9a89a; text-decoration: underline; font-size: 13px;">@princessmadefashion</a>
+          </div>
+
+          <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f0e8e4;">
+            <p style="font-size: 12px; color: #b0a49c;">Handmade in Australia 🇦🇺</p>
+            <p style="font-size: 11px; color: #c4b8b0;">Princess Made — princessmadefashion@gmail.com</p>
+          </div>
+        </div>
+      `,
+    });
+    console.log(`[Email] Welcome email sent to ${opts.to}`);
+  } catch (err) {
+    console.error("[Email] Failed to send welcome email:", err);
+  }
+}
+
+export async function sendNewsletterConfirmation(opts: {
+  to: string;
+}) {
+  const resend = getResend();
+  if (!resend) {
+    console.log("[Email] Resend not configured, skipping newsletter confirmation email");
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: getFrom(),
+      to: opts.to,
+      subject: "You're In! — Princess Made Newsletter ✨",
+      html: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, sans-serif; color: #3d3530; background: #faf8f6; padding: 40px 30px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-family: Georgia, serif; font-weight: 300; font-size: 28px; margin: 0;">You're Subscribed! ✨</h1>
+            <p style="color: #8a7a72; font-weight: 300; margin-top: 8px;">Thanks for joining the Princess Made newsletter</p>
+          </div>
+
+          <div style="background: white; border: 1px solid #f0e8e4; padding: 24px; margin-bottom: 24px; text-align: center;">
+            <p style="font-size: 15px; font-weight: 300; margin: 0;">You'll be the first to know about new collections, restocks, and exclusive offers. We promise not to spam — only the good stuff!</p>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 24px;">
+            <a href="https://princessmade.com.au/shop" style="display: inline-block; padding: 12px 32px; background: #c9a89a; color: white; text-decoration: none; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; font-weight: 300;">Browse Collection</a>
+          </div>
+
+          <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f0e8e4;">
+            <p style="font-size: 12px; color: #b0a49c;">Handmade in Australia 🇦🇺</p>
+            <p style="font-size: 11px; color: #c4b8b0;">Princess Made — princessmadefashion@gmail.com</p>
+          </div>
+        </div>
+      `,
+    });
+    console.log(`[Email] Newsletter confirmation sent to ${opts.to}`);
+  } catch (err) {
+    console.error("[Email] Failed to send newsletter confirmation:", err);
+  }
+}
+
 export async function sendContactFormNotification(opts: {
   name: string;
   email: string;

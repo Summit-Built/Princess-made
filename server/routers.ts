@@ -138,11 +138,23 @@ export const appRouter = router({
         }),
       }))
       .mutation(async ({ ctx, input }) => {
-        const totalAmount = input.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        // Verify prices server-side from Stripe (don't trust client prices)
+        const allProducts = await stripe.getProducts();
+        const verifiedItems = input.items.map(item => {
+          const product = allProducts.find(p => p.stripeProductId === item.stripeProductId);
+          if (!product) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: `Product not found: ${item.stripeProductId}` });
+          }
+          if (!item.stripePriceId) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: `Missing price ID for: ${item.name}` });
+          }
+          return { ...item, price: product.price }; // Use server-verified price
+        });
+        const totalAmount = verifiedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
         const origin = `${ctx.req.protocol}://${ctx.req.get("host")}`;
         const session = await stripe.createCheckoutSession({
-          lineItems: input.items.map(item => ({
+          lineItems: verifiedItems.map(item => ({
             stripePriceId: item.stripePriceId,
             quantity: item.quantity,
           })),
@@ -164,7 +176,7 @@ export const appRouter = router({
 
         // Create order items
         if (order) {
-          for (const item of input.items) {
+          for (const item of verifiedItems) {
             await db.createOrderItem({
               orderId: order.id,
               productId: item.stripeProductId,
@@ -179,9 +191,9 @@ export const appRouter = router({
             to: input.email,
             orderNumber: `PM-${1000 + order.id}`,
             totalAmount,
-            items: input.items.map(i => ({ name: i.name, quantity: i.quantity, price: i.price * i.quantity })),
+            items: verifiedItems.map(i => ({ name: i.name, quantity: i.quantity, price: i.price * i.quantity })),
             guestTrackingUrl: `${origin}/track-order?email=${encodeURIComponent(input.email)}`,
-          });
+          }).catch(err => console.error("Failed to send order confirmation email:", err));
         }
 
         return { url: session.url, sessionId: session.sessionId };
@@ -206,7 +218,19 @@ export const appRouter = router({
         }).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const totalAmount = input.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        // Verify prices server-side from Stripe (don't trust client prices)
+        const allProducts = await stripe.getProducts();
+        const verifiedItems = input.items.map(item => {
+          const product = allProducts.find(p => p.stripeProductId === item.stripeProductId);
+          if (!product) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: `Product not found: ${item.stripeProductId}` });
+          }
+          if (!item.stripePriceId) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: `Missing price ID for: ${item.name}` });
+          }
+          return { ...item, price: product.price };
+        });
+        const totalAmount = verifiedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
         // Save shipping address if provided
         let shippingAddressId: number | null = null;
@@ -224,7 +248,7 @@ export const appRouter = router({
 
         const origin = `${ctx.req.protocol}://${ctx.req.get("host")}`;
         const session = await stripe.createCheckoutSession({
-          lineItems: input.items.map(item => ({
+          lineItems: verifiedItems.map(item => ({
             stripePriceId: item.stripePriceId,
             quantity: item.quantity,
           })),
@@ -245,7 +269,7 @@ export const appRouter = router({
 
         // Create order items + send email
         if (order) {
-          for (const item of input.items) {
+          for (const item of verifiedItems) {
             await db.createOrderItem({
               orderId: order.id,
               productId: item.stripeProductId,
@@ -259,8 +283,8 @@ export const appRouter = router({
             to: ctx.user.email,
             orderNumber: `PM-${1000 + order.id}`,
             totalAmount,
-            items: input.items.map(i => ({ name: i.name, quantity: i.quantity, price: i.price * i.quantity })),
-          });
+            items: verifiedItems.map(i => ({ name: i.name, quantity: i.quantity, price: i.price * i.quantity })),
+          }).catch(err => console.error("Failed to send order confirmation email:", err));
         }
 
         return { url: session.url, sessionId: session.sessionId };
@@ -290,11 +314,47 @@ export const appRouter = router({
     cancel: protectedProcedure
       .input(z.number())
       .mutation(async ({ ctx, input }) => {
+        const order = await db.getOrderById(input);
         const result = await db.cancelPendingOrder(input, ctx.user.id);
         if (!result) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Order cannot be cancelled" });
         }
+        // Send cancellation confirmation email
+        if (order) {
+          const customerEmail = order.guestEmail || ctx.user.email;
+          email.sendOrderCancellation({
+            to: customerEmail,
+            orderNumber: `PM-${1000 + order.id}`,
+            totalAmount: order.totalAmount,
+          }).catch(err => console.error("Failed to send cancellation email:", err));
+        }
         return result;
+      }),
+    // Generate invoice data for an order
+    invoice: protectedProcedure
+      .input(z.number())
+      .query(async ({ ctx, input }) => {
+        const order = await db.getOrderById(input);
+        if (!order || order.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+        const items = await db.getOrderItems(input);
+        const products = await stripe.getProducts();
+        return {
+          orderNumber: `PM-${1000 + order.id}`,
+          date: order.createdAt,
+          status: order.status,
+          totalAmount: order.totalAmount,
+          items: items.map(item => {
+            const product = products.find(p => p.stripeProductId === item.productId);
+            return {
+              name: product?.name || item.productId,
+              quantity: item.quantity,
+              unitPrice: item.priceAtTime,
+              total: item.priceAtTime * item.quantity,
+            };
+          }),
+        };
       }),
     // Guest order lookup by email
     lookupByEmail: publicProcedure
@@ -472,7 +532,11 @@ export const appRouter = router({
     subscribe: publicProcedure
       .input(z.object({ email: z.string().email() }))
       .mutation(async ({ input }) => {
-        return db.addNewsletterSubscriber(input.email);
+        const result = await db.addNewsletterSubscriber(input.email);
+        // Send newsletter confirmation email (non-blocking)
+        email.sendNewsletterConfirmation({ to: input.email })
+          .catch(err => console.error("Failed to send newsletter confirmation:", err));
+        return result;
       }),
   }),
 
@@ -504,13 +568,21 @@ export const appRouter = router({
           if (result) {
             const customerEmail = result.guestEmail || (result.userId ? (await db.getUserById(result.userId))?.email : null);
             if (customerEmail) {
-              email.sendShippingUpdate({
-                to: customerEmail,
-                orderNumber: `PM-${1000 + result.id}`,
-                trackingNumber: input.trackingNumber,
-                shippingStatus: input.shippingStatus,
-                trackingUrl: auspostTrackingUrl(input.trackingNumber),
-              });
+              // Send delivery confirmation for "delivered" status, shipping update for everything else
+              if (input.shippingStatus === "delivered") {
+                email.sendDeliveryConfirmation({
+                  to: customerEmail,
+                  orderNumber: `PM-${1000 + result.id}`,
+                }).catch(err => console.error("Failed to send delivery confirmation email:", err));
+              } else {
+                email.sendShippingUpdate({
+                  to: customerEmail,
+                  orderNumber: `PM-${1000 + result.id}`,
+                  trackingNumber: input.trackingNumber,
+                  shippingStatus: input.shippingStatus,
+                  trackingUrl: auspostTrackingUrl(input.trackingNumber),
+                }).catch(err => console.error("Failed to send shipping update email:", err));
+              }
             }
           }
 

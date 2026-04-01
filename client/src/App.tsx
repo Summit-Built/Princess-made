@@ -21,6 +21,9 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const TrackOrder = lazy(() => import("./pages/TrackOrder"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const Shipping = lazy(() => import("./pages/Shipping"));
+const Returns = lazy(() => import("./pages/Returns"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 function Router() {
@@ -37,9 +40,9 @@ function Router() {
         <Route path={"/register"} component={Register} />
         <Route path={"/about"} component={About} />
         <Route path={"/contact"} component={Contact} />
-        <Route path={"/faq"} component={Contact} />
-        <Route path={"/shipping"} component={Contact} />
-        <Route path={"/returns"} component={Contact} />
+        <Route path={"/faq"} component={FAQ} />
+        <Route path={"/shipping"} component={Shipping} />
+        <Route path={"/returns"} component={Returns} />
         <Route path={"/admin"} component={Admin} />
         <Route path={"/track-order"} component={TrackOrder} />
         <Route path={"/privacy"} component={Privacy} />
