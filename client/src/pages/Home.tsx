@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'wouter';
 // Home page does NOT use PageTransition to avoid opacity:0 delaying LCP/FCP
 import { Header } from '@/components/Header';
@@ -10,6 +10,22 @@ import { ArrowRight, Scissors, Heart, Sparkles, Instagram, Check, Star, ChevronL
 import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
 import { usePageMeta } from '@/lib/usePageMeta';
+
+function useScrollReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.unobserve(el); } },
+      { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return { ref, isVisible };
+}
 
 export default function Home() {
   usePageMeta({ title: 'Princess Made', description: 'Handcrafted bags and accessories made with love in Australia. 100% handmade, one of a kind.' });
@@ -46,6 +62,13 @@ export default function Home() {
       toast.error('Something went wrong. Please try again.');
     },
   });
+
+  // Scroll reveal animations
+  const revealBestSellers = useScrollReveal();
+  const revealCollections = useScrollReveal();
+  const revealStory = useScrollReveal();
+  const revealTestimonials = useScrollReveal();
+  const revealNewsletter = useScrollReveal();
 
   // Carousel scroll
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -149,7 +172,7 @@ export default function Home() {
         {/* ─── Best Sellers Carousel ─── */}
         {bestSellers.length > 0 && (
           <section className="py-12 sm:py-16 md:py-20">
-            <div className="container">
+            <div ref={revealBestSellers.ref} className={`container transition-all duration-700 ease-out ${revealBestSellers.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
               <div className="flex items-end justify-between mb-8">
                 <div className="space-y-2">
                   <p className="font-script text-lg text-accent">Shop Now</p>
@@ -179,19 +202,23 @@ export default function Home() {
 
               <div
                 ref={carouselRef}
-                className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory"
+                className={`flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory ${bestSellers.length <= 3 ? 'justify-center' : ''}`}
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {bestSellers.map((product) => (
                   <Link key={product.id} href={`/product/${product.id}`}>
-                    <div className="flex-shrink-0 w-[240px] sm:w-[280px] group cursor-pointer snap-start">
-                      <div className="aspect-[3/4] overflow-hidden mb-3 bg-cream border border-accent/10 hover:border-accent/20 transition-all" style={{ borderRadius: '2px' }}>
+                    <div className="flex-shrink-0 w-[280px] sm:w-[320px] group cursor-pointer snap-start">
+                      <div className="relative aspect-[3/4] overflow-hidden mb-3 bg-cream border border-accent/10 hover:border-accent/20 transition-all" style={{ borderRadius: '2px' }}>
                         <img
                           src={product.imageUrl!}
                           alt={product.name}
                           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                           loading="lazy"
                         />
+                        {/* New badge */}
+                        <div className="absolute top-2 left-2 bg-accent text-accent-foreground text-[10px] uppercase tracking-[0.15em] font-light px-2.5 py-1" style={{ borderRadius: '2px' }}>
+                          New
+                        </div>
                       </div>
                       <div className="space-y-1">
                         <h3 className="text-sm font-serif font-light text-foreground group-hover:text-accent transition-colors truncate">
@@ -218,7 +245,7 @@ export default function Home() {
 
         {/* ─── Featured Collections ─── */}
         <section className="py-12 sm:py-20 md:py-28 bg-cream/50">
-          <div className="container">
+          <div ref={revealCollections.ref} className={`container transition-all duration-700 ease-out ${revealCollections.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="text-center mb-10 md:mb-14 space-y-3">
               <p className="font-script text-xl text-accent">Explore</p>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-light">
@@ -298,7 +325,7 @@ export default function Home() {
 
         {/* ─── Brand Story — 50/50 Split ─── */}
         <section className="py-12 sm:py-20 md:py-28">
-          <div className="container">
+          <div ref={revealStory.ref} className={`container transition-all duration-700 ease-out ${revealStory.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
               {/* Left: Image */}
               <div className="relative">
@@ -363,7 +390,7 @@ export default function Home() {
 
         {/* ─── Customer Love ─── */}
         <section className="py-12 sm:py-20 md:py-28 bg-cream/30 border-y border-accent/10">
-          <div className="container">
+          <div ref={revealTestimonials.ref} className={`container transition-all duration-700 ease-out ${revealTestimonials.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="text-center space-y-4 mb-10">
               <p className="font-script text-xl text-accent">Customer Love</p>
               <h2 className="text-3xl sm:text-4xl font-serif font-light">
@@ -426,7 +453,7 @@ export default function Home() {
           <div className="absolute inset-0 gradient-rose-subtle" />
           <div className="absolute inset-0 texture-linen opacity-20" />
 
-          <div className="container max-w-xl mx-auto text-center relative">
+          <div ref={revealNewsletter.ref} className={`container max-w-xl mx-auto text-center relative transition-all duration-700 ease-out ${revealNewsletter.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div
               className="space-y-6 sm:space-y-8 p-6 sm:p-10 md:p-12 bg-card/50 backdrop-blur-sm border border-border/30"
               style={{ borderRadius: '2px' }}

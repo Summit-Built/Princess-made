@@ -152,7 +152,7 @@ export const Footer = () => {
                 <button
                   type="submit"
                   disabled={subscribeMutation.isPending}
-                  className="w-full px-3 py-2.5 bg-blush/20 border border-blush/30 text-blush text-xs font-light tracking-[0.1em] uppercase hover:bg-blush/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 min-h-[44px]"
+                  className="w-full px-3 py-2.5 bg-accent text-accent-foreground text-xs font-light tracking-[0.15em] uppercase hover:bg-accent/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 min-h-[44px]"
                   style={{ borderRadius: '2px' }}
                 >
                   {subscribeMutation.isPending && <Spinner size={12} />}

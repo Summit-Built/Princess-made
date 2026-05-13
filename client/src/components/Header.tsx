@@ -3,6 +3,40 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { CartDrawer } from './CartDrawer';
 
+const promoMessages = [
+  'Handmade with love — Free shipping on orders over A$50',
+  'New arrivals just dropped — Shop now',
+  'Each piece is one of a kind ✨',
+];
+
+function PromoBar() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % promoMessages.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="bg-accent/5 border-b border-accent/10 hidden md:block">
+      <div className="container flex items-center justify-center h-9 relative overflow-hidden">
+        {promoMessages.map((msg, i) => (
+          <p
+            key={i}
+            className={`absolute text-[11px] sm:text-sm tracking-[0.2em] uppercase text-muted-foreground font-light transition-opacity duration-500 ${
+              i === index ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {msg}
+          </p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface HeaderProps {
   cartCount?: number;
   onCartClick?: () => void;
@@ -51,14 +85,8 @@ export const Header = ({
       className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/50"
       role="banner"
     >
-      {/* Top bar */}
-      <div className="bg-accent/5 border-b border-accent/10 hidden md:block">
-        <div className="container flex items-center justify-center h-8">
-          <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground font-light">
-            Handmade with love — Free shipping on orders over A$50
-          </p>
-        </div>
-      </div>
+      {/* Top bar — rotating messages */}
+      <PromoBar />
 
       <div className="container flex items-center justify-between h-16 md:h-18">
         {/* Logo */}
