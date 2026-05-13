@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'wouter';
 // Home page does NOT use PageTransition to avoid opacity:0 delaying LCP/FCP
 import { Header } from '@/components/Header';
@@ -6,7 +6,7 @@ import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-import { ArrowRight, Scissors, Heart, Sparkles, Instagram, Check, Star } from 'lucide-react';
+import { ArrowRight, Scissors, Heart, Sparkles, Instagram, Check, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
 import { usePageMeta } from '@/lib/usePageMeta';
@@ -28,6 +28,12 @@ export default function Home() {
     }
   }
 
+  // Best sellers: show first 8 products with images
+  const bestSellers = products?.filter(p => p.imageUrl).slice(0, 8) ?? [];
+
+  // Hero product image — use the first available product image
+  const heroProduct = products?.find(p => p.imageUrl);
+
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
   const subscribeMutation = trpc.newsletter.subscribe.useMutation({
@@ -41,6 +47,14 @@ export default function Home() {
     },
   });
 
+  // Carousel scroll
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const scrollCarousel = (dir: 'left' | 'right') => {
+    if (!carouselRef.current) return;
+    const amount = 320;
+    carouselRef.current.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' });
+  };
+
   return (
       <div className="min-h-screen bg-background">
         <Header
@@ -50,55 +64,67 @@ export default function Home() {
           onLogoutClick={logout}
         />
 
-        {/* Hero Section — plain HTML for instant FCP/LCP, no motion dependency */}
-        <section className="relative overflow-hidden">
-          {/* Background textures */}
-          <div className="absolute inset-0 texture-linen" />
-          <div className="absolute inset-0 gradient-blush opacity-40" />
-          <div className="absolute inset-0 hero-hearts opacity-50" aria-hidden="true" />
-
+        {/* ─── Hero Section ─── */}
+        <section className="relative overflow-hidden bg-cream">
           <div className="container relative">
-            <div className="flex flex-col items-center text-center py-20 sm:py-28 md:py-44 space-y-6 sm:space-y-8 md:space-y-10">
-              {/* Script tagline */}
-              <p className="font-script text-xl sm:text-2xl md:text-3xl text-accent">
-                Just a girl with a dream
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 min-h-[60vh] md:min-h-[75vh]">
+              {/* Left: Text content */}
+              <div className="flex flex-col justify-center py-12 sm:py-16 md:py-24 space-y-5 sm:space-y-6 z-10 order-2 md:order-1">
+                <p className="font-script text-xl sm:text-2xl md:text-3xl text-accent">
+                  Just a girl with a dream
+                </p>
 
-              {/* Main heading - properly sized for mobile */}
-              <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-light leading-[1.1] tracking-tight max-w-4xl">
-                Handcrafted
-                <br />
-                <span className="italic text-accent">with Love</span>
-              </h1>
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-light leading-[1.05] tracking-tight">
+                  Handcrafted
+                  <br />
+                  <span className="italic text-accent">with Love</span>
+                </h1>
 
-              {/* Decorative divider */}
-              <div className="flex items-center gap-4 w-full max-w-xs" aria-hidden="true">
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-accent/30" />
-                <Sparkles size={16} className="text-accent/50" />
-                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-accent/30" />
+                <p className="text-base sm:text-lg text-muted-foreground font-light leading-relaxed max-w-md">
+                  100% handmade bags, lovingly crafted one stitch at a time.
+                  Each piece is unique, just like you.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <Link href="/shop" className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-accent text-accent-foreground font-light tracking-[0.15em] uppercase text-sm hover:bg-accent/90 transition-all cursor-pointer min-h-[48px]" style={{ borderRadius: '2px' }}>
+                    Shop Collection
+                    <ArrowRight size={16} />
+                  </Link>
+                  <Link href="/about" className="inline-flex items-center justify-center gap-3 px-8 py-4 border border-accent/30 text-foreground font-light tracking-[0.15em] uppercase text-sm hover:border-accent/60 transition-all cursor-pointer min-h-[48px]" style={{ borderRadius: '2px' }}>
+                    Our Story
+                  </Link>
+                </div>
               </div>
 
-              {/* Subheading */}
-              <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl px-4 sm:px-0">
-                100% handmade bags, lovingly crafted one stitch at a time.
-                Each piece is unique, just like you.
-              </p>
-
-              {/* CTA */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 w-full sm:w-auto px-4 sm:px-0">
-                <Link href="/shop" className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-accent text-accent-foreground font-light tracking-[0.15em] uppercase text-sm hover:bg-accent/90 transition-all cursor-pointer min-h-[48px] w-full sm:w-auto" style={{ borderRadius: '2px' }}>
-                  Shop Collection
-                  <ArrowRight size={16} />
-                </Link>
-                <Link href="/about" className="inline-flex items-center justify-center gap-3 px-8 py-4 border border-accent/30 text-foreground font-light tracking-[0.15em] uppercase text-sm hover:border-accent/60 transition-all cursor-pointer min-h-[48px] w-full sm:w-auto" style={{ borderRadius: '2px' }}>
-                  Our Story
-                </Link>
+              {/* Right: Product image */}
+              <div className="relative flex items-center justify-center order-1 md:order-2 pt-8 md:pt-0">
+                {heroProduct?.imageUrl ? (
+                  <div className="relative w-full max-w-md md:max-w-lg aspect-[3/4] md:aspect-auto md:h-full">
+                    <img
+                      src={heroProduct.imageUrl}
+                      alt={heroProduct.name}
+                      className="w-full h-full object-cover object-center"
+                      style={{ borderRadius: '2px' }}
+                    />
+                    {/* Floating badge */}
+                    <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-white/90 backdrop-blur-sm px-4 py-2 border border-accent/20" style={{ borderRadius: '2px' }}>
+                      <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-light">Best Seller</p>
+                      <p className="text-sm font-serif text-foreground">{heroProduct.name}</p>
+                    </div>
+                  </div>
+                ) : (
+                  /* Fallback: decorative pattern when no products loaded */
+                  <div className="w-full h-64 md:h-full relative">
+                    <div className="absolute inset-0 hero-hearts opacity-60" />
+                    <div className="absolute inset-0 gradient-blush opacity-50" />
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </section>
 
-        {/* Marquee / Feature Strip */}
+        {/* ─── Trust Strip ─── */}
         <section className="bg-accent/5 border-y border-accent/10 py-5 overflow-hidden">
           <div className="flex items-center justify-center gap-6 sm:gap-8 md:gap-16 text-[10px] sm:text-xs tracking-[0.2em] sm:tracking-[0.25em] uppercase text-muted-foreground font-light flex-wrap">
             <span className="flex items-center gap-2">
@@ -120,10 +146,80 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Featured Categories */}
-        <section className="py-16 sm:py-24 md:py-32">
+        {/* ─── Best Sellers Carousel ─── */}
+        {bestSellers.length > 0 && (
+          <section className="py-12 sm:py-16 md:py-20">
+            <div className="container">
+              <div className="flex items-end justify-between mb-8">
+                <div className="space-y-2">
+                  <p className="font-script text-lg text-accent">Shop Now</p>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-light">
+                    Best Sellers
+                  </h2>
+                </div>
+                <div className="hidden sm:flex items-center gap-2">
+                  <button
+                    onClick={() => scrollCarousel('left')}
+                    className="w-10 h-10 flex items-center justify-center border border-accent/20 hover:border-accent/50 text-foreground/60 hover:text-foreground transition-all"
+                    style={{ borderRadius: '2px' }}
+                    aria-label="Scroll left"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button
+                    onClick={() => scrollCarousel('right')}
+                    className="w-10 h-10 flex items-center justify-center border border-accent/20 hover:border-accent/50 text-foreground/60 hover:text-foreground transition-all"
+                    style={{ borderRadius: '2px' }}
+                    aria-label="Scroll right"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
+
+              <div
+                ref={carouselRef}
+                className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {bestSellers.map((product) => (
+                  <Link key={product.id} href={`/product/${product.id}`}>
+                    <div className="flex-shrink-0 w-[240px] sm:w-[280px] group cursor-pointer snap-start">
+                      <div className="aspect-[3/4] overflow-hidden mb-3 bg-cream border border-accent/10 hover:border-accent/20 transition-all" style={{ borderRadius: '2px' }}>
+                        <img
+                          src={product.imageUrl!}
+                          alt={product.name}
+                          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-serif font-light text-foreground group-hover:text-accent transition-colors truncate">
+                          {product.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground font-light">
+                          A${(product.price / 100).toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="text-center mt-8 sm:mt-10">
+                <Link href="/shop" className="inline-flex items-center gap-2 text-sm uppercase tracking-[0.15em] font-light text-accent hover:text-accent/80 transition-colors group min-h-[44px]">
+                  View All Products
+                  <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ─── Featured Collections ─── */}
+        <section className="py-12 sm:py-20 md:py-28 bg-cream/50">
           <div className="container">
-            <div className="text-center mb-12 md:mb-16 space-y-4">
+            <div className="text-center mb-10 md:mb-14 space-y-3">
               <p className="font-script text-xl text-accent">Explore</p>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-light">
                 Our Collections
@@ -135,7 +231,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
               {[
                 {
                   title: 'Laptop Cases',
@@ -163,8 +259,8 @@ export default function Home() {
                 return (
                 <div key={index}>
                   <Link href={category.href}>
-                    <div className="block cursor-pointer group hover:-translate-y-1.5 transition-transform duration-300">
-                      <div className={`${!bgImage ? `bg-gradient-to-br ${category.accent}` : ''} text-center border border-accent/10 hover:border-accent/30 transition-all duration-500 relative overflow-hidden aspect-[4/3] sm:aspect-[3/4]`} style={{ borderRadius: '2px' }}>
+                    <div className="block cursor-pointer group hover:-translate-y-1 transition-transform duration-300">
+                      <div className={`${!bgImage ? `bg-gradient-to-br ${category.accent}` : ''} text-center border border-accent/10 hover:border-accent/30 transition-all duration-500 relative overflow-hidden aspect-[3/4] sm:aspect-[2/3] md:aspect-[3/4]`} style={{ borderRadius: '2px' }}>
                         {/* Product image background */}
                         {bgImage && (
                           <div
@@ -200,57 +296,82 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Brand Story Section */}
-        <section className="relative py-16 sm:py-24 md:py-32 overflow-hidden">
-          <div className="absolute inset-0 gradient-warm" />
-          <div className="absolute inset-0 texture-linen" />
-
-          <div className="container relative">
-            <div className="max-w-3xl mx-auto text-center space-y-8">
-              <p className="font-script text-xl text-accent">
-                Our Promise
-              </p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-light leading-tight">
-                Every Bag Tells <span className="italic">a Story</span>
-              </h2>
-              <p className="text-muted-foreground font-light leading-relaxed text-base sm:text-lg px-4 sm:px-0">
-                At Princess Made, we believe in the beauty of slow fashion. Each bag is handcrafted
-                from carefully selected materials, sewn with attention to every detail. No two pieces
-                are exactly alike — that's the magic of handmade.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-8">
-                {[
-                  { icon: Scissors, title: 'Handcrafted', description: 'Every stitch placed with care and intention' },
-                  { icon: Heart, title: 'Made with Love', description: 'Passion poured into every single piece' },
-                  { icon: Sparkles, title: 'Unique', description: 'No two bags are exactly the same' },
-                ].map((value, index) => (
-                  <div key={index} className="space-y-3">
-                    <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-accent/10 border border-accent/20">
-                      <value.icon size={20} className="text-accent" aria-hidden="true" />
-                    </div>
-                    <h3 className="text-lg font-serif font-light">{value.title}</h3>
-                    <p className="text-muted-foreground text-sm font-light leading-relaxed">
-                      {value.description}
-                    </p>
+        {/* ─── Brand Story — 50/50 Split ─── */}
+        <section className="py-12 sm:py-20 md:py-28">
+          <div className="container">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
+              {/* Left: Image */}
+              <div className="relative">
+                {products && products.length > 1 && products[1]?.imageUrl ? (
+                  <div className="relative">
+                    <img
+                      src={products[1].imageUrl}
+                      alt="Handcrafted with care"
+                      className="w-full aspect-[4/5] object-cover"
+                      style={{ borderRadius: '2px' }}
+                      loading="lazy"
+                    />
+                    {/* Decorative accent */}
+                    <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-accent/10 -z-10 hidden md:block" style={{ borderRadius: '2px' }} />
+                    <div className="absolute -top-4 -left-4 w-16 h-16 bg-blush/30 -z-10 hidden md:block" style={{ borderRadius: '2px' }} />
                   </div>
-                ))}
+                ) : (
+                  <div className="w-full aspect-[4/5] bg-gradient-to-br from-cream to-blush/30 flex items-center justify-center" style={{ borderRadius: '2px' }}>
+                    <Heart size={48} className="text-accent/20" />
+                  </div>
+                )}
+              </div>
+
+              {/* Right: Text */}
+              <div className="space-y-6 md:space-y-8">
+                <p className="font-script text-xl text-accent">Our Promise</p>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-light leading-tight">
+                  Every Bag Tells <span className="italic">a Story</span>
+                </h2>
+                <p className="text-muted-foreground font-light leading-relaxed text-base sm:text-lg">
+                  At Princess Made, we believe in the beauty of slow fashion. Each bag is handcrafted
+                  from carefully selected materials, sewn with attention to every detail. No two pieces
+                  are exactly alike — that's the magic of handmade.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4">
+                  {[
+                    { icon: Scissors, title: 'Handcrafted', description: 'Every stitch placed with care' },
+                    { icon: Heart, title: 'Made with Love', description: 'Passion in every piece' },
+                    { icon: Sparkles, title: 'Unique', description: 'No two bags are the same' },
+                  ].map((value, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="w-10 h-10 flex items-center justify-center rounded-full bg-accent/10 border border-accent/20">
+                        <value.icon size={18} className="text-accent" aria-hidden="true" />
+                      </div>
+                      <h3 className="text-base font-serif font-light">{value.title}</h3>
+                      <p className="text-muted-foreground text-sm font-light leading-relaxed">
+                        {value.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <Link href="/about" className="inline-flex items-center gap-2 text-sm uppercase tracking-[0.15em] font-light text-accent hover:text-accent/80 transition-colors group min-h-[44px] pt-2">
+                  Read Our Story
+                  <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Customer love / Social Proof Section */}
-        <section className="py-16 sm:py-24 md:py-32 border-y border-accent/10">
+        {/* ─── Customer Love ─── */}
+        <section className="py-12 sm:py-20 md:py-28 bg-cream/30 border-y border-accent/10">
           <div className="container">
-            <div className="text-center space-y-6 mb-12">
+            <div className="text-center space-y-4 mb-10">
               <p className="font-script text-xl text-accent">Customer Love</p>
               <h2 className="text-3xl sm:text-4xl font-serif font-light">
                 What Our Customers Say
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
               {[
                 {
                   quote: 'Absolutely love my laptop case! The quilting is so soft and it fits my MacBook perfectly. You can really tell it was made with care.',
@@ -276,7 +397,6 @@ export default function Home() {
                   className="p-6 md:p-8 bg-card border border-border/40 text-left space-y-4 relative"
                   style={{ borderRadius: '2px' }}
                 >
-                  {/* Stars */}
                   <div className="flex gap-0.5" role="img" aria-label="5 out of 5 stars">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} size={14} className="fill-accent/70 text-accent/70" />
@@ -301,8 +421,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Newsletter */}
-        <section className="py-16 sm:py-24 md:py-32 relative overflow-hidden">
+        {/* ─── Newsletter ─── */}
+        <section className="py-12 sm:py-20 md:py-28 relative overflow-hidden">
           <div className="absolute inset-0 gradient-rose-subtle" />
           <div className="absolute inset-0 texture-linen opacity-20" />
 
@@ -359,8 +479,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Instagram CTA */}
-        <section className="py-12 sm:py-16 border-t border-accent/10">
+        {/* ─── Instagram CTA ─── */}
+        <section className="py-10 sm:py-14 border-t border-accent/10">
           <div className="container text-center">
             <div className="space-y-4">
               <p className="font-script text-xl text-accent">Follow Along</p>

@@ -29,39 +29,32 @@
       #shell{display:flex;flex-direction:column;min-height:100vh;font-family:var(--font-sans)}
       #shell-hd{position:sticky;top:0;z-index:40;background:rgba(253,248,246,.8);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid rgba(232,221,216,.5)}
       #shell-hd>div{display:flex;align-items:center;justify-content:space-between;height:4rem;max-width:80rem;margin:0 auto;padding:0 1rem}
-      #shell-hero{position:relative;overflow:hidden}
-      #shell-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(244,228,224,.4),rgba(253,248,246,.1))}
-      #shell-hero>div{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;padding:5rem 1rem;gap:1.5rem;max-width:80rem;margin:0 auto}
-      #shell-hero h1{font-family:var(--font-serif);font-weight:300;font-size:2.25rem;line-height:1.1;letter-spacing:-.025em;margin:0}
+      #shell-hero{position:relative;overflow:hidden;background:#f4e3e1}
+      #shell-hero>div{position:relative;display:flex;flex-direction:column;padding:3rem 1rem;gap:1.5rem;max-width:80rem;margin:0 auto}
+      #shell-hero h1{font-family:var(--font-serif);font-weight:300;font-size:2.25rem;line-height:1.05;letter-spacing:-.025em;margin:0}
       #shell-hero h1 span{font-style:italic;color:#6F212B}
       #shell-hero .tg{font-family:var(--font-script);font-size:1.25rem;color:#6F212B;margin:0}
-      #shell-hero .sub{font-size:1rem;color:#8a7370;font-weight:300;line-height:1.625;max-width:36rem;margin:0;padding:0 1rem}
-      #shell-hero .ctas{display:flex;flex-direction:column;gap:.75rem;padding-top:1rem;width:100%}
+      #shell-hero .sub{font-size:1rem;color:#8a6e6e;font-weight:300;line-height:1.625;max-width:28rem;margin:0}
+      #shell-hero .ctas{display:flex;flex-direction:column;gap:.75rem;padding-top:.5rem}
       #shell-hero .cp{display:inline-flex;align-items:center;justify-content:center;gap:.75rem;padding:1rem 2rem;background:#6F212B;color:#fdf8f6;font-weight:300;letter-spacing:.15em;text-transform:uppercase;font-size:.875rem;text-decoration:none;border-radius:2px;min-height:48px}
-      #shell-hero .cs{display:inline-flex;align-items:center;justify-content:center;gap:.75rem;padding:1rem 2rem;border:1px solid rgba(196,145,138,.3);color:#3d2c2a;font-weight:300;letter-spacing:.15em;text-transform:uppercase;font-size:.875rem;text-decoration:none;border-radius:2px;min-height:48px}
-      #shell-dv{display:flex;align-items:center;gap:1rem;width:100%;max-width:20rem}
-      #shell-dv>span{flex:1;height:1px}
-      #shell-dv>span:first-child{background:linear-gradient(to right,transparent,rgba(196,145,138,.3))}
-      #shell-dv>span:last-child{background:linear-gradient(to left,transparent,rgba(196,145,138,.3))}
-      #shell-dv>svg{color:rgba(196,145,138,.5)}
+      #shell-hero .cs{display:inline-flex;align-items:center;justify-content:center;gap:.75rem;padding:1rem 2rem;border:1px solid rgba(111,33,43,.3);color:#3d2c2a;font-weight:300;letter-spacing:.15em;text-transform:uppercase;font-size:.875rem;text-decoration:none;border-radius:2px;min-height:48px}
       @media(min-width:640px){
-        #shell-hero>div{padding:7rem 1rem;gap:2rem}
+        #shell-hero>div{padding:4rem 1rem;gap:1.5rem}
         #shell-hero h1{font-size:3rem}
         #shell-hero .tg{font-size:1.5rem}
-        #shell-hero .ctas{flex-direction:row;width:auto;justify-content:center}
-        #shell-hero .sub{padding:0}
+        #shell-hero .ctas{flex-direction:row}
       }
       @media(min-width:768px){
-        #shell-hero>div{padding:11rem 1rem;gap:2.5rem}
-        #shell-hero h1{font-size:4.5rem}
+        #shell-hero>div{display:grid;grid-template-columns:1fr 1fr;padding:6rem 1rem;gap:1.5rem;min-height:75vh;align-items:center}
+        #shell-hero h1{font-size:3.75rem}
         #shell-hero .tg{font-size:1.875rem}
       }
-      @media(min-width:1024px){#shell-hero h1{font-size:6rem}}
+      @media(min-width:1024px){#shell-hero h1{font-size:4.5rem}}
     </style>
   </head>
 
   <body>
-    <div id="root"><div id="shell"><header id="shell-hd"><div><a href="/" aria-label="Princess Made - Home"><img src="https://d2xsxph8kpxj0f.cloudfront.net/310419663031002008/Hy2VZfwLraitLwcA3hcpuJ/Princess(1)_e208d2f4.png" alt="Princess Made" width="120" height="40" style="height:2.5rem;width:auto"></a></div></header><section id="shell-hero"><div><p class="tg">Just a girl with a dream</p><h1>Handcrafted<br><span>with Love</span></h1><div id="shell-dv"><span></span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg><span></span></div><p class="sub">100% handmade bags, lovingly crafted one stitch at a time. Each piece is unique, just like you.</p><div class="ctas"><a href="/shop" class="cp">Shop Collection &#8594;</a><a href="/about" class="cs">Our Story</a></div></div></section></div></div>
+    <div id="root"><div id="shell"><header id="shell-hd"><div><a href="/" aria-label="Princess Made - Home"><img src="https://d2xsxph8kpxj0f.cloudfront.net/310419663031002008/Hy2VZfwLraitLwcA3hcpuJ/Princess(1)_e208d2f4.png" alt="Princess Made" width="120" height="40" style="height:2.5rem;width:auto"></a></div></header><section id="shell-hero"><div><div><p class="tg">Just a girl with a dream</p><h1>Handcrafted<br><span>with Love</span></h1><p class="sub">100% handmade bags, lovingly crafted one stitch at a time. Each piece is unique, just like you.</p><div class="ctas"><a href="/shop" class="cp">Shop Collection &#8594;</a><a href="/about" class="cs">Our Story</a></div></div><div></div></div></section></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 
