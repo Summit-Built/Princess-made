@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'wouter';
 // Home page does NOT use PageTransition to avoid opacity:0 delaying LCP/FCP
 import { Header } from '@/components/Header';
@@ -12,18 +12,18 @@ import { toast } from 'sonner';
 import { usePageMeta } from '@/lib/usePageMeta';
 
 function useScrollReveal() {
-  const ref = useRef<HTMLDivElement>(null);
+  const [el, setEl] = useState<HTMLDivElement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const ref = useCallback((node: HTMLDivElement | null) => { setEl(node); }, []);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    if (!el || isVisible) return;
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.unobserve(el); } },
+      ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.disconnect(); } },
       { threshold: 0.02, rootMargin: '80px 0px 0px 0px' }
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [el, isVisible]);
   return { ref, isVisible };
 }
 
