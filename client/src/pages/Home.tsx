@@ -112,11 +112,11 @@ export default function Home() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                  <Link href="/shop" className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-accent text-accent-foreground font-light tracking-[0.15em] uppercase text-sm hover:bg-accent/90 transition-all cursor-pointer min-h-[48px]" style={{ borderRadius: '2px' }}>
+                  <Link href="/shop" className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-accent text-accent-foreground font-light tracking-[0.15em] uppercase text-sm hover:bg-accent/90 transition-all cursor-pointer min-h-[48px] rounded-full">
                     Shop Collection
                     <ArrowRight size={16} />
                   </Link>
-                  <Link href="/about" className="inline-flex items-center justify-center gap-3 px-8 py-4 border border-accent/30 text-foreground font-light tracking-[0.15em] uppercase text-sm hover:border-accent/60 transition-all cursor-pointer min-h-[48px]" style={{ borderRadius: '2px' }}>
+                  <Link href="/about" className="inline-flex items-center justify-center gap-3 px-8 py-4 border border-accent/30 text-foreground font-light tracking-[0.15em] uppercase text-sm hover:border-accent/60 transition-all cursor-pointer min-h-[48px] rounded-full">
                     Our Story
                   </Link>
                 </div>
@@ -129,11 +129,10 @@ export default function Home() {
                     <img
                       src={heroProduct.imageUrl}
                       alt={heroProduct.name}
-                      className="w-full h-full object-cover object-center"
-                      style={{ borderRadius: '2px' }}
+                      className="w-full h-full object-cover object-center rounded-xl"
                     />
                     {/* Floating badge */}
-                    <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-white/90 backdrop-blur-sm px-4 py-2 border border-accent/20" style={{ borderRadius: '2px' }}>
+                    <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-white/90 backdrop-blur-sm px-4 py-2 border border-accent/20 rounded-lg">
                       <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-light">Best Seller</p>
                       <p className="text-sm font-serif text-foreground">{heroProduct.name}</p>
                     </div>
@@ -150,25 +149,27 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ─── Trust Strip ─── */}
-        <section className="bg-accent/5 border-y border-accent/10 py-5 overflow-hidden">
-          <div className="flex items-center justify-center gap-6 sm:gap-8 md:gap-16 text-[10px] sm:text-xs tracking-[0.2em] sm:tracking-[0.25em] uppercase text-muted-foreground font-light flex-wrap">
-            <span className="flex items-center gap-2">
-              <Scissors size={14} className="text-accent" aria-hidden="true" />
-              100% Handmade
-            </span>
-            <span className="flex items-center gap-2">
-              <Heart size={14} className="text-accent" aria-hidden="true" />
-              Made with Love
-            </span>
-            <span className="flex items-center gap-2">
-              <Sparkles size={14} className="text-accent" aria-hidden="true" />
-              One of a Kind
-            </span>
-            <span className="hidden md:flex items-center gap-2">
-              <Instagram size={14} className="text-accent" aria-hidden="true" />
-              @princessmadefashion
-            </span>
+        {/* ─── Stats Trust Strip (Depop-style) ─── */}
+        <section className="border-y border-accent/10 py-6 sm:py-8">
+          <div className="container">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+              {[
+                { icon: Scissors, stat: '100%', label: 'Handmade' },
+                { icon: Heart, stat: '100+', label: 'Happy Customers' },
+                { icon: Sparkles, stat: '1 of 1', label: 'Every Piece Unique' },
+                { icon: Instagram, stat: 'A$50+', label: 'Free Shipping' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-accent/5 border border-accent/10">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-accent/10">
+                    <item.icon size={16} className="text-accent" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="text-base sm:text-lg font-serif font-light text-foreground leading-tight">{item.stat}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground font-light tracking-wide">{item.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -186,16 +187,14 @@ export default function Home() {
                 <div className="hidden sm:flex items-center gap-2">
                   <button
                     onClick={() => scrollCarousel('left')}
-                    className="w-10 h-10 flex items-center justify-center border border-accent/20 hover:border-accent/50 text-foreground/60 hover:text-foreground transition-all"
-                    style={{ borderRadius: '2px' }}
+                    className="w-10 h-10 flex items-center justify-center border border-accent/20 hover:border-accent/50 text-foreground/60 hover:text-foreground transition-all rounded-full"
                     aria-label="Scroll left"
                   >
                     <ChevronLeft size={18} />
                   </button>
                   <button
                     onClick={() => scrollCarousel('right')}
-                    className="w-10 h-10 flex items-center justify-center border border-accent/20 hover:border-accent/50 text-foreground/60 hover:text-foreground transition-all"
-                    style={{ borderRadius: '2px' }}
+                    className="w-10 h-10 flex items-center justify-center border border-accent/20 hover:border-accent/50 text-foreground/60 hover:text-foreground transition-all rounded-full"
                     aria-label="Scroll right"
                   >
                     <ChevronRight size={18} />
@@ -211,7 +210,7 @@ export default function Home() {
                 {bestSellers.map((product) => (
                   <Link key={product.id} href={`/product/${product.id}`}>
                     <div className="flex-shrink-0 w-[280px] sm:w-[320px] group cursor-pointer snap-start">
-                      <div className="relative aspect-[3/4] overflow-hidden mb-3 bg-cream border border-accent/10 hover:border-accent/20 transition-all" style={{ borderRadius: '2px' }}>
+                      <div className="relative aspect-[3/4] overflow-hidden mb-3 bg-cream border border-accent/10 hover:border-accent/20 transition-all rounded-xl">
                         <img
                           src={product.imageUrl!}
                           alt={product.name}
@@ -219,7 +218,7 @@ export default function Home() {
                           loading="lazy"
                         />
                         {/* New badge */}
-                        <div className="absolute top-2 left-2 bg-accent text-accent-foreground text-[10px] uppercase tracking-[0.15em] font-light px-2.5 py-1" style={{ borderRadius: '2px' }}>
+                        <div className="absolute top-2 left-2 bg-accent text-accent-foreground text-[10px] uppercase tracking-[0.15em] font-light px-2.5 py-1 rounded-full">
                           New
                         </div>
                       </div>
@@ -245,6 +244,27 @@ export default function Home() {
             </div>
           </section>
         )}
+
+        {/* ─── Shop by Price (Depop-style) ─── */}
+        <section className="py-10 sm:py-14">
+          <div className="container">
+            <h2 className="text-2xl sm:text-3xl font-serif font-light mb-6">Shop by Price</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              {[
+                { label: 'Under A$20', bg: 'from-[#fce8eb] to-[#f9d0d6]', href: '/shop?maxPrice=20' },
+                { label: 'Under A$40', bg: 'from-[#f9d0d6] to-[#f4e3e1]', href: '/shop?maxPrice=40' },
+                { label: 'Under A$60', bg: 'from-[#f4e3e1] to-[#e8d8d6]', href: '/shop?maxPrice=60' },
+                { label: 'Under A$100', bg: 'from-[#e8d8d6] to-[#bbced6]', href: '/shop?maxPrice=100' },
+              ].map((price, i) => (
+                <Link key={i} href={price.href}>
+                  <div className={`bg-gradient-to-br ${price.bg} rounded-2xl p-6 sm:p-8 cursor-pointer hover:scale-[1.02] transition-transform duration-200 border border-accent/5`}>
+                    <p className="text-lg sm:text-xl md:text-2xl font-serif font-light text-foreground">{price.label}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* ─── Featured Collections ─── */}
         <section className="py-12 sm:py-20 md:py-28 bg-cream/50 relative">
@@ -291,7 +311,7 @@ export default function Home() {
                 <div key={index}>
                   <Link href={category.href}>
                     <div className="block cursor-pointer group hover:-translate-y-1 transition-transform duration-300">
-                      <div className={`${!bgImage ? `bg-gradient-to-br ${category.accent}` : ''} text-center border border-accent/10 hover:border-accent/30 transition-all duration-500 relative overflow-hidden aspect-[3/4] sm:aspect-[2/3] md:aspect-[3/4]`} style={{ borderRadius: '2px' }}>
+                      <div className={`${!bgImage ? `bg-gradient-to-br ${category.accent}` : ''} text-center border border-accent/10 hover:border-accent/30 transition-all duration-500 relative overflow-hidden aspect-[3/4] sm:aspect-[2/3] md:aspect-[3/4] rounded-xl`} style={{ borderRadius: '2px' }}>
                         {/* Product image background */}
                         {bgImage && (
                           <div
@@ -338,9 +358,8 @@ export default function Home() {
                     <img
                       src={products[1].imageUrl}
                       alt="Handcrafted with care"
-                      className="w-full aspect-[4/5] object-cover"
-                      style={{ borderRadius: '2px' }}
-                      loading="lazy"
+                      className="w-full aspect-[4/5] object-cover rounded-xl"
+                                           loading="lazy"
                     />
                     {/* Decorative accent */}
                     <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-accent/10 -z-10 hidden md:block" style={{ borderRadius: '2px' }} />
@@ -426,9 +445,8 @@ export default function Home() {
               ].map((testimonial, index) => (
                 <div
                   key={index}
-                  className="p-6 md:p-8 bg-card border border-border/40 text-left space-y-4 relative"
-                  style={{ borderRadius: '2px' }}
-                >
+                  className="p-6 md:p-8 bg-card border border-border/40 text-left space-y-4 relative rounded-xl"
+                                 >
                   <div className="flex gap-0.5" role="img" aria-label="5 out of 5 stars">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} size={14} className="fill-accent/70 text-accent/70" />
@@ -461,9 +479,8 @@ export default function Home() {
 
           <div ref={revealNewsletter.ref} className={`container max-w-xl mx-auto text-center relative transition-all duration-700 ease-out ${revealNewsletter.isVisible ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-3'}`}>
             <div
-              className="space-y-6 sm:space-y-8 p-6 sm:p-10 md:p-12 bg-card/50 backdrop-blur-sm border border-border/30"
-              style={{ borderRadius: '2px' }}
-            >
+              className="space-y-6 sm:space-y-8 p-6 sm:p-10 md:p-12 bg-card/50 backdrop-blur-sm border border-border/30 rounded-2xl"
+                         >
               <p className="font-script text-xl text-accent">Stay in Touch</p>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-light">
                 Join the Family
