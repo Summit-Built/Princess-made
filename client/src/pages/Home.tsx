@@ -19,7 +19,7 @@ function useScrollReveal() {
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setIsVisible(true); observer.unobserve(el); } },
-      { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
+      { threshold: 0.02, rootMargin: '80px 0px 0px 0px' }
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -89,6 +89,9 @@ export default function Home() {
 
         {/* ─── Hero Section ─── */}
         <section className="relative overflow-hidden bg-cream">
+          {/* Subtle hearts background */}
+          <div className="absolute inset-0 hero-hearts opacity-30" aria-hidden="true" />
+          <div className="absolute inset-0 texture-linen" />
           <div className="container relative">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0 min-h-[70vh] md:min-h-[calc(90vh-7rem)]">
               {/* Left: Text content */}
@@ -172,7 +175,7 @@ export default function Home() {
         {/* ─── Best Sellers Carousel ─── */}
         {bestSellers.length > 0 && (
           <section className="py-12 sm:py-16 md:py-20">
-            <div ref={revealBestSellers.ref} className={`container transition-all duration-700 ease-out ${revealBestSellers.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div ref={revealBestSellers.ref} className={`container transition-all duration-700 ease-out ${revealBestSellers.isVisible ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-3'}`}>
               <div className="flex items-end justify-between mb-8">
                 <div className="space-y-2">
                   <p className="font-script text-lg text-accent">Shop Now</p>
@@ -244,8 +247,9 @@ export default function Home() {
         )}
 
         {/* ─── Featured Collections ─── */}
-        <section className="py-12 sm:py-20 md:py-28 bg-cream/50">
-          <div ref={revealCollections.ref} className={`container transition-all duration-700 ease-out ${revealCollections.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <section className="py-12 sm:py-20 md:py-28 bg-cream/50 relative">
+          <div className="absolute inset-0 hero-hearts opacity-20" aria-hidden="true" />
+          <div ref={revealCollections.ref} className={`container transition-all duration-700 ease-out ${revealCollections.isVisible ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-3'}`}>
             <div className="text-center mb-10 md:mb-14 space-y-3">
               <p className="font-script text-xl text-accent">Explore</p>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-light">
@@ -325,7 +329,7 @@ export default function Home() {
 
         {/* ─── Brand Story — 50/50 Split ─── */}
         <section className="py-12 sm:py-20 md:py-28">
-          <div ref={revealStory.ref} className={`container transition-all duration-700 ease-out ${revealStory.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div ref={revealStory.ref} className={`container transition-all duration-700 ease-out ${revealStory.isVisible ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-3'}`}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
               {/* Left: Image */}
               <div className="relative">
@@ -389,8 +393,9 @@ export default function Home() {
         </section>
 
         {/* ─── Customer Love ─── */}
-        <section className="py-12 sm:py-20 md:py-28 bg-cream/30 border-y border-accent/10">
-          <div ref={revealTestimonials.ref} className={`container transition-all duration-700 ease-out ${revealTestimonials.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <section className="py-12 sm:py-20 md:py-28 bg-cream/30 border-y border-accent/10 relative overflow-hidden">
+          <div className="absolute inset-0 hero-hearts opacity-15" aria-hidden="true" />
+          <div ref={revealTestimonials.ref} className={`container transition-all duration-700 ease-out ${revealTestimonials.isVisible ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-3'}`}>
             <div className="text-center space-y-4 mb-10">
               <p className="font-script text-xl text-accent">Customer Love</p>
               <h2 className="text-3xl sm:text-4xl font-serif font-light">
@@ -451,9 +456,10 @@ export default function Home() {
         {/* ─── Newsletter ─── */}
         <section className="py-12 sm:py-20 md:py-28 relative overflow-hidden">
           <div className="absolute inset-0 gradient-rose-subtle" />
+          <div className="absolute inset-0 hero-hearts opacity-15" aria-hidden="true" />
           <div className="absolute inset-0 texture-linen opacity-20" />
 
-          <div ref={revealNewsletter.ref} className={`container max-w-xl mx-auto text-center relative transition-all duration-700 ease-out ${revealNewsletter.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div ref={revealNewsletter.ref} className={`container max-w-xl mx-auto text-center relative transition-all duration-700 ease-out ${revealNewsletter.isVisible ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-3'}`}>
             <div
               className="space-y-6 sm:space-y-8 p-6 sm:p-10 md:p-12 bg-card/50 backdrop-blur-sm border border-border/30"
               style={{ borderRadius: '2px' }}
