@@ -90,7 +90,7 @@ export default function Home() {
         {/* ─── Hero Section ─── */}
         <section className="relative overflow-hidden bg-cream">
           <div className="container relative">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 min-h-[60vh] md:min-h-[75vh]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 min-h-[70vh] md:min-h-[calc(90vh-7rem)]">
               {/* Left: Text content */}
               <div className="flex flex-col justify-center py-12 sm:py-16 md:py-24 space-y-5 sm:space-y-6 z-10 order-2 md:order-1">
                 <p className="font-script text-xl sm:text-2xl md:text-3xl text-accent">
