@@ -142,7 +142,7 @@ export default function Home() {
                   description: 'Quilted & faux fur protection for your tech',
                   href: '/shop?category=Laptop%20Cases',
                   categoryKey: 'Laptop Cases',
-                  accent: 'from-[#f0ddd8] to-[#e8c4c0]',
+                  accent: 'from-[#fce8eb] to-[#f9d0d6]',
                 },
                 {
                   title: 'Pouches',
