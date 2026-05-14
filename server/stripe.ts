@@ -164,6 +164,12 @@ export async function createCheckoutSession(options: {
   cancelUrl: string;
 }): Promise<{ url: string; sessionId: string }> {
   const stripe = getStripe();
+  // Build shipping options from env var (comma-separated Stripe shipping rate IDs)
+  // e.g. STRIPE_SHIPPING_RATE_IDS=shr_abc123,shr_def456,shr_ghi789
+  const shippingRateIds = process.env.STRIPE_SHIPPING_RATE_IDS
+    ? process.env.STRIPE_SHIPPING_RATE_IDS.split(",").map((id) => id.trim()).filter(Boolean)
+    : [];
+
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
@@ -175,6 +181,14 @@ export async function createCheckoutSession(options: {
     metadata: {
       userId: String(options.userId),
     },
+    // Collect shipping address at checkout
+    shipping_address_collection: {
+      allowed_countries: ["AU", "NZ"],
+    },
+    // Show shipping rate options (create these in Stripe Dashboard → Shipping Rates)
+    ...(shippingRateIds.length > 0 && {
+      shipping_options: shippingRateIds.map((id) => ({ shipping_rate: id })),
+    }),
     success_url: options.successUrl,
     cancel_url: options.cancelUrl,
   });
