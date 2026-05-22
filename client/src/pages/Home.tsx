@@ -130,6 +130,10 @@ export default function Home() {
                       src={heroProduct.imageUrl}
                       alt={heroProduct.name}
                       className="w-full h-full object-cover object-center rounded-xl"
+                      fetchPriority="high"
+                      decoding="auto"
+                      width={600}
+                      height={800}
                     />
                     {/* Floating badge */}
                     <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-white/90 backdrop-blur-sm px-4 py-2 border border-accent/20 rounded-lg">
@@ -176,7 +180,7 @@ export default function Home() {
         {/* ─── Best Sellers Carousel ─── */}
         {bestSellers.length > 0 && (
           <section className="py-12 sm:py-16 md:py-20">
-            <div ref={revealBestSellers.ref} className={`container transition-all duration-700 ease-out ${revealBestSellers.isVisible ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-3'}`}>
+            <div ref={revealBestSellers.ref} className={`container transition-opacity duration-700 ease-out ${revealBestSellers.isVisible ? 'opacity-100' : 'opacity-40'}`}>
               <div className="flex items-end justify-between mb-8">
                 <div className="space-y-2">
                   <p className="font-script text-lg text-accent">Shop Now</p>
@@ -216,6 +220,7 @@ export default function Home() {
                           alt={product.name}
                           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                           loading="lazy"
+                          decoding="async"
                         />
                         {/* New badge */}
                         <div className="absolute top-2 left-2 bg-accent text-accent-foreground text-[10px] uppercase tracking-[0.15em] font-light px-2.5 py-1 rounded-full">
@@ -269,7 +274,7 @@ export default function Home() {
         {/* ─── Featured Collections ─── */}
         <section className="py-12 sm:py-20 md:py-28 bg-cream/50 relative">
           <div className="absolute inset-0 hero-hearts opacity-20" aria-hidden="true" />
-          <div ref={revealCollections.ref} className={`container transition-all duration-700 ease-out ${revealCollections.isVisible ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-3'}`}>
+          <div ref={revealCollections.ref} className={`container transition-opacity duration-700 ease-out ${revealCollections.isVisible ? 'opacity-100' : 'opacity-40'}`}>
             <div className="text-center mb-10 md:mb-14 space-y-3">
               <p className="font-script text-xl text-accent">Explore</p>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-light">
@@ -349,7 +354,7 @@ export default function Home() {
 
         {/* ─── Brand Story — 50/50 Split ─── */}
         <section className="py-12 sm:py-20 md:py-28">
-          <div ref={revealStory.ref} className={`container transition-all duration-700 ease-out ${revealStory.isVisible ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-3'}`}>
+          <div ref={revealStory.ref} className={`container transition-opacity duration-700 ease-out ${revealStory.isVisible ? 'opacity-100' : 'opacity-40'}`}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
               {/* Left: Image */}
               <div className="relative">
@@ -359,7 +364,10 @@ export default function Home() {
                       src={products[1].imageUrl}
                       alt="Handcrafted with care"
                       className="w-full aspect-[4/5] object-cover rounded-xl"
-                                           loading="lazy"
+                      loading="lazy"
+                      decoding="async"
+                      width={600}
+                      height={750}
                     />
                     {/* Decorative accent */}
                     <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-accent/10 -z-10 hidden md:block" style={{ borderRadius: '2px' }} />
@@ -414,7 +422,7 @@ export default function Home() {
         {/* ─── Customer Love ─── */}
         <section className="py-12 sm:py-20 md:py-28 bg-cream/30 border-y border-accent/10 relative overflow-hidden">
           <div className="absolute inset-0 hero-hearts opacity-15" aria-hidden="true" />
-          <div ref={revealTestimonials.ref} className={`container transition-all duration-700 ease-out ${revealTestimonials.isVisible ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-3'}`}>
+          <div ref={revealTestimonials.ref} className={`container transition-opacity duration-700 ease-out ${revealTestimonials.isVisible ? 'opacity-100' : 'opacity-40'}`}>
             <div className="text-center space-y-4 mb-10">
               <p className="font-script text-xl text-accent">Customer Love</p>
               <h2 className="text-3xl sm:text-4xl font-serif font-light">
@@ -477,7 +485,7 @@ export default function Home() {
           <div className="absolute inset-0 hero-hearts opacity-15" aria-hidden="true" />
           <div className="absolute inset-0 texture-linen opacity-20" />
 
-          <div ref={revealNewsletter.ref} className={`container max-w-xl mx-auto text-center relative transition-all duration-700 ease-out ${revealNewsletter.isVisible ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-3'}`}>
+          <div ref={revealNewsletter.ref} className={`container max-w-xl mx-auto text-center relative transition-opacity duration-700 ease-out ${revealNewsletter.isVisible ? 'opacity-100' : 'opacity-40'}`}>
             <div
               className="space-y-6 sm:space-y-8 p-6 sm:p-10 md:p-12 bg-card/50 backdrop-blur-sm border border-border/30 rounded-2xl"
                          >
