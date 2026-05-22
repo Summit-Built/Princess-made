@@ -122,32 +122,24 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Right: Product image */}
+              {/* Right: Static hero product image (preloaded for fast LCP) */}
               <div className="relative flex items-center justify-center order-1 md:order-2 pt-8 md:pt-0">
-                {heroProduct?.imageUrl ? (
-                  <div className="relative w-full max-w-md md:max-w-lg aspect-[3/4] md:aspect-auto md:h-full">
-                    <img
-                      src={heroProduct.imageUrl}
-                      alt={heroProduct.name}
-                      className="w-full h-full object-cover object-center rounded-xl"
-                      fetchPriority="high"
-                      decoding="auto"
-                      width={600}
-                      height={800}
-                    />
-                    {/* Floating badge */}
-                    <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-white/90 backdrop-blur-sm px-4 py-2 border border-accent/20 rounded-lg">
-                      <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-light">Best Seller</p>
-                      <p className="text-sm font-serif text-foreground">{heroProduct.name}</p>
-                    </div>
+                <div className="relative w-full max-w-md md:max-w-lg aspect-[3/4] md:aspect-auto md:h-full">
+                  <img
+                    src="/hero-product.jpg"
+                    alt="Princess Made handcrafted bag"
+                    className="w-full h-full object-cover object-center rounded-xl"
+                    fetchPriority="high"
+                    decoding="auto"
+                    width={600}
+                    height={800}
+                  />
+                  {/* Floating badge */}
+                  <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-white/90 backdrop-blur-sm px-4 py-2 border border-accent/20 rounded-lg">
+                    <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-light">Best Seller</p>
+                    <p className="text-sm font-serif text-foreground">Handcrafted Pouch</p>
                   </div>
-                ) : (
-                  /* Fallback: decorative pattern when no products loaded */
-                  <div className="w-full h-64 md:h-full relative">
-                    <div className="absolute inset-0 hero-hearts opacity-60" />
-                    <div className="absolute inset-0 gradient-blush opacity-50" />
-                  </div>
-                )}
+                </div>
               </div>
             </div>
           </div>

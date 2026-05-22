@@ -8,8 +8,10 @@
       content="width=device-width, initial-scale=1.0" />
     <title>Princess Made | Handcrafted Bags & Accessories</title>
     <meta name="description" content="100% Handmade bags crafted with love. Discover our collection of luxurious, artisanal accessories." />
+    <!-- Preload hero product image for instant LCP -->
+    <link rel="preload" href="/hero-product.jpg" as="image" fetchpriority="high" />
     <!-- Preload logo image for instant header render -->
-    <link rel="preload" href="https://d2xsxph8kpxj0f.cloudfront.net/310419663031002008/Hy2VZfwLraitLwcA3hcpuJ/Princess(1)_e208d2f4.png" as="image" fetchpriority="high" />
+    <link rel="preload" href="https://d2xsxph8kpxj0f.cloudfront.net/310419663031002008/Hy2VZfwLraitLwcA3hcpuJ/Princess(1)_e208d2f4.png" as="image" />
     <!-- Fonts: Playfair Display (headings), DM Sans (body), Dancing Script (brand script) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -55,7 +57,7 @@
   </head>
 
   <body>
-    <div id="root"><div id="shell"><header id="shell-hd"><div><a href="/" aria-label="Princess Made - Home"><img src="https://d2xsxph8kpxj0f.cloudfront.net/310419663031002008/Hy2VZfwLraitLwcA3hcpuJ/Princess(1)_e208d2f4.png" alt="Princess Made" width="120" height="40" style="height:2.5rem;width:auto"></a></div></header><section id="shell-hero"><div><div><p class="tg">Just a girl with a dream</p><h1>Handcrafted<br><span>with Love</span></h1><p class="sub">100% handmade bags, lovingly crafted one stitch at a time. Each piece is unique, just like you.</p><div class="ctas"><a href="/shop" class="cp">Shop Collection &#8594;</a><a href="/about" class="cs">Our Story</a></div></div><div></div></div></section></div></div>
+    <div id="root"><div id="shell"><header id="shell-hd"><div><a href="/" aria-label="Princess Made - Home"><img src="https://d2xsxph8kpxj0f.cloudfront.net/310419663031002008/Hy2VZfwLraitLwcA3hcpuJ/Princess(1)_e208d2f4.png" alt="Princess Made" width="120" height="40" style="height:2.5rem;width:auto"></a></div></header><section id="shell-hero"><div><div><p class="tg">Just a girl with a dream</p><h1>Handcrafted<br><span>with Love</span></h1><p class="sub">100% handmade bags, lovingly crafted one stitch at a time. Each piece is unique, just like you.</p><div class="ctas"><a href="/shop" class="cp">Shop Collection &#8594;</a><a href="/about" class="cs">Our Story</a></div></div><div><img src="/hero-product.jpg" alt="Princess Made handcrafted bag" width="600" height="800" style="width:100%;max-width:32rem;aspect-ratio:3/4;object-fit:cover;border-radius:0.75rem" fetchpriority="high"></div></div></section></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 
