@@ -630,6 +630,18 @@ export const appRouter = router({
     newsletter: router({
       list: adminProcedure.query(() => db.getAllNewsletterSubscribers()),
     }),
+    products: router({
+  list: adminProcedure.query(() => stripe.getProducts()),
+  updateCategory: adminProcedure
+    .input(z.object({
+      productId: z.string(),
+      category: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      await stripe.updateProductCategory(input.productId, input.category);
+      return { success: true };
+    }),
+}),
     stats: adminProcedure.query(() => db.getAdminStats()),
   }),
 });
