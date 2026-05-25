@@ -22,6 +22,7 @@ export type StripeProduct = {
   imageUrl: string | null;
   category: string;
   images: string[];
+  variants: Record<string, number>; // variant name -> price in cents
 };
 
 // ============ PRODUCT CACHE ============
@@ -40,6 +41,15 @@ let cachePromise: Promise<StripeProduct[]> | null = null;
 function mapStripeProduct(p: Stripe.Product): StripeProduct | null {
   if (!p.default_price || typeof p.default_price === "string") return null;
   const price = p.default_price as Stripe.Price;
+
+  // Extract variants: any metadata key that isn't "category" and has a numeric value
+  const variants: Record<string, number> = {};
+  for (const [key, value] of Object.entries(p.metadata ?? {})) {
+    if (key === "category") continue;
+    const dollars = parseFloat(value);
+    if (!isNaN(dollars)) variants[key] = Math.round(dollars * 100);
+  }
+
   return {
     id: p.id,
     stripeProductId: p.id,
@@ -50,6 +60,7 @@ function mapStripeProduct(p: Stripe.Product): StripeProduct | null {
     imageUrl: p.images?.[0] ?? null,
     category: p.metadata?.category ?? "Uncategorized",
     images: p.images ?? [],
+    variants,
   };
 }
 

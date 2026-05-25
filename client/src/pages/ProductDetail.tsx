@@ -24,6 +24,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
 
   const { data: product, isLoading } = trpc.products.getById.useQuery(productId || '', {
     enabled: !!productId,
@@ -64,18 +65,26 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     if (!product) return;
 
+    if (hasVariants && !selectedVariant) {
+      toast.error('Please select a style before adding to cart');
+      return;
+    }
+
+    const cartId = selectedVariant ? `${product.id}-${selectedVariant}` : product.id;
+    const cartName = selectedVariant ? `${product.name} – ${selectedVariant}` : product.name;
+
     addItem({
-      productId: product.id,
+      productId: cartId,
       stripePriceId: product.stripePriceId || '',
       quantity,
-      price: product.price,
-      name: product.name,
+      price: activePrice,
+      name: cartName,
       imageUrl: product.imageUrl || undefined,
     });
 
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
-    toast.success(`${product.name} added to cart`);
+    toast.success(`${cartName} added to cart`);
   };
 
   const handleToggleFavorite = () => {
@@ -129,7 +138,12 @@ export default function ProductDetail() {
     );
   }
 
-  const priceInDollars = (product.price / 100).toFixed(2);
+  const variantEntries = Object.entries(product.variants ?? {});
+  const hasVariants = variantEntries.length > 0;
+  const activePrice = (hasVariants && selectedVariant != null)
+    ? (product.variants[selectedVariant] ?? product.price)
+    : product.price;
+  const priceInDollars = (activePrice / 100).toFixed(2);
   const productImages = product.images && product.images.length > 0
     ? product.images
     : product.imageUrl ? [product.imageUrl] : [];
@@ -290,6 +304,37 @@ export default function ProductDetail() {
                     <p className="text-muted-foreground font-light leading-relaxed">
                       {product.description}
                     </p>
+                  </div>
+                )}
+
+                {/* Variant Selector */}
+                {hasVariants && (
+                  <div className="space-y-3 pb-6 border-b border-border/30">
+                    <label className="text-[10px] font-light uppercase tracking-[0.25em] text-muted-foreground/60">
+                      Style
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {variantEntries.map(([name, price]) => (
+                        <motion.button
+                          key={name}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => setSelectedVariant(name)}
+                          className={`px-4 py-2 text-xs font-light border transition-all ${
+                            selectedVariant === name
+                              ? 'border-accent bg-accent/10 text-foreground'
+                              : 'border-border/40 text-muted-foreground hover:border-accent/50'
+                          }`}
+                          style={{ borderRadius: '2px' }}
+                        >
+                          {name}
+                          {price !== product.price && (
+                            <span className="ml-1.5 text-muted-foreground/60">
+                              A${(price / 100).toFixed(2)}
+                            </span>
+                          )}
+                        </motion.button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
