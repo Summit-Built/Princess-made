@@ -64,10 +64,6 @@ const faqSections = [
         a: 'Orders are typically dispatched within 3–5 business days. Standard domestic delivery via Australia Post takes an additional 3–7 business days. During busy periods, please allow a little extra time as each item is handmade to order.',
       },
       {
-        q: 'Do you offer free shipping?',
-        a: 'Yes! We offer free standard shipping on all orders over A$50 within Australia.',
-      },
-      {
         q: 'Do you ship internationally?',
         a: 'International shipping may be available on request. Please contact us with your location and we will provide a shipping quote and estimated delivery timeframe.',
       },

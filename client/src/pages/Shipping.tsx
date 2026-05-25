@@ -64,7 +64,6 @@ export default function Shipping() {
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
             >
               {[
-                { icon: Truck, label: 'Free Over A$50', desc: 'Free standard shipping on orders over A$50' },
                 { icon: Clock, label: '3–5 Day Processing', desc: 'Each item is handmade with care' },
                 { icon: Package, label: 'Tracked Delivery', desc: 'Tracking provided via Australia Post' },
                 { icon: MapPin, label: 'Australia-Wide', desc: 'We ship to all Australian addresses' },
@@ -122,7 +121,7 @@ export default function Shipping() {
                 </p>
                 <div className="space-y-3 pt-2">
                   {[
-                    { method: 'Standard Shipping', time: '3–7 business days', cost: 'A$8.50 (Free over A$50)' },
+                    { method: 'Standard Shipping', time: '3–7 business days', cost: 'A$8.50' },
                     { method: 'Express Shipping', time: '1–3 business days', cost: 'A$14.00' },
                   ].map((row) => (
                     <div

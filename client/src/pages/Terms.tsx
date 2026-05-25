@@ -97,7 +97,6 @@ export default function Terms() {
                 </p>
                 <p className="text-muted-foreground font-light leading-relaxed">
                   Shipping costs are calculated at checkout and depend on your location and order total.
-                  Orders over A$50 qualify for free standard shipping within Australia.
                 </p>
               </motion.div>
 

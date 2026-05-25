@@ -23,8 +23,6 @@ const AU_STATES = [
   { value: 'NT', label: 'Northern Territory' },
 ];
 
-const FREE_SHIPPING_THRESHOLD = 5000; // A$50.00 in cents
-
 type FormErrors = {
   email?: string;
   fullName?: string;
@@ -57,7 +55,6 @@ export default function Checkout() {
 
   const totalPrice = getTotalPrice();
   const totalPriceInDollars = (totalPrice / 100).toFixed(2);
-  const hasFreeShipping = totalPrice >= FREE_SHIPPING_THRESHOLD;
 
   const validateField = (field: string, value: string): string | undefined => {
     switch (field) {
@@ -394,13 +391,10 @@ export default function Checkout() {
                     <Truck size={16} className="text-accent mt-0.5 flex-shrink-0" />
                     <div className="space-y-1">
                       <p className="text-xs font-light text-foreground">
-                        {hasFreeShipping ? 'Free Standard Shipping' : 'Standard Shipping'}
+                        Standard Shipping
                       </p>
                       <p className="text-xs text-muted-foreground font-light leading-relaxed">
                         Estimated delivery: 3-7 business days within Australia.
-                        {!hasFreeShipping && (
-                          <> Spend A${((FREE_SHIPPING_THRESHOLD - totalPrice) / 100).toFixed(2)} more for free shipping.</>
-                        )}
                       </p>
                     </div>
                   </div>
@@ -484,13 +478,6 @@ export default function Checkout() {
                     </div>
                   </div>
 
-                  {/* Free shipping badge */}
-                  {hasFreeShipping && (
-                    <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700" style={{ borderRadius: '2px' }}>
-                      <Truck size={14} className="flex-shrink-0" />
-                      <p className="text-[11px] font-light">Free shipping included!</p>
-                    </div>
-                  )}
                 </div>
               </motion.div>
             </div>

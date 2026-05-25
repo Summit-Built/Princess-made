@@ -1,10 +1,8 @@
-import { X, ShoppingBag, Trash2, Sparkles, Truck } from 'lucide-react';
+import { X, ShoppingBag, Trash2, Sparkles } from 'lucide-react';
 import { Link } from 'wouter';
 import { useCartStore } from '@/stores/cartStore';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-
-const FREE_SHIPPING_THRESHOLD = 5000; // A$50.00 in cents
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -19,8 +17,6 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
 
   const totalPrice = getTotalPrice();
   const totalPriceInDollars = (totalPrice / 100).toFixed(2);
-  const amountUntilFreeShipping = FREE_SHIPPING_THRESHOLD - totalPrice;
-  const hasFreeShipping = totalPrice >= FREE_SHIPPING_THRESHOLD;
 
   // Animate in after mount for CSS transition
   const [visible, setVisible] = useState(false);
@@ -159,32 +155,6 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
         {/* Footer */}
         {items.length > 0 && (
           <div className="border-t border-border/50 p-6 space-y-4">
-            {/* Free shipping progress */}
-            {hasFreeShipping ? (
-              <div
-                className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700"
-                style={{ borderRadius: '2px' }}
-              >
-                <Truck size={16} className="flex-shrink-0" />
-                <p className="text-xs font-light">Free shipping on this order!</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-light text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <Truck size={12} />
-                    A${(amountUntilFreeShipping / 100).toFixed(2)} away from free shipping
-                  </span>
-                </div>
-                <div className="w-full h-1.5 bg-cream rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-accent rounded-full transition-all duration-500 ease-out"
-                    style={{ width: `${Math.min(100, (totalPrice / FREE_SHIPPING_THRESHOLD) * 100)}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
             {/* Subtotal */}
             <div className="flex items-baseline justify-between pt-2">
               <span className="text-sm font-light text-muted-foreground uppercase tracking-[0.1em]">Subtotal</span>
@@ -195,7 +165,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
 
             <p className="text-xs text-muted-foreground/50 font-light flex items-center gap-1.5">
               <Sparkles size={12} />
-              {hasFreeShipping ? 'Free standard shipping included' : 'Shipping calculated at checkout'}
+              Shipping calculated at checkout
             </p>
 
             {/* Checkout */}
