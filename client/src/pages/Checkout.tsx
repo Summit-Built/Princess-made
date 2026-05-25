@@ -468,8 +468,8 @@ export default function Checkout() {
                     </div>
                     <div className="flex justify-between text-sm font-light">
                       <span className="text-muted-foreground">Shipping</span>
-                      <span className={hasFreeShipping ? 'text-emerald-600' : 'text-sage'}>
-                        {hasFreeShipping ? 'Free' : 'Calculated at payment'}
+                      <span className="text-sage">
+                        Calculated at payment
                       </span>
                     </div>
                     <div className="flex justify-between pt-3 border-t border-border/30">
