@@ -26,11 +26,12 @@ import {
   MapPin,
   Eye,
   EyeOff,
+  ShoppingBag,
   Lock,
 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 
-type TabType = 'dashboard' | 'orders' | 'users' | 'newsletter';
+type TabType = 'dashboard' | 'orders' | 'users' | 'newsletter' | 'products';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -223,6 +224,7 @@ export default function Admin() {
     { id: 'orders' as TabType, label: 'Orders', icon: Package },
     { id: 'users' as TabType, label: 'Users', icon: Users },
     { id: 'newsletter' as TabType, label: 'Newsletter', icon: Mail },
+    { id: 'products' as TabType, label: 'Products', icon: ShoppingBag },
   ];
 
   return (
@@ -297,6 +299,7 @@ export default function Admin() {
                 {activeTab === 'users' && <UsersTab />}
 
                 {activeTab === 'newsletter' && <NewsletterTab />}
+                {activeTab === 'products' && <ProductsTab />}
               </motion.div>
             </div>
           </div>
@@ -1115,6 +1118,84 @@ function NewsletterTab() {
           <p className="text-muted-foreground font-light">No subscribers yet</p>
         </div>
       )}
+    </motion.div>
+  );
+}
+function ProductsTab() {
+  const { data: products, isLoading } = trpc.admin.products.list.useQuery();
+  const utils = trpc.useUtils();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [categoryInput, setCategoryInput] = useState('');
+
+  const updateCategory = trpc.admin.products.updateCategory.useMutation({
+    onSuccess: () => {
+      utils.admin.products.list.invalidate();
+      toast.success('Category updated');
+      setEditingId(null);
+    },
+    onError: (err) => toast.error(`Failed: ${err.message}`),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="border border-border/30 p-16 flex items-center justify-center" style={{ borderRadius: '2px' }}>
+        <Spinner size={24} />
+      </div>
+    );
+  }
+
+  return (
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
+      <h2 className="text-2xl font-serif font-light">Products</h2>
+      <div className="border border-border/30 overflow-hidden" style={{ borderRadius: '2px' }}>
+        {products?.map((product: any) => (
+          <motion.div
+            key={product.id}
+            variants={itemVariants}
+            className="flex items-center gap-4 px-5 py-4 border-b border-border/10 last:border-0 hover:bg-cream/30 transition-colors"
+          >
+            {product.imageUrl && (
+              <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover shrink-0" style={{ borderRadius: '2px' }} />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-light truncate">{product.name}</p>
+              <p className="text-xs text-accent font-light">A${(product.price / 100).toFixed(2)}</p>
+            </div>
+            {editingId === product.id ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={categoryInput}
+                  onChange={(e) => setCategoryInput(e.target.value)}
+                  placeholder="e.g. Bags"
+                  className="input-elegant text-sm w-32"
+                  autoFocus
+                />
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => updateCategory.mutate({ productId: product.id, category: categoryInput })}
+                  disabled={updateCategory.isPending}
+                  className="btn-primary text-xs px-3 py-2"
+                >
+                  {updateCategory.isPending ? <Spinner size={12} /> : <Save size={12} />}
+                </motion.button>
+                <button onClick={() => setEditingId(null)} className="text-xs text-muted-foreground/50 hover:text-foreground px-2">✕</button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground/50 font-light">{product.category}</span>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => { setEditingId(product.id); setCategoryInput(product.category === 'Uncategorized' ? '' : product.category); }}
+                  className="text-xs text-accent hover:text-accent/80 font-light"
+                >
+                  Edit
+                </motion.button>
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
     </motion.div>
   );
 }
