@@ -4,7 +4,6 @@ import { Link, useLocation } from 'wouter';
 import { CartDrawer } from './CartDrawer';
 
 const promoMessages = [
-  'Handmade with love — Free shipping on orders over A$50',
   'New arrivals just dropped — Shop now',
   'Each piece is one of a kind ✨',
 ];
@@ -200,11 +199,6 @@ export const Header = ({
             aria-label="Mobile navigation"
           >
             <div className="container py-6 space-y-1">
-              {/* Promo bar for mobile */}
-              <p className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground/60 font-light text-center pb-4 border-b border-border/30 mb-2">
-                Free shipping on orders over A$50
-              </p>
-
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
