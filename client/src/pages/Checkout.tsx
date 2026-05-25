@@ -467,14 +467,12 @@ export default function Checkout() {
                       <span>A${totalPriceInDollars}</span>
                     </div>
                     <div className="flex justify-between text-sm font-light">
-                      <span className="text-muted-foreground">Shipping</span>
-                      <span className="text-sage">
-                        Calculated at payment
-                      </span>
+                      <span className="text-muted-foreground">Shipping (flat rate)</span>
+                      <span>A$9.70</span>
                     </div>
                     <div className="flex justify-between pt-3 border-t border-border/30">
                       <span className="text-sm font-light text-muted-foreground uppercase tracking-[0.1em]">Total</span>
-                      <span className="text-xl font-serif font-light text-accent">A${totalPriceInDollars}</span>
+                      <span className="text-xl font-serif font-light text-accent">A${((totalPrice + 970) / 100).toFixed(2)}</span>
                     </div>
                   </div>
 
