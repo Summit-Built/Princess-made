@@ -167,6 +167,14 @@ export function invalidateProductCache() {
   productCache = null;
 }
 
+
+export async function updateProductCategory(productId: string, category: string): Promise<void> {
+  const stripe = getStripe();
+  await stripe.products.update(productId, {
+    metadata: { category },
+  });
+  invalidateProductCache();
+}
 export async function createCheckoutSession(options: {
   lineItems: Array<{ stripePriceId: string; quantity: number }>;
   customerEmail: string;
