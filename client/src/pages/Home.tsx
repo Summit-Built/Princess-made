@@ -153,6 +153,7 @@ export default function Home() {
                 { icon: Scissors, stat: '100%', label: 'Handmade' },
                 { icon: Heart, stat: '100+', label: 'Happy Customers' },
                 { icon: Sparkles, stat: '1 of 1', label: 'Every Piece Unique' },
+                { icon: Star, stat: 'Handcrafted', label: 'with Love' },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-accent/5 border border-accent/10">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-accent/10">
