@@ -8,7 +8,7 @@ import { Sparkles } from 'lucide-react';
 import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function Privacy() {
-  usePageMeta({ title: 'Privacy Policy', description: 'Princess Made privacy policy — how we collect, use and protect your personal information.' });
+  usePageMeta({ title: 'Privacy Policy', description: 'princess-made privacy policy — how we collect, use and protect your personal information.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
 
@@ -72,7 +72,7 @@ export default function Privacy() {
               <motion.div variants={itemVariants} className="space-y-4">
                 <h2 className="text-2xl font-serif font-light">Introduction</h2>
                 <p className="text-muted-foreground font-light leading-relaxed">
-                  Princess Made ("we", "us", or "our") is committed to protecting your personal information
+                  princess-made ("we", "us", or "our") is committed to protecting your personal information
                   and your right to privacy. This Privacy Policy explains how we collect, use, disclose and
                   safeguard your information when you visit our website and make purchases from us. We comply
                   with the Australian Privacy Principles (APPs) contained in the Privacy Act 1988 (Cth).
@@ -257,7 +257,7 @@ export default function Privacy() {
                   please contact us at:
                 </p>
                 <div className="border border-border/30 p-6 space-y-2" style={{ borderRadius: '2px' }}>
-                  <p className="font-serif font-light">Princess Made</p>
+                  <p className="font-serif font-light">princess-made</p>
                   <p className="text-sm text-muted-foreground font-light">
                     Email:{' '}
                     <a href="mailto:princessmadefashion@gmail.com" className="text-accent hover:underline">

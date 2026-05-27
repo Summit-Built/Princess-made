@@ -9,7 +9,7 @@ import { Scissors, Heart, Sparkles, Instagram, ArrowRight } from 'lucide-react';
 import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function About() {
-  usePageMeta({ title: 'About', description: 'The story behind Princess Made — handcrafted bags made with love in Australia.' });
+  usePageMeta({ title: 'About', description: 'The story behind princess-made — handcrafted bags made with love in Australia.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
 
@@ -82,7 +82,7 @@ export default function About() {
                 variants={itemVariants}
                 className="text-base sm:text-lg md:text-xl text-muted-foreground font-light leading-relaxed px-4 sm:px-0"
               >
-                Princess Made started as a passion project — just a girl with a sewing machine and a dream.
+                princess-made started as a passion project — just a girl with a sewing machine and a dream.
                 What began as making gifts for friends quickly became something bigger when people started
                 asking where they could buy one too.
               </motion.p>
@@ -224,7 +224,7 @@ export default function About() {
                   href="https://www.instagram.com/princessmadefashion/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Follow Princess Made on Instagram"
+                  aria-label="Follow princess-made on Instagram"
                 >
                   <motion.span
                     whileHover={{ scale: 1.03 }}

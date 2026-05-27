@@ -14,7 +14,7 @@ export const Footer = () => {
     onSuccess: () => {
       setFooterSubscribed(true);
       setFooterEmail('');
-      toast.success('Welcome to the Princess Made family!');
+      toast.success('Welcome to the princess-made family!');
     },
     onError: () => {
       toast.error('Something went wrong. Please try again.');
@@ -32,7 +32,7 @@ export const Footer = () => {
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-4 space-y-5">
             <h3 className="font-script text-3xl text-blush">
-              Princess Made
+              princess-made
             </h3>
             <p className="text-sm text-background/50 font-light leading-relaxed max-w-sm">
               100% handmade bags, crafted with love and care.
@@ -170,7 +170,7 @@ export const Footer = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-background/30 font-light">
             <div className="flex items-center gap-2">
               <Sparkles size={12} aria-hidden="true" />
-              <p>&copy; {currentYear} Princess Made. All rights reserved.</p>
+              <p>&copy; {currentYear} princess-made. All rights reserved.</p>
             </div>
             <p className="tracking-wider uppercase">Handmade in Australia</p>
           </div>

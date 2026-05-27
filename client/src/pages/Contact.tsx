@@ -12,7 +12,7 @@ import { usePageMeta } from '@/lib/usePageMeta';
 import { toast } from 'sonner';
 
 export default function Contact() {
-  usePageMeta({ title: 'Contact & FAQ', description: 'Get in touch with Princess Made. FAQ about shipping, returns, custom orders and more.' });
+  usePageMeta({ title: 'Contact & FAQ', description: 'Get in touch with princess-made. FAQ about shipping, returns, custom orders and more.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
 

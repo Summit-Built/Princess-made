@@ -8,7 +8,7 @@ import { Sparkles } from 'lucide-react';
 import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function Terms() {
-  usePageMeta({ title: 'Terms of Service', description: 'Princess Made terms and conditions for purchasing handmade bags and accessories.' });
+  usePageMeta({ title: 'Terms of Service', description: 'princess-made terms and conditions for purchasing handmade bags and accessories.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
 
@@ -72,12 +72,12 @@ export default function Terms() {
               <motion.div variants={itemVariants} className="space-y-4">
                 <h2 className="text-2xl font-serif font-light">General Terms</h2>
                 <p className="text-muted-foreground font-light leading-relaxed">
-                  Welcome to Princess Made. By accessing our website and placing an order, you agree to be
+                  Welcome to princess-made. By accessing our website and placing an order, you agree to be
                   bound by these Terms of Service. If you do not agree with any part of these terms, please
                   do not use our website or services.
                 </p>
                 <p className="text-muted-foreground font-light leading-relaxed">
-                  Princess Made is an Australian-based small business specialising in handmade bags, pouches
+                  princess-made is an Australian-based small business specialising in handmade bags, pouches
                   and accessories. All products are individually handcrafted, which means slight variations in
                   colour, texture and size may occur between items. These variations are a natural characteristic
                   of handmade goods and are not considered defects.
@@ -131,7 +131,7 @@ export default function Terms() {
                 </p>
                 <p className="text-muted-foreground font-light leading-relaxed">
                   Standard domestic delivery usually takes 3-7 business days after dispatch. Tracking
-                  information will be provided via email once your order has been shipped. Princess Made is
+                  information will be provided via email once your order has been shipped. princess-made is
                   not responsible for delays caused by Australia Post or unforeseen circumstances.
                 </p>
                 <p className="text-muted-foreground font-light leading-relaxed">
@@ -169,7 +169,7 @@ export default function Terms() {
                 </div>
                 <p className="text-muted-foreground font-light leading-relaxed">
                   All content on this website, including but not limited to text, images, logos, product
-                  designs, graphics and branding, is the intellectual property of Princess Made and is
+                  designs, graphics and branding, is the intellectual property of princess-made and is
                   protected by Australian and international copyright laws. You may not reproduce, distribute
                   or use any content from this website without our prior written consent.
                 </p>
@@ -182,7 +182,7 @@ export default function Terms() {
                   <h2 className="text-2xl font-serif font-light">Limitation of Liability</h2>
                 </div>
                 <p className="text-muted-foreground font-light leading-relaxed">
-                  To the maximum extent permitted by law, Princess Made shall not be liable for any indirect,
+                  To the maximum extent permitted by law, princess-made shall not be liable for any indirect,
                   incidental, special, consequential or punitive damages arising out of or related to your use
                   of our website or products. Our total liability for any claim shall not exceed the amount you
                   paid for the product in question.
@@ -245,7 +245,7 @@ export default function Terms() {
                   If you have any questions about these Terms of Service, please contact us:
                 </p>
                 <div className="border border-border/30 p-6 space-y-2" style={{ borderRadius: '2px' }}>
-                  <p className="font-serif font-light">Princess Made</p>
+                  <p className="font-serif font-light">princess-made</p>
                   <p className="text-sm text-muted-foreground font-light">
                     Email:{' '}
                     <a href="mailto:princessmadefashion@gmail.com" className="text-accent hover:underline">

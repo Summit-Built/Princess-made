@@ -21,7 +21,7 @@ export const LoadingScreen = ({ isVisible }: LoadingScreenProps) => {
           className="text-center space-y-3"
         >
           <h1 className="font-script text-4xl md:text-5xl text-accent">
-            Princess Made
+            princess-made
           </h1>
           <p className="text-xs text-muted-foreground tracking-[0.3em] uppercase font-light">
             Handcrafted with love

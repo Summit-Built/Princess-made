@@ -9,7 +9,7 @@ import { usePageMeta } from '@/lib/usePageMeta';
 import { Link } from 'wouter';
 
 export default function Returns() {
-  usePageMeta({ title: 'Returns & Exchanges', description: 'Princess Made returns and exchanges policy for handmade bags and accessories.' });
+  usePageMeta({ title: 'Returns & Exchanges', description: 'princess-made returns and exchanges policy for handmade bags and accessories.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
 
@@ -155,7 +155,7 @@ export default function Returns() {
                   <h2 className="text-2xl font-serif font-light">A Note on Handmade Variations</h2>
                 </div>
                 <p className="text-muted-foreground font-light leading-relaxed">
-                  Each Princess Made product is individually handcrafted. Slight variations in colour, texture,
+                  Each princess-made product is individually handcrafted. Slight variations in colour, texture,
                   stitching and dimensions are a natural part of the handmade process and make each piece
                   one-of-a-kind. These variations are not considered defects and are not grounds for a return
                   or refund.
@@ -187,7 +187,7 @@ export default function Returns() {
                   We are always here to help.
                 </p>
                 <div className="border border-border/30 p-6 space-y-2" style={{ borderRadius: '2px' }}>
-                  <p className="font-serif font-light">Princess Made</p>
+                  <p className="font-serif font-light">princess-made</p>
                   <p className="text-sm text-muted-foreground font-light">
                     Email:{' '}
                     <a href="mailto:princessmadefashion@gmail.com" className="text-accent hover:underline">

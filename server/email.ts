@@ -10,8 +10,8 @@ function getResend(): Resend | null {
   return _resend;
 }
 
-const FROM_EMAIL = "Princess Made <orders@princessmade.com.au>";
-const FALLBACK_FROM = "Princess Made <onboarding@resend.dev>";
+const FROM_EMAIL = "princess-made <orders@princessmade.com.au>";
+const FALLBACK_FROM = "princess-made <onboarding@resend.dev>";
 
 function getFrom() {
   // Use verified domain if available, otherwise use Resend sandbox
@@ -88,7 +88,7 @@ export async function sendOrderConfirmation(opts: {
           <div style="margin-top: 30px; padding-top: 24px; border-top: 1px solid #f0e8e4; text-align: center;">
             <p style="font-size: 13px; color: #8a7a72; font-weight: 300;">We're preparing your order with love and care. You'll receive a tracking number once it ships.</p>
             <p style="font-size: 12px; color: #b0a49c; margin-top: 16px;">Handmade in Australia 🇦🇺</p>
-            <p style="font-size: 11px; color: #c4b8b0;">Princess Made — princessmadefashion@gmail.com</p>
+            <p style="font-size: 11px; color: #c4b8b0;">princess-made — princessmadefashion@gmail.com</p>
           </div>
         </div>
       `,
@@ -142,7 +142,7 @@ export async function sendShippingUpdate(opts: {
 
           <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f0e8e4;">
             <p style="font-size: 12px; color: #b0a49c;">Handmade in Australia 🇦🇺</p>
-            <p style="font-size: 11px; color: #c4b8b0;">Princess Made — princessmadefashion@gmail.com</p>
+            <p style="font-size: 11px; color: #c4b8b0;">princess-made — princessmadefashion@gmail.com</p>
           </div>
         </div>
       `,
@@ -167,12 +167,12 @@ export async function sendPasswordResetEmail(opts: {
     await resend.emails.send({
       from: getFrom(),
       to: opts.to,
-      subject: "Reset Your Password — Princess Made",
+      subject: "Reset Your Password — princess-made",
       html: `
         <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, sans-serif; color: #3d3530; background: #faf8f6; padding: 40px 30px;">
           <div style="text-align: center; margin-bottom: 30px;">
             <h1 style="font-family: Georgia, serif; font-weight: 300; font-size: 28px; margin: 0;">Password Reset</h1>
-            <p style="color: #8a7a72; font-weight: 300; margin-top: 8px;">You requested a password reset for your Princess Made account.</p>
+            <p style="color: #8a7a72; font-weight: 300; margin-top: 8px;">You requested a password reset for your princess-made account.</p>
           </div>
 
           <div style="background: white; border: 1px solid #f0e8e4; padding: 24px; margin-bottom: 24px; text-align: center;">
@@ -183,7 +183,7 @@ export async function sendPasswordResetEmail(opts: {
           <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f0e8e4;">
             <p style="font-size: 13px; color: #8a7a72; font-weight: 300;">If you didn't request this, you can safely ignore this email.</p>
             <p style="font-size: 12px; color: #b0a49c; margin-top: 16px;">Handmade in Australia</p>
-            <p style="font-size: 11px; color: #c4b8b0;">Princess Made — princessmadefashion@gmail.com</p>
+            <p style="font-size: 11px; color: #c4b8b0;">princess-made — princessmadefashion@gmail.com</p>
           </div>
         </div>
       `,
@@ -231,7 +231,7 @@ export async function sendOrderCancellation(opts: {
           <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f0e8e4;">
             <p style="font-size: 13px; color: #8a7a72; font-weight: 300;">Changed your mind? We'd love to have you back anytime.</p>
             <p style="font-size: 12px; color: #b0a49c; margin-top: 16px;">Handmade in Australia 🇦🇺</p>
-            <p style="font-size: 11px; color: #c4b8b0;">Princess Made — princessmadefashion@gmail.com</p>
+            <p style="font-size: 11px; color: #c4b8b0;">princess-made — princessmadefashion@gmail.com</p>
           </div>
         </div>
       `,
@@ -280,7 +280,7 @@ export async function sendDeliveryConfirmation(opts: {
 
           <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f0e8e4;">
             <p style="font-size: 12px; color: #b0a49c;">Handmade in Australia 🇦🇺</p>
-            <p style="font-size: 11px; color: #c4b8b0;">Princess Made — princessmadefashion@gmail.com</p>
+            <p style="font-size: 11px; color: #c4b8b0;">princess-made — princessmadefashion@gmail.com</p>
           </div>
         </div>
       `,
@@ -307,12 +307,12 @@ export async function sendWelcomeEmail(opts: {
     await resend.emails.send({
       from: getFrom(),
       to: opts.to,
-      subject: `Welcome to Princess Made! 💕`,
+      subject: `Welcome to princess-made! 💕`,
       html: `
         <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, sans-serif; color: #3d3530; background: #faf8f6; padding: 40px 30px;">
           <div style="text-align: center; margin-bottom: 30px;">
             <h1 style="font-family: Georgia, serif; font-weight: 300; font-size: 28px; margin: 0;">${greeting}</h1>
-            <p style="color: #8a7a72; font-weight: 300; margin-top: 8px;">You're now part of the Princess Made family</p>
+            <p style="color: #8a7a72; font-weight: 300; margin-top: 8px;">You're now part of the princess-made family</p>
           </div>
 
           <div style="background: white; border: 1px solid #f0e8e4; padding: 24px; margin-bottom: 24px; text-align: center;">
@@ -336,7 +336,7 @@ export async function sendWelcomeEmail(opts: {
 
           <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f0e8e4;">
             <p style="font-size: 12px; color: #b0a49c;">Handmade in Australia 🇦🇺</p>
-            <p style="font-size: 11px; color: #c4b8b0;">Princess Made — princessmadefashion@gmail.com</p>
+            <p style="font-size: 11px; color: #c4b8b0;">princess-made — princessmadefashion@gmail.com</p>
           </div>
         </div>
       `,
@@ -360,12 +360,12 @@ export async function sendNewsletterConfirmation(opts: {
     await resend.emails.send({
       from: getFrom(),
       to: opts.to,
-      subject: "You're In! — Princess Made Newsletter ✨",
+      subject: "You're In! — princess-made Newsletter ✨",
       html: `
         <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, sans-serif; color: #3d3530; background: #faf8f6; padding: 40px 30px;">
           <div style="text-align: center; margin-bottom: 30px;">
             <h1 style="font-family: Georgia, serif; font-weight: 300; font-size: 28px; margin: 0;">You're Subscribed! ✨</h1>
-            <p style="color: #8a7a72; font-weight: 300; margin-top: 8px;">Thanks for joining the Princess Made newsletter</p>
+            <p style="color: #8a7a72; font-weight: 300; margin-top: 8px;">Thanks for joining the princess-made newsletter</p>
           </div>
 
           <div style="background: white; border: 1px solid #f0e8e4; padding: 24px; margin-bottom: 24px; text-align: center;">
@@ -378,7 +378,7 @@ export async function sendNewsletterConfirmation(opts: {
 
           <div style="text-align: center; padding-top: 24px; border-top: 1px solid #f0e8e4;">
             <p style="font-size: 12px; color: #b0a49c;">Handmade in Australia 🇦🇺</p>
-            <p style="font-size: 11px; color: #c4b8b0;">Princess Made — princessmadefashion@gmail.com</p>
+            <p style="font-size: 11px; color: #c4b8b0;">princess-made — princessmadefashion@gmail.com</p>
           </div>
         </div>
       `,

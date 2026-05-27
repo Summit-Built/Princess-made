@@ -89,11 +89,11 @@ export const Header = ({
 
       <div className="container flex items-center justify-between h-16 md:h-18">
         {/* Logo */}
-        <Link href="/" aria-label="Princess Made - Home">
+        <Link href="/" aria-label="princess-made - Home">
           <div className="flex items-center gap-3 cursor-pointer hover:scale-[1.02] transition-transform">
             <img
               src="/princess-made-logo.png"
-              alt="Princess Made"
+              alt="princess-made"
               width={160}
               height={50}
               className="h-8 md:h-10 w-auto"

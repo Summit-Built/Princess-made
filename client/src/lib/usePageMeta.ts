@@ -7,7 +7,7 @@ interface PageMeta {
 
 export function usePageMeta({ title, description }: PageMeta) {
   useEffect(() => {
-    const fullTitle = title === 'Princess Made' ? title : `${title} | Princess Made`;
+    const fullTitle = title === 'princess-made' ? title : `${title} | princess-made`;
     document.title = fullTitle;
 
     // Update meta description
@@ -25,7 +25,7 @@ export function usePageMeta({ title, description }: PageMeta) {
     const ogTags: Record<string, string> = {
       'og:title': fullTitle,
       'og:type': 'website',
-      'og:site_name': 'Princess Made',
+      'og:site_name': 'princess-made',
     };
     if (description) ogTags['og:description'] = description;
 

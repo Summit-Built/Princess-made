@@ -12,7 +12,7 @@ import { Search, Package, Truck, Check, MapPin, ExternalLink } from 'lucide-reac
 import { Spinner } from '@/components/ui/spinner';
 
 export default function TrackOrder() {
-  usePageMeta({ title: 'Track Order', description: 'Track your Princess Made order status and shipping.' });
+  usePageMeta({ title: 'Track Order', description: 'Track your princess-made order status and shipping.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
 

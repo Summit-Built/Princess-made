@@ -106,7 +106,7 @@ const faqSections = [
 ];
 
 export default function FAQ() {
-  usePageMeta({ title: 'FAQ', description: 'Frequently asked questions about Princess Made products, orders, shipping and returns.' });
+  usePageMeta({ title: 'FAQ', description: 'Frequently asked questions about princess-made products, orders, shipping and returns.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
 
@@ -197,7 +197,7 @@ export default function FAQ() {
                   We are always happy to help! Reach out and we will get back to you as soon as we can.
                 </p>
                 <div className="border border-border/30 p-6 space-y-2" style={{ borderRadius: '2px' }}>
-                  <p className="font-serif font-light">Princess Made</p>
+                  <p className="font-serif font-light">princess-made</p>
                   <p className="text-sm text-muted-foreground font-light">
                     Email:{' '}
                     <a href="mailto:princessmadefashion@gmail.com" className="text-accent hover:underline">

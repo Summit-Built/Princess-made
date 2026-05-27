@@ -10,7 +10,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function Register() {
-  usePageMeta({ title: 'Create Account', description: 'Join the Princess Made family. Create your account.' });
+  usePageMeta({ title: 'Create Account', description: 'Join the princess-made family. Create your account.' });
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
@@ -69,7 +69,7 @@ export default function Register() {
                     <h2 className="text-3xl font-serif font-light leading-snug">
                       Become part of the
                       <br />
-                      <span className="italic text-accent">Princess Made</span> family
+                      <span className="italic text-accent">princess-made</span> family
                     </h2>
                   </div>
 

@@ -10,7 +10,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function Login() {
-  usePageMeta({ title: 'Sign In', description: 'Sign in to your Princess Made account.' });
+  usePageMeta({ title: 'Sign In', description: 'Sign in to your princess-made account.' });
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const [email, setEmail] = useState('');
@@ -103,7 +103,7 @@ export default function Login() {
                     <Sparkles size={20} className="text-accent mx-auto" aria-hidden="true" />
                     <h1 className="text-3xl font-serif font-light">Welcome Back</h1>
                     <p className="text-sm text-muted-foreground font-light">
-                      Sign in to your Princess Made account
+                      Sign in to your princess-made account
                     </p>
                   </div>
 

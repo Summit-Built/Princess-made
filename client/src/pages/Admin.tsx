@@ -180,7 +180,7 @@ function AdminLogin({ cartItems }: { cartItems: number }) {
 }
 
 export default function Admin() {
-  usePageMeta({ title: 'Admin', description: 'Princess Made admin dashboard.' });
+  usePageMeta({ title: 'Admin', description: 'princess-made admin dashboard.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');

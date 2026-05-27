@@ -32,7 +32,7 @@ export default function ProductDetail() {
 
   usePageMeta({
     title: product?.name || 'Product',
-    description: product?.description || 'Handmade with love by Princess Made',
+    description: product?.description || 'Handmade with love by princess-made',
   });
 
   const utils = trpc.useUtils();

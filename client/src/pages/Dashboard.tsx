@@ -29,7 +29,7 @@ import { usePageMeta } from '@/lib/usePageMeta';
 type TabType = 'orders' | 'addresses' | 'favorites' | 'settings';
 
 export default function Dashboard() {
-  usePageMeta({ title: 'My Account', description: 'Manage your Princess Made account, orders, and favorites.' });
+  usePageMeta({ title: 'My Account', description: 'Manage your princess-made account, orders, and favorites.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('orders');
@@ -727,7 +727,7 @@ function OrderCard({ order, isExpanded, onToggle }: { order: any; isExpanded: bo
                           .footer { text-align: center; margin-top: 40px; padding-top: 24px; border-top: 1px solid #f0e8e4; font-size: 12px; color: #b0a49c; }
                           @media print { body { margin: 0; } }
                         </style></head><body>
-                        <h1>Princess Made</h1>
+                        <h1>princess-made</h1>
                         <p class="subtitle">Receipt / Tax Invoice</p>
                         <div class="info">
                           <div><p class="info-label">Order Number</p><p class="info-value">${orderNumber}</p></div>
@@ -742,7 +742,7 @@ function OrderCard({ order, isExpanded, onToggle }: { order: any; isExpanded: bo
                           <span class="total-value">A$${(order.totalAmount / 100).toFixed(2)}</span>
                         </div>
                         <div class="footer">
-                          <p>Princess Made — Handmade in Australia</p>
+                          <p>princess-made — Handmade in Australia</p>
                           <p>princessmadefashion@gmail.com</p>
                           <p style="margin-top:16px;"><em>Thank you for your purchase!</em></p>
                         </div>

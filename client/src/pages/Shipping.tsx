@@ -8,7 +8,7 @@ import { Sparkles, Truck, Clock, Package, MapPin } from 'lucide-react';
 import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function Shipping() {
-  usePageMeta({ title: 'Shipping Information', description: 'Princess Made shipping rates, delivery times and tracking information for Australia and international orders.' });
+  usePageMeta({ title: 'Shipping Information', description: 'princess-made shipping rates, delivery times and tracking information for Australia and international orders.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
 
@@ -197,7 +197,7 @@ export default function Shipping() {
                   will do our best to help resolve the issue with Australia Post.
                 </p>
                 <p className="text-muted-foreground font-light leading-relaxed">
-                  Princess Made is not responsible for delays, loss or damage caused by Australia Post once the
+                  princess-made is not responsible for delays, loss or damage caused by Australia Post once the
                   parcel has been dispatched. However, we will always work with you to find a solution.
                 </p>
               </motion.div>
@@ -212,7 +212,7 @@ export default function Shipping() {
                   If you have any questions about shipping, feel free to get in touch.
                 </p>
                 <div className="border border-border/30 p-6 space-y-2" style={{ borderRadius: '2px' }}>
-                  <p className="font-serif font-light">Princess Made</p>
+                  <p className="font-serif font-light">princess-made</p>
                   <p className="text-sm text-muted-foreground font-light">
                     Email:{' '}
                     <a href="mailto:princessmadefashion@gmail.com" className="text-accent hover:underline">

@@ -42,7 +42,7 @@ function OrderItemDisplay({ item }: { item: { productId: string; quantity: numbe
 }
 
 export default function OrderConfirmation() {
-  usePageMeta({ title: 'Order Confirmed', description: 'Your Princess Made order has been confirmed.' });
+  usePageMeta({ title: 'Order Confirmed', description: 'Your princess-made order has been confirmed.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
   const clearCart = useCartStore((state) => state.clearCart);

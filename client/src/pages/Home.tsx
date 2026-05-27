@@ -28,7 +28,7 @@ function useScrollReveal() {
 }
 
 export default function Home() {
-  usePageMeta({ title: 'Princess Made', description: 'Handcrafted bags and accessories made with love in Australia. 100% handmade, one of a kind.' });
+  usePageMeta({ title: 'princess-made', description: 'Handcrafted bags and accessories made with love in Australia. 100% handmade, one of a kind.' });
   const cartItems = useCartStore((state) => state.getTotalItems());
   const { isAuthenticated, logout } = useAuth();
   // Prefetch products so Shop page loads instantly (also used for category images)
@@ -56,7 +56,7 @@ export default function Home() {
     onSuccess: () => {
       setNewsletterSubscribed(true);
       setNewsletterEmail('');
-      toast.success('Welcome to the Princess Made family!');
+      toast.success('Welcome to the princess-made family!');
     },
     onError: () => {
       toast.error('Something went wrong. Please try again.');
@@ -127,7 +127,7 @@ export default function Home() {
                 <div className="relative w-full max-w-md md:max-w-lg aspect-[3/4] md:aspect-auto md:h-full">
                   <img
                     src="/hero-product.jpg"
-                    alt="Princess Made handcrafted bag"
+                    alt="princess-made handcrafted bag"
                     className="w-full h-full object-cover object-center rounded-xl"
                     fetchPriority="high"
                     decoding="auto"
@@ -379,7 +379,7 @@ export default function Home() {
                   Every Bag Tells <span className="italic">a Story</span>
                 </h2>
                 <p className="text-muted-foreground font-light leading-relaxed text-base sm:text-lg">
-                  At Princess Made, we believe in the beauty of slow fashion. Each bag is handcrafted
+                  At princess-made, we believe in the beauty of slow fashion. Each bag is handcrafted
                   from carefully selected materials, sewn with attention to every detail. No two pieces
                   are exactly alike — that's the magic of handmade.
                 </p>

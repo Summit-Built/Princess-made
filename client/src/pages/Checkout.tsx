@@ -33,7 +33,7 @@ type FormErrors = {
 };
 
 export default function Checkout() {
-  usePageMeta({ title: 'Checkout', description: 'Complete your Princess Made order.' });
+  usePageMeta({ title: 'Checkout', description: 'Complete your princess-made order.' });
   const [, navigate] = useLocation();
   const items = useCartStore((state) => state.items);
   const getTotalPrice = useCartStore((state) => state.getTotalPrice);
