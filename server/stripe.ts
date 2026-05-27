@@ -50,18 +50,26 @@ function mapStripeProduct(p: Stripe.Product): StripeProduct | null {
     if (!isNaN(dollars)) variants[key] = Math.round(dollars * 100);
   }
 
-  return {
-    id: p.id,
-    stripeProductId: p.id,
-    stripePriceId: price.id,
-    name: p.name,
-    description: p.description,
-    price: price.unit_amount ?? 0,
-    imageUrl: p.images?.[0] ?? null,
-    category: p.metadata?.category ?? "Uncategorized",
-    images: p.images ?? [],
-    variants,
-  };
+  // Collect extra images from metadata (image_2, image_3, etc.)
+const metaImages: string[] = [];
+for (const [key, value] of Object.entries(p.metadata ?? {})) {
+  if (key.match(/^image_\d+$/) && value) {
+    metaImages.push(value);
+  }
+}
+
+return {
+  id: p.id,
+  stripeProductId: p.id,
+  stripePriceId: price.id,
+  name: p.name,
+  description: p.description,
+  price: price.unit_amount ?? 0,
+  imageUrl: p.images?.[0] ?? null,
+  category: p.metadata?.category ?? "Uncategorized",
+  images: [...(p.images ?? []), ...metaImages],
+  variants,
+};
 }
 
 // Resolve Stripe file URLs (files.stripe.com) to their final CDN URLs.
