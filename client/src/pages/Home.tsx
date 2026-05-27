@@ -350,26 +350,20 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
               {/* Left: Image */}
               <div className="relative">
-                {products && products.length > 1 && products[1]?.imageUrl ? (
-                  <div className="relative">
-                    <img
-                      src={products[1].imageUrl}
-                      alt="Handcrafted with care"
-                      className="w-full aspect-[4/5] object-cover rounded-xl"
-                      loading="lazy"
-                      decoding="async"
-                      width={600}
-                      height={750}
-                    />
-                    {/* Decorative accent */}
-                    <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-accent/10 -z-10 hidden md:block" style={{ borderRadius: '2px' }} />
-                    <div className="absolute -top-4 -left-4 w-16 h-16 bg-blush/30 -z-10 hidden md:block" style={{ borderRadius: '2px' }} />
-                  </div>
-                ) : (
-                  <div className="w-full aspect-[4/5] bg-gradient-to-br from-cream to-blush/30 flex items-center justify-center" style={{ borderRadius: '2px' }}>
-                    <Heart size={48} className="text-accent/20" />
-                  </div>
-                )}
+                <div className="relative">
+                  <img
+                    src="/images/promise.jpg"
+                    alt="Handcrafted with care"
+                    className="w-full aspect-[4/5] object-cover rounded-xl"
+                    loading="lazy"
+                    decoding="async"
+                    width={600}
+                    height={750}
+                  />
+                  {/* Decorative accent */}
+                  <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-accent/10 -z-10 hidden md:block" style={{ borderRadius: '2px' }} />
+                  <div className="absolute -top-4 -left-4 w-16 h-16 bg-blush/30 -z-10 hidden md:block" style={{ borderRadius: '2px' }} />
+                </div>
               </div>
 
               {/* Right: Text */}
