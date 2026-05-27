@@ -54,7 +54,7 @@ export default function About() {
                 variants={itemVariants}
                 className="text-4xl sm:text-5xl md:text-7xl font-serif font-light leading-tight"
               >
-                Made with <span className="italic text-accent">Heart</span>
+                Made with <Heart className="inline-block text-accent mb-1" size={48} strokeWidth={1.25} />
               </motion.h1>
               <motion.div variants={itemVariants} className="flex items-center gap-4 max-w-xs mx-auto" aria-hidden="true">
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent to-accent/30" />
