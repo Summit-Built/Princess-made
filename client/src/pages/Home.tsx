@@ -44,6 +44,13 @@ export default function Home() {
     }
   }
 
+  // Static fallback images for each collection card (override product images)
+  const staticCategoryImages: Record<string, string> = {
+    'Laptop Cases': '/images/collection-laptop-cases.jpg',
+    'Pouches': '/images/collection-pouches.jpg',
+    'Pencil Cases': '/images/collection-pencil-cases.jpg',
+  };
+
   // Best sellers: show first 8 products with images
   const bestSellers = products?.filter(p => p.imageUrl).slice(0, 8) ?? [];
 
@@ -303,7 +310,7 @@ export default function Home() {
                   accent: 'from-[#e8ddd8] to-[#d4c4be]',
                 },
               ].map((category, index) => {
-                const bgImage = categoryImages[category.categoryKey];
+                const bgImage = staticCategoryImages[category.categoryKey] ?? categoryImages[category.categoryKey];
                 return (
                 <div key={index}>
                   <Link href={category.href}>
