@@ -19,8 +19,11 @@ export default function Shop() {
   const { isAuthenticated, logout } = useAuth();
 
   const searchString = useSearch();
-  const urlCategory = new URLSearchParams(searchString).get('category') || undefined;
+  const params = new URLSearchParams(searchString);
+  const urlCategory = params.get('category') || undefined;
+  const urlMaxPrice = params.get('maxPrice') ? parseInt(params.get('maxPrice')!) : undefined;
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(urlCategory);
+  const [maxPriceFilter, setMaxPriceFilter] = useState<number | undefined>(urlMaxPrice);
   const [sortBy, setSortBy] = useState<'price-low' | 'price-high' | 'newest'>('newest');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -83,11 +86,13 @@ export default function Shop() {
     }
   };
 
-  const sortedProducts = products ? [...products].sort((a, b) => {
-    if (sortBy === 'price-low') return a.price - b.price;
-    if (sortBy === 'price-high') return b.price - a.price;
-    return 0;
-  }) : [];
+  const sortedProducts = products ? [...products]
+    .filter(p => maxPriceFilter === undefined || p.price <= maxPriceFilter * 100)
+    .sort((a, b) => {
+      if (sortBy === 'price-low') return a.price - b.price;
+      if (sortBy === 'price-high') return b.price - a.price;
+      return 0;
+    }) : [];
 
   const categories = ['All', 'Laptop Cases', 'Pouches', 'Pencil Cases', 'Accessories'];
 
@@ -195,6 +200,18 @@ export default function Shop() {
                 )}
               </motion.button>
 
+              {/* Active price filter chip */}
+              {maxPriceFilter && (
+                <button
+                  onClick={() => setMaxPriceFilter(undefined)}
+                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-light bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 transition-colors"
+                  style={{ borderRadius: '2px' }}
+                >
+                  Under A${maxPriceFilter}
+                  <X size={11} />
+                </button>
+              )}
+
               {/* Sort + Count */}
               <div className="flex items-center gap-4">
                 <span className="text-xs text-muted-foreground/60 font-light hidden sm:block">
@@ -257,6 +274,15 @@ export default function Shop() {
                       </button>
                     );
                   })}
+                  {maxPriceFilter && (
+                    <button
+                      onClick={() => { setMaxPriceFilter(undefined); setShowMobileFilters(false); }}
+                      className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-light bg-accent/10 text-accent border border-accent/20 min-h-[44px]"
+                      style={{ borderRadius: '2px' }}
+                    >
+                      Under A${maxPriceFilter} <X size={11} />
+                    </button>
+                  )}
                 </div>
               </div>
             </motion.div>
