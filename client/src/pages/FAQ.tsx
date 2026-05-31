@@ -31,7 +31,7 @@ const faqSections = [
       },
       {
         q: 'What sizes are your laptop cases?',
-        a: 'Our standard laptop cases measure approximately 35cm x 27cm, designed to fit most 13-14 inch laptops. If you need a different size, feel free to contact us about a custom order.',
+        a: 'Our standard laptop cases measure approximately 35cm x 25cm, designed to fit most 13-14 inch laptops. If you need a different size, feel free to contact us about a custom order.',
       },
     ],
   },
