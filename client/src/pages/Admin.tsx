@@ -189,6 +189,9 @@ export default function Admin() {
   const { isAuthenticated, user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
+  const isAdmin = isAuthenticated && user?.role === 'admin';
+  const { data: allReviews } = trpc.admin.reviews.list.useQuery(undefined, { enabled: isAdmin });
+  const pendingReviewCount = allReviews?.filter((r: any) => !r.approved).length ?? 0;
 
   if (!isAuthenticated) {
     return <AdminLogin cartItems={cartItems} />;
@@ -222,9 +225,6 @@ export default function Admin() {
       </PageTransition>
     );
   }
-
-  const { data: allReviews } = trpc.admin.reviews.list.useQuery();
-  const pendingReviewCount = allReviews?.filter((r: any) => !r.approved).length ?? 0;
 
   const tabs = [
     { id: 'dashboard' as TabType, label: 'Dashboard', icon: LayoutDashboard },
