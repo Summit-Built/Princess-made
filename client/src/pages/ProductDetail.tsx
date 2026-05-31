@@ -9,9 +9,153 @@ import { MiniLoader } from '@/components/LoadingScreen';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-import { Heart, ShoppingBag, Check, ChevronLeft, Share2, Shield, Scissors } from 'lucide-react';
+import { Heart, ShoppingBag, Check, ChevronLeft, Share2, Shield, Scissors, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePageMeta } from '@/lib/usePageMeta';
+
+function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hovered, setHovered] = useState(0);
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(star)}
+          onMouseEnter={() => setHovered(star)}
+          onMouseLeave={() => setHovered(0)}
+          className="transition-transform hover:scale-110"
+        >
+          <Star
+            size={24}
+            className={`transition-colors ${(hovered || value) >= star ? 'fill-accent text-accent' : 'text-border'}`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ReviewsSection({ productId, productName }: { productId: string; productName: string }) {
+  const [authorName, setAuthorName] = useState('');
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const { data: reviews = [] } = trpc.reviews.listByProduct.useQuery(productId);
+  const createReview = trpc.reviews.create.useMutation({
+    onSuccess: () => {
+      setSubmitted(true);
+      setAuthorName(''); setRating(0); setComment('');
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rating) { toast.error('Please select a star rating'); return; }
+    createReview.mutate({ productId, productName, authorName, rating, comment });
+  };
+
+  const avgRating = reviews.length
+    ? Math.round(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length * 10) / 10
+    : 0;
+
+  return (
+    <section className="py-16 md:py-20 border-t border-border/30">
+      <div className="container max-w-3xl">
+        <div className="space-y-10">
+          {/* Header */}
+          <div className="flex items-baseline justify-between">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-serif font-light">Customer Reviews</h2>
+              {reviews.length > 0 && (
+                <p className="text-sm text-muted-foreground font-light">
+                  {avgRating} / 5 · {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Existing reviews */}
+          {reviews.length > 0 && (
+            <div className="space-y-5">
+              {reviews.map((review) => (
+                <div key={review.id} className="p-5 border border-border/30 space-y-3" style={{ borderRadius: '2px' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-0.5">
+                      {[1,2,3,4,5].map((s) => (
+                        <Star key={s} size={13} className={s <= review.rating ? 'fill-accent text-accent' : 'text-border'} />
+                      ))}
+                    </div>
+                    <span className="text-sm font-serif font-light">{review.authorName}</span>
+                    <span className="text-xs text-muted-foreground/50 font-light ml-auto">
+                      {new Date(review.createdAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground font-light leading-relaxed">{review.comment}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Review form */}
+          <div className="border border-border/30 p-6 space-y-5" style={{ borderRadius: '2px' }}>
+            <h3 className="text-lg font-serif font-light">Write a Review</h3>
+
+            {submitted ? (
+              <div className="flex items-center gap-3 text-sm text-muted-foreground font-light py-2">
+                <Check size={16} className="text-accent" />
+                Thank you! Your review has been submitted and will appear once approved.
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 font-light">Your Rating *</label>
+                  <StarPicker value={rating} onChange={setRating} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 font-light">Your Name *</label>
+                  <input
+                    required
+                    value={authorName}
+                    onChange={(e) => setAuthorName(e.target.value)}
+                    placeholder="e.g. Sarah"
+                    className="w-full px-4 py-3 border border-border/40 bg-background text-sm font-light focus:outline-none focus:border-accent transition-colors"
+                    style={{ borderRadius: '2px' }}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 font-light">Review *</label>
+                  <textarea
+                    required
+                    minLength={10}
+                    maxLength={1000}
+                    rows={4}
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Share your experience with this product..."
+                    className="w-full px-4 py-3 border border-border/40 bg-background text-sm font-light focus:outline-none focus:border-accent transition-colors resize-none"
+                    style={{ borderRadius: '2px' }}
+                  />
+                </div>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  type="submit"
+                  disabled={createReview.isPending}
+                  className="btn-primary px-8 py-3 text-sm disabled:opacity-60"
+                >
+                  {createReview.isPending ? 'Submitting…' : 'Submit Review'}
+                </motion.button>
+                <p className="text-[11px] text-muted-foreground/50 font-light">Reviews are moderated before publishing.</p>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function ProductDetail() {
   const [, params] = useRoute('/product/:id');
@@ -418,6 +562,9 @@ export default function ProductDetail() {
             </motion.div>
           </div>
         </section>
+
+        {/* Reviews */}
+        <ReviewsSection productId={productId} productName={product.name} />
 
         {/* Related Products */}
         {filteredRelated.length > 0 && (

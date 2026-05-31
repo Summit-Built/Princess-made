@@ -28,10 +28,14 @@ import {
   EyeOff,
   ShoppingBag,
   Lock,
+  Star,
+  Trash2,
+  CheckCircle,
+  MessageSquare,
 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 
-type TabType = 'dashboard' | 'orders' | 'users' | 'newsletter' | 'products';
+type TabType = 'dashboard' | 'orders' | 'users' | 'newsletter' | 'products' | 'reviews';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -219,12 +223,16 @@ export default function Admin() {
     );
   }
 
+  const { data: allReviews } = trpc.admin.reviews.list.useQuery();
+  const pendingReviewCount = allReviews?.filter((r: any) => !r.approved).length ?? 0;
+
   const tabs = [
     { id: 'dashboard' as TabType, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'orders' as TabType, label: 'Orders', icon: Package },
     { id: 'users' as TabType, label: 'Users', icon: Users },
     { id: 'newsletter' as TabType, label: 'Newsletter', icon: Mail },
     { id: 'products' as TabType, label: 'Products', icon: ShoppingBag },
+    { id: 'reviews' as TabType, label: 'Reviews', icon: Star, badge: pendingReviewCount },
   ];
 
   return (
@@ -273,7 +281,12 @@ export default function Admin() {
                         style={{ borderRadius: '2px' }}
                       >
                         <Icon size={16} />
-                        {tab.label}
+                        <span className="flex-1">{tab.label}</span>
+                        {'badge' in tab && tab.badge > 0 && (
+                          <span className={`text-[9px] px-1.5 py-0.5 font-light rounded-full min-w-[18px] text-center leading-none ${isActive ? 'bg-white/30 text-white' : 'bg-accent/15 text-accent'}`}>
+                            {tab.badge}
+                          </span>
+                        )}
                       </motion.button>
                     );
                   })}
@@ -300,6 +313,7 @@ export default function Admin() {
 
                 {activeTab === 'newsletter' && <NewsletterTab />}
                 {activeTab === 'products' && <ProductsTab />}
+                {activeTab === 'reviews' && <ReviewsTab />}
               </motion.div>
             </div>
           </div>
@@ -1121,6 +1135,170 @@ function NewsletterTab() {
     </motion.div>
   );
 }
+// ========== REVIEWS TAB ==========
+
+function ReviewsTab() {
+  const utils = trpc.useUtils();
+  const { data: reviews, isLoading } = trpc.admin.reviews.list.useQuery();
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved'>('all');
+
+  const approveReview = trpc.admin.reviews.approve.useMutation({
+    onSuccess: () => {
+      utils.admin.reviews.list.invalidate();
+      utils.reviews.listApproved.invalidate();
+      toast.success('Review approved');
+    },
+    onError: (err) => toast.error(`Failed: ${err.message}`),
+  });
+
+  const deleteReview = trpc.admin.reviews.delete.useMutation({
+    onSuccess: () => {
+      utils.admin.reviews.list.invalidate();
+      utils.reviews.listApproved.invalidate();
+      toast.success('Review deleted');
+    },
+    onError: (err) => toast.error(`Failed: ${err.message}`),
+  });
+
+  const filtered = useMemo(() => {
+    if (!reviews) return [];
+    if (filter === 'pending') return reviews.filter((r: any) => !r.approved);
+    if (filter === 'approved') return reviews.filter((r: any) => r.approved);
+    return reviews;
+  }, [reviews, filter]);
+
+  const pendingCount = reviews?.filter((r: any) => !r.approved).length ?? 0;
+
+  return (
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h2 className="text-2xl font-serif font-light">Customer Reviews</h2>
+        {pendingCount > 0 && (
+          <span className="text-xs font-light px-3 py-1 bg-accent/10 text-accent border border-accent/20" style={{ borderRadius: '2px' }}>
+            {pendingCount} pending approval
+          </span>
+        )}
+      </div>
+
+      {/* Filter pills */}
+      <div className="flex gap-2">
+        {(['all', 'pending', 'approved'] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`text-xs px-3 py-1.5 font-light capitalize transition-colors ${
+              filter === f
+                ? 'bg-accent text-accent-foreground'
+                : 'border border-border/40 text-muted-foreground hover:bg-cream'
+            }`}
+            style={{ borderRadius: '2px' }}
+          >
+            {f}
+            {f === 'pending' && pendingCount > 0 && ` (${pendingCount})`}
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <div className="border border-border/30 p-16 flex items-center justify-center" style={{ borderRadius: '2px' }}>
+          <Spinner size={24} />
+        </div>
+      ) : filtered.length > 0 ? (
+        <div className="space-y-3">
+          {filtered.map((review: any) => (
+            <motion.div
+              key={review.id}
+              variants={itemVariants}
+              className={`border p-5 space-y-3 ${
+                review.approved
+                  ? 'border-border/30 bg-white/50'
+                  : 'border-amber-200 bg-amber-50/30'
+              }`}
+              style={{ borderRadius: '2px' }}
+            >
+              {/* Header row */}
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-light">{review.authorName}</p>
+                    <span
+                      className={`text-[9px] px-2 py-0.5 font-light tracking-wider uppercase ${
+                        review.approved
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-amber-100 text-amber-700'
+                      }`}
+                      style={{ borderRadius: '2px' }}
+                    >
+                      {review.approved ? 'Approved' : 'Pending'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground/50 font-light">
+                    {review.productName} &middot;{' '}
+                    {new Date(review.createdAt).toLocaleDateString('en-AU', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </p>
+                </div>
+                {/* Stars */}
+                <div className="flex items-center gap-0.5 shrink-0">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      size={14}
+                      className={s <= review.rating ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground/20'}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Comment */}
+              <p className="text-sm font-light text-muted-foreground leading-relaxed">
+                "{review.comment}"
+              </p>
+
+              {/* Actions */}
+              <div className="flex items-center gap-3 pt-1">
+                {!review.approved && (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => approveReview.mutate(review.id)}
+                    disabled={approveReview.isPending}
+                    className="btn-primary text-xs px-3 py-2 flex items-center gap-1.5 disabled:opacity-40"
+                  >
+                    {approveReview.isPending ? <Spinner size={12} /> : <CheckCircle size={12} />}
+                    Approve
+                  </motion.button>
+                )}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => deleteReview.mutate(review.id)}
+                  disabled={deleteReview.isPending}
+                  className="border border-red-200 text-red-500 hover:bg-red-50 text-xs px-3 py-2 flex items-center gap-1.5 disabled:opacity-40 transition-colors"
+                  style={{ borderRadius: '2px' }}
+                >
+                  {deleteReview.isPending ? <Spinner size={12} /> : <Trash2 size={12} />}
+                  Delete
+                </motion.button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        <div className="border border-border/30 p-16 text-center" style={{ borderRadius: '2px' }}>
+          <MessageSquare size={32} className="mx-auto mb-4 text-muted-foreground/20" />
+          <p className="text-muted-foreground font-light">
+            {filter === 'pending' ? 'No pending reviews' : filter === 'approved' ? 'No approved reviews' : 'No reviews yet'}
+          </p>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 function ProductsTab() {
   const { data: products, isLoading } = trpc.admin.products.list.useQuery();
   const utils = trpc.useUtils();

@@ -33,6 +33,7 @@ export default function Home() {
   const { isAuthenticated, logout } = useAuth();
   // Prefetch products so Shop page loads instantly (also used for category images)
   const { data: products } = trpc.products.list.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
+  const { data: liveReviews } = trpc.reviews.listApproved.useQuery();
 
   // Pick the first product image per category for the category card backgrounds
   const categoryImages: Record<string, string | undefined> = {};
@@ -424,33 +425,23 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
-              {[
-                {
-                  quote: 'Absolutely love my laptop case! The quilting is so soft and it fits my MacBook perfectly. You can really tell it was made with care.',
-                  name: 'Sarah',
-                  location: 'Sydney',
-                  product: 'Quilted Laptop Case',
-                },
-                {
-                  quote: 'I bought a pouch as a gift for my sister and she was obsessed. The faux fur is SO cute. Already ordering one for myself!',
-                  name: 'Jess',
-                  location: 'Melbourne',
-                  product: 'Faux Fur Pouch',
-                },
-                {
-                  quote: 'The attention to detail is incredible for the price. My pencil case gets so many compliments at uni. Supporting small business feels great too.',
-                  name: 'Mia',
-                  location: 'Brisbane',
-                  product: 'Pencil Case',
-                },
-              ].map((testimonial, index) => (
+              {(liveReviews && liveReviews.length > 0 ? liveReviews.slice(0, 3).map((r) => ({
+                quote: r.comment,
+                name: r.authorName,
+                sub: r.productName,
+                rating: r.rating,
+              })) : [
+                { quote: 'Absolutely love my laptop case! The quilting is so soft and it fits my MacBook perfectly. You can really tell it was made with care.', name: 'Sarah', sub: 'Quilted Laptop Case', rating: 5 },
+                { quote: 'I bought a pouch as a gift for my sister and she was obsessed. The faux fur is SO cute. Already ordering one for myself!', name: 'Jess', sub: 'Faux Fur Pouch', rating: 5 },
+                { quote: 'The attention to detail is incredible for the price. My pencil case gets so many compliments at uni. Supporting small business feels great too.', name: 'Mia', sub: 'Pencil Case', rating: 5 },
+              ]).map((testimonial, index) => (
                 <div
                   key={index}
                   className="p-6 md:p-8 bg-card border border-border/40 text-left space-y-4 relative rounded-xl"
-                                 >
-                  <div className="flex gap-0.5" role="img" aria-label="5 out of 5 stars">
+                >
+                  <div className="flex gap-0.5" role="img" aria-label={`${testimonial.rating} out of 5 stars`}>
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={14} className="fill-accent/70 text-accent/70" />
+                      <Star key={i} size={14} className={i < testimonial.rating ? 'fill-accent/70 text-accent/70' : 'text-border'} />
                     ))}
                   </div>
 
@@ -463,7 +454,7 @@ export default function Home() {
                       {testimonial.name}
                     </p>
                     <p className="text-[11px] text-muted-foreground/60 font-light">
-                      {testimonial.location} · {testimonial.product}
+                      {testimonial.sub}
                     </p>
                   </div>
                 </div>

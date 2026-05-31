@@ -528,6 +528,26 @@ export const appRouter = router({
       }),
   }),
 
+  reviews: router({
+    create: publicProcedure
+      .input(z.object({
+        productId: z.string(),
+        productName: z.string(),
+        authorName: z.string().min(1).max(100),
+        rating: z.number().int().min(1).max(5),
+        comment: z.string().min(10, "Review must be at least 10 characters").max(1000),
+      }))
+      .mutation(async ({ input }) => {
+        await db.createReview(input);
+        return { success: true };
+      }),
+    listByProduct: publicProcedure
+      .input(z.string())
+      .query(({ input }) => db.getProductReviews(input)),
+    listApproved: publicProcedure
+      .query(() => db.getApprovedReviews(6)),
+  }),
+
   newsletter: router({
     subscribe: publicProcedure
       .input(z.object({ email: z.string().email() }))
@@ -642,6 +662,15 @@ export const appRouter = router({
       return { success: true };
     }),
 }),
+    reviews: router({
+      list: adminProcedure.query(() => db.getAllReviews()),
+      approve: adminProcedure
+        .input(z.number())
+        .mutation(({ input }) => db.approveReview(input)),
+      delete: adminProcedure
+        .input(z.number())
+        .mutation(({ input }) => db.deleteReview(input)),
+    }),
     stats: adminProcedure.query(() => db.getAdminStats()),
   }),
 });

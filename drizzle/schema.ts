@@ -110,6 +110,21 @@ export const passwordResetTokens = sqliteTable("password_reset_tokens", {
 
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 
+export const reviews = sqliteTable("reviews", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  productId: text("productId").notNull(),
+  productName: text("productName").notNull(),
+  userId: integer("userId"),
+  authorName: text("authorName").notNull(),
+  rating: integer("rating").notNull(),
+  comment: text("comment").notNull(),
+  approved: integer("approved").default(0).notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
+});
+
+export type Review = typeof reviews.$inferSelect;
+export type InsertReview = typeof reviews.$inferInsert;
+
 export const contactMessages = sqliteTable("contact_messages", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),

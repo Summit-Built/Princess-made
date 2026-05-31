@@ -123,6 +123,18 @@ sqlite.exec(`
     used INTEGER NOT NULL DEFAULT 0,
     createdAt INTEGER NOT NULL DEFAULT (unixepoch())
   );
+
+  CREATE TABLE IF NOT EXISTS reviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    productId TEXT NOT NULL,
+    productName TEXT NOT NULL,
+    userId INTEGER,
+    authorName TEXT NOT NULL,
+    rating INTEGER NOT NULL,
+    comment TEXT NOT NULL,
+    approved INTEGER NOT NULL DEFAULT 0,
+    createdAt INTEGER NOT NULL DEFAULT (unixepoch())
+  );
 `);
 
 // Add guest columns to existing orders table
@@ -575,4 +587,55 @@ export async function getAllNewsletterSubscribers() {
   return db.select().from(schema.newsletterSubscribers)
     .orderBy(desc(schema.newsletterSubscribers.createdAt))
     .all();
+}
+
+// ============ REVIEWS ============
+
+export async function createReview(data: {
+  productId: string;
+  productName: string;
+  userId?: number | null;
+  authorName: string;
+  rating: number;
+  comment: string;
+}) {
+  return db.insert(schema.reviews).values({
+    ...data,
+    userId: data.userId ?? null,
+    approved: 0,
+    createdAt: new Date(),
+  }).returning().get();
+}
+
+export async function getProductReviews(productId: string) {
+  return db.select().from(schema.reviews)
+    .where(and(eq(schema.reviews.productId, productId), eq(schema.reviews.approved, 1)))
+    .orderBy(desc(schema.reviews.createdAt))
+    .all();
+}
+
+export async function getApprovedReviews(limit = 6) {
+  return db.select().from(schema.reviews)
+    .where(eq(schema.reviews.approved, 1))
+    .orderBy(desc(schema.reviews.createdAt))
+    .limit(limit)
+    .all();
+}
+
+export async function getAllReviews() {
+  return db.select().from(schema.reviews)
+    .orderBy(desc(schema.reviews.createdAt))
+    .all();
+}
+
+export async function approveReview(id: number) {
+  return db.update(schema.reviews)
+    .set({ approved: 1 })
+    .where(eq(schema.reviews.id, id))
+    .returning().get() ?? null;
+}
+
+export async function deleteReview(id: number) {
+  db.delete(schema.reviews).where(eq(schema.reviews.id, id)).run();
+  return true;
 }
