@@ -27,7 +27,7 @@ const faqSections = [
       },
       {
         q: 'How do I care for my product?',
-        a: 'Most of our quilted items are machine washable on a gentle cycle with cold water. Faux fur items should be spot-cleaned or hand-washed gently. Always air dry — do not tumble dry. Specific care instructions are included with each product where applicable.',
+        a: 'All of our products, including faux fur items, are machine washable on a gentle cycle with cold water. Always air dry — do not tumble dry. Specific care instructions are included with each product where applicable.',
       },
       {
         q: 'What sizes are your laptop cases?',
