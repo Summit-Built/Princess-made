@@ -145,7 +145,7 @@ export default function Home() {
                   {/* Floating badge */}
                   <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 bg-white/90 backdrop-blur-sm px-4 py-2 border border-accent/20 rounded-lg">
                     <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-light">Best Seller</p>
-                    <p className="text-sm font-serif text-foreground">Handcrafted Pouch</p>
+                    <p className="text-sm font-serif text-foreground">Small Faux Fur Box Pouch</p>
                   </div>
                 </div>
               </div>
