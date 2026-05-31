@@ -141,6 +141,68 @@ sqlite.exec(`
 addColumnIfNotExists("orders", "guestEmail", "TEXT");
 addColumnIfNotExists("orders", "guestName", "TEXT");
 
+// ============ DEPOP REVIEW SEED ============
+// One-time import of Depop seller reviews as pre-approved testimonials.
+// Skips silently if already seeded (guard: productId = 'depop-import').
+(function seedDepopReviews() {
+  const existing = sqlite.prepare(
+    "SELECT COUNT(*) as count FROM reviews WHERE productId = 'depop-import'"
+  ).get() as { count: number };
+  if (existing.count > 0) return;
+
+  const ins = sqlite.prepare(
+    `INSERT INTO reviews (productId, productName, authorName, rating, comment, approved, createdAt)
+     VALUES ('depop-import', ?, ?, 5, ?, 1, ?)`
+  );
+
+  // Dates based on relative timestamps from 2026-05-31
+  const d = (y: number, m: number, day: number) =>
+    Math.floor(new Date(y, m - 1, day).getTime() / 1000);
+
+  const data: [string, string, string, number][] = [
+    // [productName, authorName, comment, unix_timestamp]
+    ['Handmade Pouch',  '@rahnadoplaysfair',          'Such a great product! Thank you so much :)',                                                                                                                                   d(2026, 5, 11)],
+    ['Handmade Pouch',  '@alicemira',                  'so cute !! lovely seller, thank you so much 💓',                                                                                                                              d(2026, 3, 31)],
+    ['Handmade Pouch',  '@peachesncreambaby',           'Made really well. So cute! I love using it thank you 🩷',                                                                                                                     d(2026, 3, 28)],
+    ['Handmade Pouch',  '@ktyxvu0',                    'so cute and such good quality',                                                                                                                                                d(2026, 3, 26)],
+    ['Handmade Pouch',  '@nikkiiee_tr',                'Very high quality product !! ty 🫶🏻',                                                                                                                                       d(2026, 3, 24)],
+    ['Handmade Pouch',  '@milk_lover111',               'So flippin cute',                                                                                                                                                             d(2026, 3, 22)],
+    ['Handmade Pouch',  '@anya188',                    'super cute!!',                                                                                                                                                                 d(2026, 2, 28)],
+    ['Handmade Pouch',  '@charlielovesliamgallagher',   'Such a cute pouch!! So happy with it and the seller is so sweet and helpful! 🩵',                                                                                            d(2026, 2, 26)],
+    ['Handmade Pouch',  '@p6rfection',                 'cutest bag ever !!',                                                                                                                                                           d(2026, 2, 24)],
+    ['Handmade Pouch',  '@morticiaaddams48',            "I can't recommend this seller enough. Super talented and the work is so neat. I'll be buying more ❤️",                                                                       d(2026, 2, 22)],
+    ['Handmade Pouch',  '@obvi_jaylah',                'very fast shipping and easy to talk to',                                                                                                                                       d(2026, 2, 21)],
+    ['Handmade Pouch',  '@tijana07',                   'prompt shipping and soo cute!!',                                                                                                                                               d(2026, 2, 20)],
+    ['Handmade Pouch',  '@gisele_a726',                'Such a good quality pouch, so cute and the fabric is very fluffy!!',                                                                                                           d(2026, 2, 19)],
+    ['Handmade Pouch',  '@fishball194',                'Super fast shipping and exactly as expected ^^ the pouch design is so cute and would definitely buy from this seller again!',                                                  d(2026, 2, 18)],
+    ['Handmade Pouch',  '@werty__',                    'Perfect! Super nice seller. Friendly, quick to respond, and easy to buy from.',                                                                                                d(2026, 2, 17)],
+    ['Handmade Pouch',  '@anastasiarose123',            'Lovely bag making skills and I love the pattern amazing 10/10 would recommend 🦌🎀',                                                                                          d(2026, 2, 16)],
+    ['Custom Order',    '@hafsaswardrobexo',            'The most loveliest and talented seller ever!! The communication was perfect and they listened to everything I wanted for my custom order AND DELIVERRREDD 🤏🤏🤏🤏 the pouch is better than I what I asked for and it\'s so cute, underrated seller BUY FROM THEMMM 💕', d(2026, 2, 15)],
+    ['Custom Pouch',    '@iluvbirbs',                  'My custom made pouch is sooo beautiful and well made! So friendly and fast communication! ❤️',                                                                                 d(2026, 2, 14)],
+    ['Handmade Pouch',  '@princeoflesh',               'extremely happy with the quality and excellent customer service. will buy from again. x',                                                                                      d(2026, 2, 13)],
+    ['Handmade Pouch',  '@astinad',                    'super sweet seller!! the fabric is so soft and it looks amazing! thank you!! 🤍🤍',                                                                                           d(2026, 2, 12)],
+    ['Handmade Pouch',  '@aver1e',                     'Absolute amazing seller!!! The sweetest person ever please go buy from her!!!! So excited to order more 🥹❤️‍🩹',                                                             d(2026, 1, 31)],
+    ['Handmade Pouch',  '@ri0t4cirrus',                'Absolutely gorgeous can\'t wait to use 💜🙈',                                                                                                                                 d(2026, 1, 30)],
+    ['Handmade Pouch',  '@wastedyouthnlove19',          'My pouches looks really good and so soft!!!',                                                                                                                                 d(2026, 1, 29)],
+    ['Handmade Pouch',  '@arn1eee',                    'Fast shipping, Amazing craftsmanship. Lovely seller 🩷',                                                                                                                      d(2026, 1, 28)],
+    ['Handmade Pouch',  '@fwanette',                   'Made so well and it\'s so soft and lovely <3',                                                                                                                                d(2026, 1, 27)],
+    ['Handmade Pouch',  '@mollyylovve',                'thank you! :)',                                                                                                                                                                d(2026, 1, 26)],
+    ['Laptop Case',     '@alextavs',                   'She is so quick to respond and shipped out the next morning!! The quality is amazing I loveeeeeeee my laptop case so much the deer print is so so so cute',                   d(2026, 1, 25)],
+    ['Custom Order',    '@20bin03',                    'Great seller and so lovely in helping me create a custom order! I absolutely adore it ❤️❤️',                                                                                  d(2026, 1, 24)],
+    ['Handmade Pouch',  '@shopkenziie',                'Beautifully made bags and arrived very quickly!! Thank you!',                                                                                                                  d(2026, 1, 23)],
+    ['Handmade Pouch',  '@wormarms',                   'item exactly as pictured and fabric is SO SOFT! seller super friendly and helpful :)))',                                                                                       d(2026, 1, 22)],
+  ];
+
+  const insertAll = sqlite.transaction(() => {
+    for (const [productName, authorName, comment, ts] of data) {
+      ins.run(productName, authorName, comment, ts);
+    }
+  });
+
+  insertAll();
+  console.log(`[DB] Seeded ${data.length} Depop reviews`);
+})();
+
 // ============ USERS ============
 
 export async function getUserById(id: number) {
