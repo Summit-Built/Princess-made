@@ -40,6 +40,7 @@ export function normaliseState(s: string): string {
 export interface ShipTo {
   name: string;
   email?: string | null;
+  phone?: string | null;
   line1: string;
   suburb: string;
   state: string;
@@ -70,12 +71,14 @@ export async function createOrder(
   const orderPayload: Record<string, unknown> = {
     retailer_invoice: `PM-${orderId}`,
     receiver_name: to.name,
+    // AusPost (MyPost Business) requires a contact number — use placeholder if unknown
+    receiver_contact_number: to.phone ?? "0400000000",
     delivery_address: to.line1,
     delivery_suburb: to.suburb,
     delivery_postcode: to.postcode,
     delivery_state: normaliseState(to.state),
-    delivery_country: "AU",
-    courier_type: serviceType,
+    // Let Shippit auto-select the carrier (picks the connected MyPost Business one)
+    courier_type: "standard",
     parcel_attributes: [
       {
         qty: 1,
