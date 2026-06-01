@@ -531,6 +531,36 @@ function OrdersTab({
     return filtered;
   }, [orders, statusFilter, searchQuery]);
 
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<number>>(new Set());
+  const [bulkWeight, setBulkWeight] = useState(1);
+
+  const toggleSelect = (id: number) =>
+    setSelectedOrderIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const allSelected = filteredOrders.length > 0 && filteredOrders.every((o: any) => selectedOrderIds.has(o.id));
+  const toggleSelectAll = () =>
+    setSelectedOrderIds(allSelected ? new Set() : new Set(filteredOrders.map((o: any) => o.id)));
+
+  const downloadBulkCSV = () => {
+    const rows = filteredOrders.filter((o: any) => selectedOrderIds.has(o.id) && o.shippingAddress);
+    if (!rows.length) { toast.error('None of the selected orders have a stored shipping address'); return; }
+    const weight = WEIGHT_PRESETS[bulkWeight].weight;
+    const headers = ['Sender Reference','Recipient Name','Address Line 1','Suburb','State','Postcode','Country','Weight (kg)','Length (cm)','Width (cm)','Height (cm)'];
+    const lines = rows.map((o: any) => {
+      const a = o.shippingAddress;
+      const name = o.guestName || o.user?.name || 'Customer';
+      return [`PM-${o.id}`, name, a.street, a.city, a.state, a.postalCode, 'AU', weight, 30, 20, 5].map(v => `"${v}"`).join(',');
+    });
+    const csv = [headers.join(','), ...lines].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `princess-made-orders-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded CSV for ${rows.length} order${rows.length !== 1 ? 's' : ''}`);
+  };
+
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
       <h2 className="text-2xl font-serif font-light">All Orders</h2>
@@ -568,6 +598,49 @@ function OrdersTab({
         </div>
       ) : filteredOrders.length > 0 ? (
         <>
+          {/* Bulk action bar */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-muted-foreground font-light">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleSelectAll}
+                  className="w-3.5 h-3.5 accent-pink-400 cursor-pointer"
+                />
+                {allSelected ? 'Deselect all' : 'Select all'}
+              </label>
+              {selectedOrderIds.size > 0 && (
+                <span className="text-xs text-muted-foreground/50 font-light">
+                  {selectedOrderIds.size} selected
+                </span>
+              )}
+            </div>
+            {selectedOrderIds.size > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <select
+                  value={bulkWeight}
+                  onChange={(e) => setBulkWeight(Number(e.target.value))}
+                  className="input-elegant text-xs py-1.5"
+                  style={{ borderRadius: '2px' }}
+                >
+                  {WEIGHT_PRESETS.map((opt, i) => (
+                    <option key={i} value={i}>{opt.label}</option>
+                  ))}
+                </select>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={downloadBulkCSV}
+                  className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5"
+                >
+                  <Download size={12} />
+                  Download CSV ({selectedOrderIds.size})
+                </motion.button>
+              </div>
+            )}
+          </div>
+
           <p className="text-xs text-muted-foreground/40 font-light">
             Showing {filteredOrders.length} of {orders?.length || 0} orders
           </p>
@@ -578,6 +651,8 @@ function OrdersTab({
                 order={order}
                 isExpanded={expandedOrder === order.id}
                 onToggle={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+                isSelected={selectedOrderIds.has(order.id)}
+                onToggleSelect={() => toggleSelect(order.id)}
               />
             ))}
           </div>
@@ -600,10 +675,14 @@ function AdminOrderCard({
   order,
   isExpanded,
   onToggle,
+  isSelected,
+  onToggleSelect,
 }: {
   order: any;
   isExpanded: boolean;
   onToggle: () => void;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
 }) {
   const utils = trpc.useUtils();
 
@@ -677,10 +756,22 @@ function AdminOrderCard({
       className="border border-border/30 hover:border-accent/20 transition-colors overflow-hidden bg-white/50"
       style={{ borderRadius: '2px' }}
     >
-      <button
-        onClick={onToggle}
-        className="w-full p-5 flex items-start justify-between text-left"
-      >
+      <div className="flex items-stretch">
+        {onToggleSelect && (
+          <div className="flex items-center pl-4 pr-1">
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={onToggleSelect}
+              onClick={(e) => e.stopPropagation()}
+              className="w-3.5 h-3.5 accent-pink-400 cursor-pointer"
+            />
+          </div>
+        )}
+        <button
+          onClick={onToggle}
+          className="flex-1 p-5 flex items-start justify-between text-left"
+        >
         <div className="space-y-1.5 flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-serif font-light text-sm">Order #{order.id}</p>
@@ -720,7 +811,8 @@ function AdminOrderCard({
             className={`text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
           />
         </div>
-      </button>
+        </button>
+      </div>
 
       <AnimatePresence>
         {isExpanded && (
