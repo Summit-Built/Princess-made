@@ -125,12 +125,17 @@ function buildMyPostRow(order: any, weight: number): string[] {
 }
 
 function downloadMyPostCSV(orders: any[], weight: number, filename: string) {
-  const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  // Only quote values that contain commas, quotes, or newlines — never quote headers
+  const escapeValue = (v: string) =>
+    v.includes(',') || v.includes('"') || v.includes('\n')
+      ? `"${v.replace(/"/g, '""')}"`
+      : v;
   const lines = [
-    MYPOST_HEADERS.map(escape).join(','),
-    ...orders.map(o => buildMyPostRow(o, weight).map(escape).join(',')),
+    MYPOST_HEADERS.join(','),   // headers exactly as-is, no quoting
+    ...orders.map(o => buildMyPostRow(o, weight).map(escapeValue).join(',')),
   ];
-  const blob = new Blob([lines.join('\r\n')], { type: 'text/csv' });
+  // UTF-8 BOM (﻿) is required for Windows/Excel to read the encoding correctly
+  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
