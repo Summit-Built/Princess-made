@@ -67,25 +67,30 @@ export async function createOrder(
     );
   }
 
-  const body = {
-    order: {
-      retailer_invoice: `PM-${orderId}`,
-      receiver_name: to.name,
-      email_address: to.email ?? "",
-      delivery_address: to.line1,
-      delivery_suburb: to.suburb,
-      delivery_postcode: to.postcode,
-      delivery_state: normaliseState(to.state),
-      delivery_country: "AU",
-      courier_type: serviceType,
-      parcel_attributes: [
-        {
-          qty: 1,
-          weight,
-        },
-      ],
-    },
+  const orderPayload: Record<string, unknown> = {
+    retailer_invoice: `PM-${orderId}`,
+    receiver_name: to.name,
+    delivery_address: to.line1,
+    delivery_suburb: to.suburb,
+    delivery_postcode: to.postcode,
+    delivery_state: normaliseState(to.state),
+    delivery_country: "AU",
+    courier_type: serviceType,
+    parcel_attributes: [
+      {
+        qty: 1,
+        weight,
+        length: 30,
+        width: 20,
+        height: 5,
+      },
+    ],
   };
+
+  // Only include email if we actually have one — Shippit rejects empty strings
+  if (to.email) orderPayload.email_address = to.email;
+
+  const body = { order: orderPayload };
 
   console.log("[Shippit] Creating order:", JSON.stringify(body));
 
