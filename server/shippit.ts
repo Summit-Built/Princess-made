@@ -78,17 +78,16 @@ export async function createOrder(
       delivery_state: normaliseState(to.state),
       delivery_country: "AU",
       courier_type: serviceType,
-      products: [
+      parcel_attributes: [
         {
           qty: 1,
-          price: 0,
-          sku: `PM-${orderId}`,
-          title: "Handmade Item",
           weight,
         },
       ],
     },
   };
+
+  console.log("[Shippit] Creating order:", JSON.stringify(body));
 
   const res = await fetch(`${BASE}/orders`, {
     method: "POST",
@@ -97,9 +96,11 @@ export async function createOrder(
   });
 
   const data = (await res.json()) as any;
+  console.log("[Shippit] Response:", JSON.stringify(data).slice(0, 500));
 
   if (!res.ok) {
     const msg =
+      data?.error?.message ??
       data?.messages?.[0] ??
       data?.error ??
       JSON.stringify(data).slice(0, 300);
