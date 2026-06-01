@@ -1,10 +1,18 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+
+function ScrollToTop() {
+  const [location] = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+  return null;
+}
 
 // Lazy-loaded pages for code splitting
 const Shop = lazy(() => import("./pages/Shop"));
@@ -29,6 +37,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 function Router() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><p className="font-script text-2xl text-accent animate-pulse">princess-made</p></div>}>
+      <ScrollToTop />
       <Switch>
         <Route path={"/"} component={Home} />
         <Route path={"/shop"} component={Shop} />
