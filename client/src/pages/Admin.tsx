@@ -875,7 +875,48 @@ function AdminOrderCard({
                 </div>
               </div>
 
-              {/* ── AusPost Shipping Label ── */}
+              {/* ── MyPost Business CSV ── */}
+              {order.shippingAddress && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Download size={12} className="text-muted-foreground/50" />
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50 font-light">
+                      MyPost Business
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        const addr = order.shippingAddress;
+                        const name = order.guestName || order.user?.name || 'Customer';
+                        const ref = `PM-${order.id}`;
+                        const weight = WEIGHT_PRESETS[selectedWeight].weight;
+                        const headers = ['Sender Reference','Recipient Name','Address Line 1','Suburb','State','Postcode','Country','Weight (kg)','Length (cm)','Width (cm)','Height (cm)'];
+                        const row = [ref, name, addr.street, addr.city, addr.state, addr.postalCode, 'AU', weight, 30, 20, 5];
+                        const csv = [headers.join(','), row.map(v => `"${v}"`).join(',')].join('\n');
+                        const blob = new Blob([csv], { type: 'text/csv' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${ref}-mypost.csv`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="btn-primary text-xs px-4 py-2.5 flex items-center gap-1.5"
+                    >
+                      <Download size={12} />
+                      Download CSV for MyPost Business
+                    </motion.button>
+                    <p className="text-[11px] text-muted-foreground/50 font-light">
+                      Import at auspost.com.au/mypost-business → Create Shipments
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Shippit Label ── */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Printer size={12} className="text-muted-foreground/50" />
