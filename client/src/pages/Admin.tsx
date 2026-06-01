@@ -35,13 +35,109 @@ import {
   Download,
 } from 'lucide-react';
 
+import { Spinner } from '@/components/ui/spinner';
+
 const WEIGHT_PRESETS = [
   { label: 'Light (≤200g)', weight: 0.2 },
   { label: 'Small (≤500g)', weight: 0.5 },
   { label: 'Medium (≤1kg)', weight: 1.0 },
   { label: 'Large (≤2kg)', weight: 2.0 },
 ] as const;
-import { Spinner } from '@/components/ui/spinner';
+
+// Exact MyPost Business import template column headers
+const MYPOST_HEADERS = [
+  'Additional Label Information 1',
+  'Send Tracking Notifications',
+  'Send From Name',
+  'Send From Business Name',
+  'Send From Address Line 1',
+  'Send From Address Line 2',
+  'Send From Address Line 3',
+  'Send From Suburb',
+  'Send From State',
+  'Send From Postcode',
+  'Send From Phone Number',
+  'Send From Email Address',
+  'Deliver To Name',
+  'Deliver To MyPost Number',
+  'Deliver To Business Name',
+  'Deliver To Type Of Address',
+  'Deliver To Address Line 1',
+  'Deliver To Address Line 2',
+  'Deliver To Address Line 3',
+  'Deliver To Suburb',
+  'Deliver To State',
+  'Deliver To Postcode',
+  'Deliver To Phone Number',
+  'Deliver To Email Address',
+  'Item Packaging Type',
+  'Item Delivery Service',
+  'Item Description',
+  'Item Length',
+  'Item Width',
+  'Item Height',
+  'Item Weight',
+  'Item Dangerous Goods Flag',
+  'Signature On Delivery',
+  'Extra Cover Amount',
+];
+
+function buildMyPostRow(order: any, weight: number): string[] {
+  const addr = order.shippingAddress;
+  const name = order.guestName || order.user?.name || 'Customer';
+  const email = order.guestEmail || order.user?.email || '';
+  return [
+    `PM-${order.id}`,   // Additional Label Information 1 (your reference)
+    'Y',                 // Send Tracking Notifications
+    '',                  // Send From Name        — uses MyPost Business account default
+    '',                  // Send From Business Name
+    '',                  // Send From Address Line 1
+    '',                  // Send From Address Line 2
+    '',                  // Send From Address Line 3
+    '',                  // Send From Suburb
+    '',                  // Send From State
+    '',                  // Send From Postcode
+    '',                  // Send From Phone Number
+    '',                  // Send From Email Address
+    name,                // Deliver To Name
+    '',                  // Deliver To MyPost Number
+    '',                  // Deliver To Business Name
+    'Residential',       // Deliver To Type Of Address
+    addr?.street ?? '',  // Deliver To Address Line 1
+    '',                  // Deliver To Address Line 2
+    '',                  // Deliver To Address Line 3
+    addr?.city ?? '',    // Deliver To Suburb
+    addr?.state ?? '',   // Deliver To State
+    addr?.postalCode ?? '', // Deliver To Postcode
+    '',                  // Deliver To Phone Number
+    email,               // Deliver To Email Address
+    '',                  // Item Packaging Type   — leave blank for account default
+    'Standard',          // Item Delivery Service
+    'Handmade Item',     // Item Description
+    '30',                // Item Length (cm)
+    '20',                // Item Width (cm)
+    '5',                 // Item Height (cm)
+    String(weight),      // Item Weight (kg)
+    'N',                 // Item Dangerous Goods Flag
+    'N',                 // Signature On Delivery
+    '',                  // Extra Cover Amount
+  ];
+}
+
+function downloadMyPostCSV(orders: any[], weight: number, filename: string) {
+  const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  const lines = [
+    MYPOST_HEADERS.map(escape).join(','),
+    ...orders.map(o => buildMyPostRow(o, weight).map(escape).join(',')),
+  ];
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 type TabType = 'dashboard' | 'orders' | 'users' | 'newsletter' | 'products' | 'reviews';
 
@@ -543,21 +639,7 @@ function OrdersTab({
   const downloadBulkCSV = () => {
     const rows = filteredOrders.filter((o: any) => selectedOrderIds.has(o.id) && o.shippingAddress);
     if (!rows.length) { toast.error('None of the selected orders have a stored shipping address'); return; }
-    const weight = WEIGHT_PRESETS[bulkWeight].weight;
-    const headers = ['Sender Reference','Recipient Name','Address Line 1','Suburb','State','Postcode','Country','Weight (kg)','Length (cm)','Width (cm)','Height (cm)'];
-    const lines = rows.map((o: any) => {
-      const a = o.shippingAddress;
-      const name = o.guestName || o.user?.name || 'Customer';
-      return [`PM-${o.id}`, name, a.street, a.city, a.state, a.postalCode, 'AU', weight, 30, 20, 5].map(v => `"${v}"`).join(',');
-    });
-    const csv = [headers.join(','), ...lines].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `princess-made-orders-${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadMyPostCSV(rows, WEIGHT_PRESETS[bulkWeight].weight, `princess-made-orders-${new Date().toISOString().slice(0,10)}.csv`);
     toast.success(`Downloaded CSV for ${rows.length} order${rows.length !== 1 ? 's' : ''}`);
   };
 
@@ -954,20 +1036,7 @@ function AdminOrderCard({
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
-                        const addr = order.shippingAddress;
-                        const name = order.guestName || order.user?.name || 'Customer';
-                        const ref = `PM-${order.id}`;
-                        const weight = WEIGHT_PRESETS[selectedWeight].weight;
-                        const headers = ['Sender Reference','Recipient Name','Address Line 1','Suburb','State','Postcode','Country','Weight (kg)','Length (cm)','Width (cm)','Height (cm)'];
-                        const row = [ref, name, addr.street, addr.city, addr.state, addr.postalCode, 'AU', weight, 30, 20, 5];
-                        const csv = [headers.join(','), row.map(v => `"${v}"`).join(',')].join('\n');
-                        const blob = new Blob([csv], { type: 'text/csv' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `${ref}-mypost.csv`;
-                        a.click();
-                        URL.revokeObjectURL(url);
+                        downloadMyPostCSV([order], WEIGHT_PRESETS[selectedWeight].weight, `PM-${order.id}-mypost.csv`);
                       }}
                       className="btn-primary text-xs px-4 py-2.5 flex items-center gap-1.5"
                     >
