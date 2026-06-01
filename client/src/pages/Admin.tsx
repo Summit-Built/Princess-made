@@ -130,7 +130,7 @@ function downloadMyPostCSV(orders: any[], weight: number, filename: string) {
     MYPOST_HEADERS.map(escape).join(','),
     ...orders.map(o => buildMyPostRow(o, weight).map(escape).join(',')),
   ];
-  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const blob = new Blob([lines.join('\r\n')], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
