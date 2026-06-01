@@ -36,11 +36,11 @@ import {
   Download,
 } from 'lucide-react';
 
-const SATCHEL_OPTIONS = [
-  { label: 'Small Satchel (≤500g)', productId: '7E05', weight: 0.5 },
-  { label: 'Medium Satchel (≤1kg)', productId: '7E10', weight: 1.0 },
-  { label: 'Large Satchel (≤2kg)', productId: '7E25', weight: 2.0 },
-  { label: 'Extra Large Satchel (≤3kg)', productId: '7E35', weight: 3.0 },
+const WEIGHT_PRESETS = [
+  { label: 'Light (≤200g)', weight: 0.2 },
+  { label: 'Small (≤500g)', weight: 0.5 },
+  { label: 'Medium (≤1kg)', weight: 1.0 },
+  { label: 'Large (≤2kg)', weight: 2.0 },
 ] as const;
 import { Spinner } from '@/components/ui/spinner';
 
@@ -644,21 +644,22 @@ function AdminOrderCard({
     onError: (err) => toast.error(`Failed to send email: ${err.message}`),
   });
 
-  // ── AusPost label ──
-  const [selectedSatchel, setSelectedSatchel] = useState(0); // index into SATCHEL_OPTIONS
+  // ── Shippit label ──
+  const [selectedWeight, setSelectedWeight] = useState(1); // index into WEIGHT_PRESETS
+  const [serviceType, setServiceType] = useState<'standard' | 'express'>('standard');
   const [labelPdf, setLabelPdf] = useState<string | null>(null);
 
-  const createLabel = trpc.admin.auspost.createLabel.useMutation({
+  const createLabel = trpc.admin.shippit.createLabel.useMutation({
     onSuccess: (data) => {
       setLabelPdf(data.labelPdf);
       utils.admin.orders.list.invalidate();
       if (data.trackingNumber) toast.success(`Label created — tracking: ${data.trackingNumber}`);
-      else toast.success('Label created');
+      else toast.success('Label created — click to download');
     },
     onError: (err) => toast.error(`Label error: ${err.message}`),
   });
 
-  const redownloadLabel = trpc.admin.auspost.getLabel.useMutation({
+  const redownloadLabel = trpc.admin.shippit.getLabel.useMutation({
     onSuccess: (data) => setLabelPdf(data.labelPdf),
     onError: (err) => toast.error(`Download error: ${err.message}`),
   });
@@ -921,33 +922,46 @@ function AdminOrderCard({
                   /* No label yet — show creation form */
                   <div className="space-y-3 p-4 bg-cream/30 border border-border/20" style={{ borderRadius: '2px' }}>
                     <p className="text-xs text-muted-foreground/60 font-light">
-                      Select the satchel size for this order, then create a label.
+                      Select the package weight and service, then create a label via Shippit.
                     </p>
                     <div className="flex items-end gap-3 flex-wrap">
-                      <div className="flex-1 min-w-[200px]">
+                      <div>
                         <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40 font-light">
-                          Satchel Size
+                          Weight
                         </label>
                         <select
-                          value={selectedSatchel}
-                          onChange={(e) => setSelectedSatchel(Number(e.target.value))}
+                          value={selectedWeight}
+                          onChange={(e) => setSelectedWeight(Number(e.target.value))}
                           className="input-elegant mt-1 w-full text-sm"
                           style={{ borderRadius: '2px' }}
                         >
-                          {SATCHEL_OPTIONS.map((opt, i) => (
-                            <option key={opt.productId} value={i}>{opt.label}</option>
+                          {WEIGHT_PRESETS.map((opt, i) => (
+                            <option key={i} value={i}>{opt.label}</option>
                           ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40 font-light">
+                          Service
+                        </label>
+                        <select
+                          value={serviceType}
+                          onChange={(e) => setServiceType(e.target.value as 'standard' | 'express')}
+                          className="input-elegant mt-1 w-full text-sm"
+                          style={{ borderRadius: '2px' }}
+                        >
+                          <option value="standard">Standard</option>
+                          <option value="express">Express</option>
                         </select>
                       </div>
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => {
-                          const opt = SATCHEL_OPTIONS[selectedSatchel];
                           createLabel.mutate({
                             orderId: order.id,
-                            productId: opt.productId,
-                            weight: opt.weight,
+                            weight: WEIGHT_PRESETS[selectedWeight].weight,
+                            serviceType,
                           });
                         }}
                         disabled={createLabel.isPending}
