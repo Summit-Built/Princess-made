@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import * as XLSX from 'xlsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { PageTransition } from '@/components/PageTransition';
@@ -124,17 +125,13 @@ function buildMyPostRow(order: any, weight: number): string[] {
   ];
 }
 
-function downloadMyPostCSV(orders: any[], weight: number, filename: string) {
-  // Only quote values that contain commas, quotes, or newlines — never quote headers
-  const escapeValue = (v: string) =>
-    v.includes(',') || v.includes('"') || v.includes('\n')
-      ? `"${v.replace(/"/g, '""')}"`
-      : v;
-  const lines = [
-    MYPOST_HEADERS.join(','),   // headers exactly as-is, no quoting
-    ...orders.map(o => buildMyPostRow(o, weight).map(escapeValue).join(',')),
-  ];
-  const blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+function downloadMyPostXLSX(orders: any[], weight: number, filename: string) {
+  const rows = [MYPOST_HEADERS, ...orders.map(o => buildMyPostRow(o, weight))];
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'order_import'); // sheet name matches the template
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -643,7 +640,7 @@ function OrdersTab({
   const downloadBulkCSV = () => {
     const rows = filteredOrders.filter((o: any) => selectedOrderIds.has(o.id) && o.shippingAddress);
     if (!rows.length) { toast.error('None of the selected orders have a stored shipping address'); return; }
-    downloadMyPostCSV(rows, WEIGHT_PRESETS[bulkWeight].weight, `princess-made-orders-${new Date().toISOString().slice(0,10)}.csv`);
+    downloadMyPostXLSX(rows, WEIGHT_PRESETS[bulkWeight].weight, `princess-made-orders-${new Date().toISOString().slice(0,10)}.xlsx`);
     toast.success(`Downloaded CSV for ${rows.length} order${rows.length !== 1 ? 's' : ''}`);
   };
 
@@ -1040,7 +1037,7 @@ function AdminOrderCard({
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
-                        downloadMyPostCSV([order], WEIGHT_PRESETS[selectedWeight].weight, `PM-${order.id}-mypost.csv`);
+                        downloadMyPostXLSX([order], WEIGHT_PRESETS[selectedWeight].weight, `PM-${order.id}-mypost.xlsx`);
                       }}
                       className="btn-primary text-xs px-4 py-2.5 flex items-center gap-1.5"
                     >
