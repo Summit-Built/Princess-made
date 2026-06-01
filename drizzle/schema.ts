@@ -61,6 +61,8 @@ export const orders = sqliteTable("orders", {
   trackingNumber: text("trackingNumber"),
   shippingStatus: text("shippingStatus", { enum: ["processing", "shipped", "in_transit", "delivered"] }),
   shippingAddressId: integer("shippingAddressId"),
+  auspostShipmentId: text("auspostShipmentId"),
+  auspostShipmentItemId: text("auspostShipmentItemId"),
   createdAt: integer("createdAt", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
   updatedAt: integer("updatedAt", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
 });

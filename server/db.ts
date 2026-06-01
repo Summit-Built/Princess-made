@@ -140,6 +140,9 @@ sqlite.exec(`
 // Add guest columns to existing orders table
 addColumnIfNotExists("orders", "guestEmail", "TEXT");
 addColumnIfNotExists("orders", "guestName", "TEXT");
+// Add AusPost shipment columns
+addColumnIfNotExists("orders", "auspostShipmentId", "TEXT");
+addColumnIfNotExists("orders", "auspostShipmentItemId", "TEXT");
 
 // ============ DEPOP REVIEW SEED ============
 // One-time import of Depop seller reviews as pre-approved testimonials.
@@ -700,4 +703,23 @@ export async function approveReview(id: number) {
 export async function deleteReview(id: number) {
   db.delete(schema.reviews).where(eq(schema.reviews.id, id)).run();
   return true;
+}
+
+// ============ AUSPOST ============
+
+export async function setOrderLabelInfo(
+  orderId: number,
+  shipmentId: string,
+  shipmentItemId: string,
+  trackingNumber: string | null
+) {
+  db.update(schema.orders)
+    .set({
+      auspostShipmentId: shipmentId,
+      auspostShipmentItemId: shipmentItemId,
+      ...(trackingNumber ? { trackingNumber, shippingStatus: "shipped" as const } : {}),
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.orders.id, orderId))
+    .run();
 }

@@ -8,6 +8,7 @@ import { z } from "zod";
 import * as db from "./db";
 import * as stripe from "./stripe";
 import * as email from "./email";
+import * as auspost from "./auspost";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
 
@@ -670,6 +671,102 @@ export const appRouter = router({
       delete: adminProcedure
         .input(z.number())
         .mutation(({ input }) => db.deleteReview(input)),
+    }),
+    auspost: router({
+      /** Returns true if the AusPost env vars are configured */
+      isConfigured: adminProcedure.query(() => auspost.isConfigured()),
+
+      /** Create a shipment + return the label PDF (base64) */
+      createLabel: adminProcedure
+        .input(z.object({
+          orderId: z.number(),
+          productId: z.string(), // AusPost satchel product code
+          weight: z.number().min(0.05).max(22),
+        }))
+        .mutation(async ({ input }) => {
+          const order = await db.getOrderById(input.orderId);
+          if (!order) throw new TRPCError({ code: "NOT_FOUND", message: "Order not found" });
+
+          // Resolve shipping address — try our DB first, then fall back to Stripe
+          let to: auspost.ShipTo | null = null;
+
+          if (order.shippingAddressId) {
+            const addr = await db.getAddressById(order.shippingAddressId);
+            if (addr) {
+              to = {
+                name: order.guestName ?? "Customer",
+                line1: addr.street,
+                suburb: addr.city,
+                state: addr.state,
+                postcode: addr.postalCode,
+              };
+            }
+          }
+
+          // Fallback: pull shipping_details from Stripe checkout session
+          if (!to && order.stripeSessionId) {
+            try {
+              const Stripe = await import("stripe").then(m => m.default);
+              const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!);
+              const session = await stripeClient.checkout.sessions.retrieve(
+                order.stripeSessionId,
+                { expand: ["shipping_details", "customer_details"] }
+              );
+              const addr = session.shipping_details?.address;
+              const name =
+                session.shipping_details?.name ??
+                session.customer_details?.name ??
+                order.guestName ??
+                "Customer";
+              if (addr?.line1 && addr.city && addr.state && addr.postal_code) {
+                to = {
+                  name,
+                  line1: addr.line1,
+                  suburb: addr.city,
+                  state: addr.state,
+                  postcode: addr.postal_code,
+                };
+              }
+            } catch {
+              // ignore — handled below
+            }
+          }
+
+          if (!to) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "No shipping address found for this order. The customer may not have entered one during checkout.",
+            });
+          }
+
+          const { shipmentId, shipmentItemId, trackingNumber } =
+            await auspost.createShipment(input.orderId, to, input.productId, input.weight);
+
+          const labelPdf = await auspost.getLabelPdf(shipmentId, shipmentItemId);
+
+          await db.setOrderLabelInfo(input.orderId, shipmentId, shipmentItemId, trackingNumber);
+
+          return { labelPdf, trackingNumber };
+        }),
+
+      /** Re-download label PDF for an order that already has a shipment */
+      getLabel: adminProcedure
+        .input(z.number())
+        .mutation(async ({ input: orderId }) => {
+          const order = await db.getOrderById(orderId);
+          if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+          if (!order.auspostShipmentId || !order.auspostShipmentItemId) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "No label has been created for this order yet.",
+            });
+          }
+          const labelPdf = await auspost.getLabelPdf(
+            order.auspostShipmentId,
+            order.auspostShipmentItemId
+          );
+          return { labelPdf };
+        }),
     }),
     stats: adminProcedure.query(() => db.getAdminStats()),
   }),
