@@ -32,7 +32,6 @@ import {
   Trash2,
   CheckCircle,
   MessageSquare,
-  Printer,
   Download,
 } from 'lucide-react';
 
@@ -644,33 +643,7 @@ function AdminOrderCard({
     onError: (err) => toast.error(`Failed to send email: ${err.message}`),
   });
 
-  // ── Shippit label ──
   const [selectedWeight, setSelectedWeight] = useState(1); // index into WEIGHT_PRESETS
-  const [serviceType, setServiceType] = useState<'standard' | 'express'>('standard');
-  const [labelPdf, setLabelPdf] = useState<string | null>(null);
-
-  const createLabel = trpc.admin.shippit.createLabel.useMutation({
-    onSuccess: (data) => {
-      setLabelPdf(data.labelPdf);
-      utils.admin.orders.list.invalidate();
-      if (data.trackingNumber) toast.success(`Label created — tracking: ${data.trackingNumber}`);
-      else toast.success('Label created — click to download');
-    },
-    onError: (err) => toast.error(`Label error: ${err.message}`),
-  });
-
-  const redownloadLabel = trpc.admin.shippit.getLabel.useMutation({
-    onSuccess: (data) => setLabelPdf(data.labelPdf),
-    onError: (err) => toast.error(`Download error: ${err.message}`),
-  });
-
-  function openLabel(base64: string) {
-    const blob = new Blob(
-      [Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))],
-      { type: 'application/pdf' }
-    );
-    window.open(URL.createObjectURL(blob), '_blank');
-  }
 
   const handleSaveStatus = () => {
     updateStatus.mutate({ orderId: order.id, status: editStatus });
@@ -915,118 +888,6 @@ function AdminOrderCard({
                   </div>
                 </div>
               )}
-
-              {/* ── Shippit Label ── */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Printer size={12} className="text-muted-foreground/50" />
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50 font-light">
-                    Shipping Label
-                  </p>
-                  {order.auspostShipmentId && (
-                    <span className="text-[9px] px-2 py-0.5 bg-green-100 text-green-700 font-light tracking-wider uppercase" style={{ borderRadius: '2px' }}>
-                      Created
-                    </span>
-                  )}
-                </div>
-
-                {order.auspostShipmentId ? (
-                  /* Label already exists — offer re-download */
-                  <div className="flex items-center gap-3 flex-wrap">
-                    {labelPdf ? (
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => openLabel(labelPdf)}
-                        className="btn-primary text-xs px-4 py-2.5 flex items-center gap-1.5"
-                      >
-                        <Download size={12} />
-                        Print / Download Label
-                      </motion.button>
-                    ) : (
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => redownloadLabel.mutate(order.id)}
-                        disabled={redownloadLabel.isPending}
-                        className="btn-primary text-xs px-4 py-2.5 flex items-center gap-1.5 disabled:opacity-40"
-                      >
-                        {redownloadLabel.isPending ? <Spinner size={12} /> : <Download size={12} />}
-                        Download Label PDF
-                      </motion.button>
-                    )}
-                    <p className="text-[11px] text-muted-foreground/50 font-light">
-                      Shipment ID: {order.auspostShipmentId}
-                    </p>
-                  </div>
-                ) : (
-                  /* No label yet — show creation form */
-                  <div className="space-y-3 p-4 bg-cream/30 border border-border/20" style={{ borderRadius: '2px' }}>
-                    <p className="text-xs text-muted-foreground/60 font-light">
-                      Select the package weight and service, then create a label via Shippit.
-                    </p>
-                    <div className="flex items-end gap-3 flex-wrap">
-                      <div>
-                        <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40 font-light">
-                          Weight
-                        </label>
-                        <select
-                          value={selectedWeight}
-                          onChange={(e) => setSelectedWeight(Number(e.target.value))}
-                          className="input-elegant mt-1 w-full text-sm"
-                          style={{ borderRadius: '2px' }}
-                        >
-                          {WEIGHT_PRESETS.map((opt, i) => (
-                            <option key={i} value={i}>{opt.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40 font-light">
-                          Service
-                        </label>
-                        <select
-                          value={serviceType}
-                          onChange={(e) => setServiceType(e.target.value as 'standard' | 'express')}
-                          className="input-elegant mt-1 w-full text-sm"
-                          style={{ borderRadius: '2px' }}
-                        >
-                          <option value="standard">Standard</option>
-                          <option value="express">Express</option>
-                        </select>
-                      </div>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          createLabel.mutate({
-                            orderId: order.id,
-                            weight: WEIGHT_PRESETS[selectedWeight].weight,
-                            serviceType,
-                          });
-                        }}
-                        disabled={createLabel.isPending}
-                        className="btn-primary text-xs px-4 py-2.5 flex items-center gap-1.5 disabled:opacity-40"
-                      >
-                        {createLabel.isPending ? <Spinner size={12} /> : <Printer size={12} />}
-                        {createLabel.isPending ? 'Creating…' : 'Create Label'}
-                      </motion.button>
-                    </div>
-                    {labelPdf && (
-                      <motion.button
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        whileHover={{ scale: 1.02 }}
-                        onClick={() => openLabel(labelPdf)}
-                        className="flex items-center gap-2 text-xs text-accent hover:text-accent/80 font-light"
-                      >
-                        <Download size={12} />
-                        Label ready — click to print
-                      </motion.button>
-                    )}
-                  </div>
-                )}
-              </div>
 
               {/* Shipping Address */}
               {order.shippingAddress && (
