@@ -83,50 +83,50 @@ const MYPOST_HEADERS = [
   'Extra Cover Amount',
 ];
 
-function buildMyPostRow(order: any, weight: number): string[] {
+function buildMyPostRow(order: any, weight: number, serviceType: 'PP' | 'EXP' = 'PP'): string[] {
   const addr = order.shippingAddress;
   const name = order.guestName || order.user?.name || 'Customer';
   const email = order.guestEmail || order.user?.email || '';
   return [
-    `PM-${order.id}`,   // Additional Label Information 1 (your reference)
-    'Y',                 // Send Tracking Notifications
-    '',                  // Send From Name        — uses MyPost Business account default
-    '',                  // Send From Business Name
-    '',                  // Send From Address Line 1
-    '',                  // Send From Address Line 2
-    '',                  // Send From Address Line 3
-    '',                  // Send From Suburb
-    '',                  // Send From State
-    '',                  // Send From Postcode
-    '',                  // Send From Phone Number
-    '',                  // Send From Email Address
-    name,                // Deliver To Name
-    '',                  // Deliver To MyPost Number
-    '',                  // Deliver To Business Name
-    'Residential',       // Deliver To Type Of Address
-    addr?.street ?? '',  // Deliver To Address Line 1
-    '',                  // Deliver To Address Line 2
-    '',                  // Deliver To Address Line 3
-    addr?.city ?? '',    // Deliver To Suburb
-    addr?.state ?? '',   // Deliver To State
-    addr?.postalCode ?? '', // Deliver To Postcode
-    '',                  // Deliver To Phone Number
-    email,               // Deliver To Email Address
-    '',                  // Item Packaging Type   — leave blank for account default
-    'Standard',          // Item Delivery Service
-    'Handmade Item',     // Item Description
-    '30',                // Item Length (cm)
-    '20',                // Item Width (cm)
-    '5',                 // Item Height (cm)
-    String(weight),      // Item Weight (kg)
-    'N',                 // Item Dangerous Goods Flag
-    'N',                 // Signature On Delivery
-    '',                  // Extra Cover Amount
+    `PM-${order.id}`,        // Additional Label Information 1 (your reference)
+    'YES',                    // Send Tracking Notifications  (YES or NO)
+    '',                       // Send From Name               — uses MyPost Business account default
+    '',                       // Send From Business Name
+    '',                       // Send From Address Line 1
+    '',                       // Send From Address Line 2
+    '',                       // Send From Address Line 3
+    '',                       // Send From Suburb
+    '',                       // Send From State
+    '',                       // Send From Postcode
+    '',                       // Send From Phone Number
+    '',                       // Send From Email Address
+    name,                     // Deliver To Name
+    '',                       // Deliver To MyPost Number
+    '',                       // Deliver To Business Name
+    'STANDARD_ADDRESS',       // Deliver To Type Of Address   (STANDARD_ADDRESS | PARCEL_LOCKER | PARCEL_COLLECT)
+    addr?.street ?? '',       // Deliver To Address Line 1
+    '',                       // Deliver To Address Line 2
+    '',                       // Deliver To Address Line 3
+    addr?.city ?? '',         // Deliver To Suburb
+    addr?.state ?? '',        // Deliver To State
+    addr?.postalCode ?? '',   // Deliver To Postcode
+    '',                       // Deliver To Phone Number
+    email,                    // Deliver To Email Address
+    '',                       // Item Packaging Type
+    serviceType,              // Item Delivery Service        (PP = Parcel Post, EXP = Express Post)
+    'Handmade Item',          // Item Description
+    '30',                     // Item Length (cm)
+    '20',                     // Item Width (cm)
+    '5',                      // Item Height (cm)
+    String(weight),           // Item Weight (kg)
+    'NO',                     // Item Dangerous Goods Flag    (YES or NO)
+    'NO',                     // Signature On Delivery        (YES or NO)
+    '',                       // Extra Cover Amount
   ];
 }
 
-function downloadMyPostXLSX(orders: any[], weight: number, filename: string) {
-  const rows = [MYPOST_HEADERS, ...orders.map(o => buildMyPostRow(o, weight))];
+function downloadMyPostXLSX(orders: any[], weight: number, filename: string, serviceType: 'PP' | 'EXP' = 'PP') {
+  const rows = [MYPOST_HEADERS, ...orders.map(o => buildMyPostRow(o, weight, serviceType))];
   const ws = XLSX.utils.aoa_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'order_import'); // sheet name matches the template
@@ -630,6 +630,7 @@ function OrdersTab({
 
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<number>>(new Set());
   const [bulkWeight, setBulkWeight] = useState(1);
+  const [bulkService, setBulkService] = useState<'PP' | 'EXP'>('PP');
 
   const toggleSelect = (id: number) =>
     setSelectedOrderIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -640,8 +641,8 @@ function OrdersTab({
   const downloadBulkCSV = () => {
     const rows = filteredOrders.filter((o: any) => selectedOrderIds.has(o.id) && o.shippingAddress);
     if (!rows.length) { toast.error('None of the selected orders have a stored shipping address'); return; }
-    downloadMyPostXLSX(rows, WEIGHT_PRESETS[bulkWeight].weight, `princess-made-orders-${new Date().toISOString().slice(0,10)}.xlsx`);
-    toast.success(`Downloaded CSV for ${rows.length} order${rows.length !== 1 ? 's' : ''}`);
+    downloadMyPostXLSX(rows, WEIGHT_PRESETS[bulkWeight].weight, `princess-made-orders-${new Date().toISOString().slice(0,10)}.xlsx`, bulkService);
+    toast.success(`Downloaded ${rows.length} order${rows.length !== 1 ? 's' : ''} for MyPost Business`);
   };
 
   return (
@@ -710,6 +711,15 @@ function OrdersTab({
                   {WEIGHT_PRESETS.map((opt, i) => (
                     <option key={i} value={i}>{opt.label}</option>
                   ))}
+                </select>
+                <select
+                  value={bulkService}
+                  onChange={(e) => setBulkService(e.target.value as 'PP' | 'EXP')}
+                  className="input-elegant text-xs py-1.5"
+                  style={{ borderRadius: '2px' }}
+                >
+                  <option value="PP">Parcel Post</option>
+                  <option value="EXP">Express Post</option>
                 </select>
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -806,6 +816,7 @@ function AdminOrderCard({
   });
 
   const [selectedWeight, setSelectedWeight] = useState(1); // index into WEIGHT_PRESETS
+  const [selectedService, setSelectedService] = useState<'PP' | 'EXP'>('PP');
 
   const handleSaveStatus = () => {
     updateStatus.mutate({ orderId: order.id, status: editStatus });
@@ -1033,16 +1044,35 @@ function AdminOrderCard({
                     </p>
                   </div>
                   <div className="flex items-center gap-3 flex-wrap">
+                    <select
+                      value={selectedWeight}
+                      onChange={(e) => setSelectedWeight(Number(e.target.value))}
+                      className="input-elegant text-xs py-1.5"
+                      style={{ borderRadius: '2px' }}
+                    >
+                      {WEIGHT_PRESETS.map((opt, i) => (
+                        <option key={i} value={i}>{opt.label}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={selectedService}
+                      onChange={(e) => setSelectedService(e.target.value as 'PP' | 'EXP')}
+                      className="input-elegant text-xs py-1.5"
+                      style={{ borderRadius: '2px' }}
+                    >
+                      <option value="PP">Parcel Post</option>
+                      <option value="EXP">Express Post</option>
+                    </select>
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
-                        downloadMyPostXLSX([order], WEIGHT_PRESETS[selectedWeight].weight, `PM-${order.id}-mypost.xlsx`);
+                        downloadMyPostXLSX([order], WEIGHT_PRESETS[selectedWeight].weight, `PM-${order.id}-mypost.xlsx`, selectedService);
                       }}
                       className="btn-primary text-xs px-4 py-2.5 flex items-center gap-1.5"
                     >
                       <Download size={12} />
-                      Download CSV for MyPost Business
+                      Download for MyPost Business
                     </motion.button>
                     <p className="text-[11px] text-muted-foreground/50 font-light">
                       Import at auspost.com.au/mypost-business → Create Shipments
