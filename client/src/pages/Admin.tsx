@@ -37,6 +37,37 @@ import {
 
 import { Spinner } from '@/components/ui/spinner';
 
+// ── MyPost Business sender config (persisted in localStorage) ─────────────
+interface MyPostConfig {
+  senderName: string;
+  senderBusiness: string;
+  senderLine1: string;
+  senderSuburb: string;
+  senderState: string;
+  senderPostcode: string;
+  senderPhone: string;
+  packagingType: string;
+}
+
+const MYPOST_CONFIG_KEY = 'pm_mypost_config';
+const DEFAULT_MYPOST_CONFIG: MyPostConfig = {
+  senderName: '', senderBusiness: 'princess-made', senderLine1: '',
+  senderSuburb: '', senderState: '', senderPostcode: '', senderPhone: '',
+  packagingType: 'Parcel',
+};
+
+function loadMyPostConfig(): MyPostConfig {
+  try {
+    const s = localStorage.getItem(MYPOST_CONFIG_KEY);
+    if (s) return { ...DEFAULT_MYPOST_CONFIG, ...JSON.parse(s) };
+  } catch {}
+  return { ...DEFAULT_MYPOST_CONFIG };
+}
+
+function saveMyPostConfig(cfg: MyPostConfig) {
+  localStorage.setItem(MYPOST_CONFIG_KEY, JSON.stringify(cfg));
+}
+
 const WEIGHT_PRESETS = [
   { label: 'Light (≤200g)', weight: 0.2 },
   { label: 'Small (≤500g)', weight: 0.5 },
@@ -82,55 +113,56 @@ const MYPOST_HEADERS = [
   'Extra Cover Amount',
 ];
 
-function buildMyPostRow(order: any, weight: number, serviceType: 'PP' | 'EXP' = 'PP'): string[] {
+function buildMyPostRow(order: any, weight: number, serviceType: 'PP' | 'EXP', cfg: MyPostConfig): string[] {
   const addr = order.shippingAddress;
-  const name = order.guestName || order.user?.name || 'Customer';
-  const email = order.guestEmail || order.user?.email || '';
+  const recipientName = order.guestName || order.user?.name || 'Customer';
+  const recipientEmail = order.guestEmail || order.user?.email || '';
   return [
-    `PM-${order.id}`,        // Additional Label Information 1 (your reference)
-    'YES',                    // Send Tracking Notifications  (YES or NO)
-    '',                       // Send From Name               — uses MyPost Business account default
-    '',                       // Send From Business Name
-    '',                       // Send From Address Line 1
-    '',                       // Send From Address Line 2
-    '',                       // Send From Address Line 3
-    '',                       // Send From Suburb
-    '',                       // Send From State
-    '',                       // Send From Postcode
-    '',                       // Send From Phone Number
-    '',                       // Send From Email Address
-    name,                     // Deliver To Name
-    '',                       // Deliver To MyPost Number
-    '',                       // Deliver To Business Name
-    'STANDARD_ADDRESS',       // Deliver To Type Of Address   (STANDARD_ADDRESS | PARCEL_LOCKER | PARCEL_COLLECT)
-    addr?.street ?? '',       // Deliver To Address Line 1
-    '',                       // Deliver To Address Line 2
-    '',                       // Deliver To Address Line 3
-    addr?.city ?? '',         // Deliver To Suburb
-    addr?.state ?? '',        // Deliver To State
-    addr?.postalCode ?? '',   // Deliver To Postcode
-    '',                       // Deliver To Phone Number
-    email,                    // Deliver To Email Address
-    '',                       // Item Packaging Type
-    serviceType,              // Item Delivery Service        (PP = Parcel Post, EXP = Express Post)
-    'Handmade Item',          // Item Description
-    '30',                     // Item Length (cm)
-    '20',                     // Item Width (cm)
-    '5',                      // Item Height (cm)
-    String(weight),           // Item Weight (kg)
-    'NO',                     // Item Dangerous Goods Flag    (YES or NO)
-    'NO',                     // Signature On Delivery        (YES or NO)
-    '',                       // Extra Cover Amount
+    `PM-${order.id}`,             // Additional Label Information 1
+    'YES',                         // Send Tracking Notifications
+    cfg.senderName,                // Send From Name
+    cfg.senderBusiness,            // Send From Business Name
+    cfg.senderLine1,               // Send From Address Line 1
+    '',                            // Send From Address Line 2
+    '',                            // Send From Address Line 3
+    cfg.senderSuburb,              // Send From Suburb
+    cfg.senderState,               // Send From State
+    cfg.senderPostcode,            // Send From Postcode
+    cfg.senderPhone,               // Send From Phone Number
+    '',                            // Send From Email Address
+    recipientName,                 // Deliver To Name
+    '',                            // Deliver To MyPost Number
+    '',                            // Deliver To Business Name
+    'STANDARD_ADDRESS',            // Deliver To Type Of Address
+    addr?.street ?? '',            // Deliver To Address Line 1
+    '',                            // Deliver To Address Line 2
+    '',                            // Deliver To Address Line 3
+    addr?.city ?? '',              // Deliver To Suburb
+    addr?.state ?? '',             // Deliver To State
+    addr?.postalCode ?? '',        // Deliver To Postcode
+    '',                            // Deliver To Phone Number
+    recipientEmail,                // Deliver To Email Address
+    cfg.packagingType,             // Item Packaging Type
+    serviceType,                   // Item Delivery Service (PP / EXP)
+    'Handmade Item',               // Item Description
+    '30',                          // Item Length (cm)
+    '20',                          // Item Width (cm)
+    '5',                           // Item Height (cm)
+    String(weight),                // Item Weight (kg)
+    'NO',                          // Item Dangerous Goods Flag
+    'NO',                          // Signature On Delivery
+    '',                            // Extra Cover Amount
   ];
 }
 
 function downloadMyPostCSV(orders: any[], weight: number, filename: string, serviceType: 'PP' | 'EXP' = 'PP') {
+  const cfg = loadMyPostConfig();
   const esc = (v: string) =>
     v.includes(',') || v.includes('"') || v.includes('\r') || v.includes('\n')
       ? `"${v.replace(/"/g, '""')}"` : v;
   const lines = [
     MYPOST_HEADERS.join(','),
-    ...orders.map(o => buildMyPostRow(o, weight, serviceType).map(esc).join(',')),
+    ...orders.map(o => buildMyPostRow(o, weight, serviceType, cfg).map(esc).join(',')),
   ];
   const blob = new Blob([lines.join('\r\n')], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
@@ -646,9 +678,71 @@ function OrdersTab({
     toast.success(`Downloaded ${rows.length} order${rows.length !== 1 ? 's' : ''} for MyPost Business`);
   };
 
+  const [cfg, setCfg] = useState<MyPostConfig>(loadMyPostConfig);
+  const [showCfg, setShowCfg] = useState(false);
+  const cfgComplete = cfg.senderName && cfg.senderLine1 && cfg.senderSuburb && cfg.senderState && cfg.senderPostcode && cfg.packagingType;
+
+  const handleSaveCfg = () => {
+    saveMyPostConfig(cfg);
+    setShowCfg(false);
+    toast.success('MyPost sender settings saved');
+  };
+
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
-      <h2 className="text-2xl font-serif font-light">All Orders</h2>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h2 className="text-2xl font-serif font-light">All Orders</h2>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          onClick={() => setShowCfg(v => !v)}
+          className={`text-xs px-3 py-1.5 border font-light flex items-center gap-1.5 transition-colors ${cfgComplete ? 'border-green-200 text-green-700 bg-green-50 hover:bg-green-100' : 'border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100'}`}
+          style={{ borderRadius: '2px' }}
+        >
+          {cfgComplete ? '✓ Sender configured' : '⚠ Configure sender for MyPost CSV'}
+        </motion.button>
+      </div>
+
+      {/* MyPost sender config panel */}
+      {showCfg && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="border border-accent/20 bg-accent/5 p-5 space-y-4"
+          style={{ borderRadius: '2px' }}
+        >
+          <p className="text-xs uppercase tracking-[0.2em] text-accent font-light">MyPost Business — Sender Details</p>
+          <p className="text-xs text-muted-foreground/60 font-light">These fill in the &quot;Send From&quot; fields in every CSV you download. Saved to this browser.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {([
+              ['senderName',     'Your Name *'],
+              ['senderBusiness', 'Business Name'],
+              ['senderLine1',    'Street Address *'],
+              ['senderSuburb',   'Suburb *'],
+              ['senderState',    'State * (e.g. SA)'],
+              ['senderPostcode', 'Postcode *'],
+              ['senderPhone',    'Phone Number'],
+              ['packagingType',  'Item Packaging Type *'],
+            ] as [keyof MyPostConfig, string][]).map(([key, label]) => (
+              <div key={key}>
+                <label className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/50 font-light">{label}</label>
+                <input
+                  className="input-elegant w-full mt-0.5 text-sm"
+                  value={cfg[key]}
+                  onChange={e => setCfg(prev => ({ ...prev, [key]: e.target.value }))}
+                  placeholder={key === 'packagingType' ? 'e.g. Parcel' : key === 'senderState' ? 'e.g. SA' : ''}
+                  style={{ borderRadius: '2px' }}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSaveCfg} className="btn-primary text-xs px-4 py-2">
+              Save Settings
+            </motion.button>
+            <button onClick={() => setShowCfg(false)} className="text-xs text-muted-foreground/50 hover:text-foreground px-3 font-light">Cancel</button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
