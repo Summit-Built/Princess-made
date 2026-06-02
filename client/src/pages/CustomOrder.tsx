@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { PageTransition } from '@/components/PageTransition';
 import { Header } from '@/components/Header';
@@ -12,7 +12,7 @@ import { Check, Scissors } from 'lucide-react';
 
 // ─── Shared field components ───────────────────────────────────────────────
 
-function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
+function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: ReactNode }) {
   return (
     <div className="space-y-2">
       <label className="block text-xs uppercase tracking-[0.18em] text-foreground/70 font-light">
@@ -113,7 +113,7 @@ export default function CustomOrder() {
     onError: (err) => toast.error(`Something went wrong: ${err.message}`),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
     // Validate required fields
