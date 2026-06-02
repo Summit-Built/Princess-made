@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import * as XLSX from 'xlsx';
+import { downloadXLSX } from '@/lib/xlsxWriter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { PageTransition } from '@/components/PageTransition';
@@ -127,17 +127,7 @@ function buildMyPostRow(order: any, weight: number, serviceType: 'PP' | 'EXP' = 
 
 function downloadMyPostXLSX(orders: any[], weight: number, filename: string, serviceType: 'PP' | 'EXP' = 'PP') {
   const rows = [MYPOST_HEADERS, ...orders.map(o => buildMyPostRow(o, weight, serviceType))];
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'order_import'); // sheet name matches the template
-  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadXLSX(rows, filename, 'order_import');
 }
 
 type TabType = 'dashboard' | 'orders' | 'users' | 'newsletter' | 'products' | 'reviews';
