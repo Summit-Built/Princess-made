@@ -145,9 +145,9 @@ function buildMyPostRow(order: any, weight: number, serviceType: 'PP' | 'EXP', c
     cfg.packagingType,             // Item Packaging Type
     serviceType,                   // Item Delivery Service (PP / EXP)
     'Handmade Item',               // Item Description
-    '30',                          // Item Length (cm)
-    '20',                          // Item Width (cm)
-    '5',                           // Item Height (cm)
+    '',                            // Item Length (cm)  — leave blank for satchels
+    '',                            // Item Width (cm)
+    '',                            // Item Height (cm)
     String(weight),                // Item Weight (kg)
     'NO',                          // Item Dangerous Goods Flag
     'NO',                          // Signature On Delivery
@@ -729,7 +729,7 @@ function OrdersTab({
                   className="input-elegant w-full mt-0.5 text-sm"
                   value={cfg[key]}
                   onChange={e => setCfg(prev => ({ ...prev, [key]: e.target.value }))}
-                  placeholder={key === 'packagingType' ? 'e.g. Parcel' : key === 'senderState' ? 'e.g. SA' : ''}
+                  placeholder={key === 'packagingType' ? 'e.g. Parcel Post Small, Parcel Post Medium' : key === 'senderState' ? 'e.g. SA' : ''}
                   style={{ borderRadius: '2px' }}
                 />
               </div>
