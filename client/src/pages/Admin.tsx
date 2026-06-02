@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { downloadXLSX } from '@/lib/xlsxWriter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { PageTransition } from '@/components/PageTransition';
@@ -125,9 +124,21 @@ function buildMyPostRow(order: any, weight: number, serviceType: 'PP' | 'EXP' = 
   ];
 }
 
-function downloadMyPostXLSX(orders: any[], weight: number, filename: string, serviceType: 'PP' | 'EXP' = 'PP') {
-  const rows = [MYPOST_HEADERS, ...orders.map(o => buildMyPostRow(o, weight, serviceType))];
-  downloadXLSX(rows, filename, 'order_import');
+function downloadMyPostCSV(orders: any[], weight: number, filename: string, serviceType: 'PP' | 'EXP' = 'PP') {
+  const esc = (v: string) =>
+    v.includes(',') || v.includes('"') || v.includes('\r') || v.includes('\n')
+      ? `"${v.replace(/"/g, '""')}"` : v;
+  const lines = [
+    MYPOST_HEADERS.join(','),
+    ...orders.map(o => buildMyPostRow(o, weight, serviceType).map(esc).join(',')),
+  ];
+  const blob = new Blob([lines.join('\r\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 type TabType = 'dashboard' | 'orders' | 'users' | 'newsletter' | 'products' | 'reviews';
@@ -631,7 +642,7 @@ function OrdersTab({
   const downloadBulkCSV = () => {
     const rows = filteredOrders.filter((o: any) => selectedOrderIds.has(o.id) && o.shippingAddress);
     if (!rows.length) { toast.error('None of the selected orders have a stored shipping address'); return; }
-    downloadMyPostXLSX(rows, WEIGHT_PRESETS[bulkWeight].weight, `princess-made-orders-${new Date().toISOString().slice(0,10)}.xlsx`, bulkService);
+    downloadMyPostCSV(rows, WEIGHT_PRESETS[bulkWeight].weight, `princess-made-orders-${new Date().toISOString().slice(0,10)}.csv`, bulkService);
     toast.success(`Downloaded ${rows.length} order${rows.length !== 1 ? 's' : ''} for MyPost Business`);
   };
 
@@ -1057,7 +1068,7 @@ function AdminOrderCard({
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
-                        downloadMyPostXLSX([order], WEIGHT_PRESETS[selectedWeight].weight, `PM-${order.id}-mypost.xlsx`, selectedService);
+                        downloadMyPostCSV([order], WEIGHT_PRESETS[selectedWeight].weight, `PM-${order.id}-mypost.csv`, selectedService);
                       }}
                       className="btn-primary text-xs px-4 py-2.5 flex items-center gap-1.5"
                     >
