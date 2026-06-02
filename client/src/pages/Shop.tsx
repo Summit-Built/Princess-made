@@ -373,15 +373,24 @@ export default function Shop() {
                 Custom Orders Welcome
               </h2>
               <p className="text-muted-foreground font-light max-w-md mx-auto text-sm sm:text-base">
-                Have something specific in mind? We love bringing your ideas to life.
+                Have something specific in mind? Fill out a quick request form and I'll get back to you with a quote within 1–2 business days.
               </p>
-              <motion.a
-                whileHover={{ scale: 1.02 }}
-                href="mailto:princessmadefashion@gmail.com"
-                className="btn-primary inline-flex items-center justify-center min-h-[48px]"
-              >
-                Get in Touch
-              </motion.a>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <motion.a
+                  whileHover={{ scale: 1.02 }}
+                  href="/custom-order"
+                  className="btn-primary inline-flex items-center justify-center min-h-[48px] px-8"
+                >
+                  Request Custom Order
+                </motion.a>
+                <motion.a
+                  whileHover={{ scale: 1.02 }}
+                  href="mailto:princessmadefashion@gmail.com"
+                  className="inline-flex items-center justify-center min-h-[48px] px-8 border border-accent/30 text-foreground font-light tracking-[0.15em] uppercase text-sm hover:border-accent/60 transition-all rounded-full"
+                >
+                  Get in Touch
+                </motion.a>
+              </div>
             </div>
           </section>
         )}

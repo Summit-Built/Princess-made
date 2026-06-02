@@ -389,6 +389,96 @@ export async function sendNewsletterConfirmation(opts: {
   }
 }
 
+export async function sendCustomOrderNotification(opts: {
+  adminEmail: string;
+  data: Record<string, string>;
+}) {
+  const resend = getResend();
+  if (!resend) {
+    console.log("[Email] Resend not configured, skipping custom order notification");
+    return;
+  }
+
+  const row = (label: string, value: string) =>
+    value
+      ? `<tr><td style="padding:8px 12px;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#8a7a72;font-weight:300;width:40%;vertical-align:top;">${label}</td><td style="padding:8px 12px;font-size:14px;font-weight:300;color:#3d3530;">${value}</td></tr>`
+      : "";
+
+  const section = (title: string, rows: string) =>
+    `<div style="margin-bottom:24px;"><p style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#c9a89a;font-weight:300;margin:0 0 8px 0;padding:0 12px;">${title}</p><table style="width:100%;border-collapse:collapse;background:white;border:1px solid #f0e8e4;">${rows}</table></div>`;
+
+  const d = opts.data;
+
+  const html = `
+    <div style="max-width:680px;margin:0 auto;font-family:-apple-system,sans-serif;color:#3d3530;background:#faf8f6;padding:40px 30px;">
+      <div style="text-align:center;margin-bottom:32px;">
+        <h1 style="font-family:Georgia,serif;font-weight:300;font-size:26px;margin:0;">New Custom Order Request 💕</h1>
+        <p style="color:#8a7a72;font-weight:300;margin-top:8px;">From ${d.fullName}</p>
+      </div>
+
+      ${section('1. Customer Information',
+        row('Name', d.fullName) +
+        row('Email', d.email) +
+        row('Phone', d.phone) +
+        row('Preferred Contact', d.contactMethod)
+      )}
+      ${section('2. What Would You Like Made?',
+        row('Product Type', d.productType + (d.productTypeOther ? ` — ${d.productTypeOther}` : '')) +
+        row('Description', d.description)
+      )}
+      ${section('3. Sizing',
+        row('Length', d.length ? d.length + ' cm' : '') +
+        row('Width', d.width ? d.width + ' cm' : '') +
+        row('Height / Depth', d.height ? d.height + ' cm' : '')
+      )}
+      ${section('4. Fabric Selection',
+        row('Outer Fabric', d.outerFabric) +
+        row('Lining Fabric', d.liningFabric)
+      )}
+      ${section('5. Lace Trim', row('Lace Style', d.laceStyle))}
+      ${section('6. Hardware & Details',
+        row('Zipper Colour', d.zipperColour + (d.zipperColourOther ? ` — ${d.zipperColourOther}` : '')) +
+        row('Zipper Charm', d.zipperCharm) +
+        row('Hardware Colour', d.hardwareColour)
+      )}
+      ${section('7. Personalisation',
+        row('Monogram', d.wantsMonogram) +
+        row('Name / Word', d.monogramName) +
+        row('Font Choice', d.fontChoice) +
+        row('Thread Colour', d.threadColour)
+      )}
+      ${section('8. Budget & Timeline',
+        row('Budget', d.budget) +
+        row('Needed By', d.neededByDate) +
+        row('Is a Gift?', d.isGift)
+      )}
+      ${d.additionalNotes ? section('9. Additional Notes', row('Notes', d.additionalNotes)) : ''}
+
+      <div style="background:#fff8f6;border:1px solid #f0e8e4;padding:16px 20px;margin-top:8px;">
+        <p style="font-size:12px;color:#8a7a72;font-weight:300;margin:0;">Reply directly to this email to respond to the customer.</p>
+      </div>
+
+      <div style="text-align:center;padding-top:24px;border-top:1px solid #f0e8e4;margin-top:24px;">
+        <p style="font-size:11px;color:#c4b8b0;">princess-made custom order system</p>
+      </div>
+    </div>
+  `;
+
+  try {
+    await resend.emails.send({
+      from: getFrom(),
+      to: opts.adminEmail,
+      replyTo: opts.data.email,
+      subject: `Custom Order Request — ${opts.data.fullName} (${opts.data.productType})`,
+      html,
+    });
+    console.log(`[Email] Custom order notification sent for ${opts.data.email}`);
+  } catch (err) {
+    console.error("[Email] Failed to send custom order notification:", err);
+    throw err;
+  }
+}
+
 export async function sendContactFormNotification(opts: {
   name: string;
   email: string;

@@ -560,6 +560,44 @@ export const appRouter = router({
       }),
   }),
 
+  customOrder: router({
+    submit: publicProcedure
+      .input(z.object({
+        fullName: z.string().min(1),
+        email: z.string().email(),
+        phone: z.string().min(1),
+        contactMethod: z.string(),
+        productType: z.string().min(1),
+        productTypeOther: z.string().optional().default(''),
+        description: z.string().min(1),
+        length: z.string().optional().default(''),
+        width: z.string().optional().default(''),
+        height: z.string().optional().default(''),
+        outerFabric: z.string().optional().default(''),
+        liningFabric: z.string().optional().default(''),
+        laceStyle: z.string(),
+        zipperColour: z.string(),
+        zipperColourOther: z.string().optional().default(''),
+        zipperCharm: z.string().optional().default(''),
+        hardwareColour: z.string().optional().default(''),
+        wantsMonogram: z.string(),
+        monogramName: z.string().optional().default(''),
+        fontChoice: z.string().optional().default(''),
+        threadColour: z.string().optional().default(''),
+        budget: z.string().optional().default(''),
+        neededByDate: z.string().optional().default(''),
+        isGift: z.string(),
+        additionalNotes: z.string().optional().default(''),
+      }))
+      .mutation(async ({ input }) => {
+        await email.sendCustomOrderNotification({
+          adminEmail: 'princessmadefashion@gmail.com',
+          data: input as Record<string, string>,
+        });
+        return { success: true };
+      }),
+  }),
+
   admin: router({
     orders: router({
       list: adminProcedure.query(async () => {
