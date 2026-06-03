@@ -483,46 +483,82 @@ function PushNotificationBanner() {
   const { data: vapidKey } = trpc.push.vapidPublicKey.useQuery();
   const subscribeMutation = trpc.push.subscribe.useMutation();
   const unsubscribeMutation = trpc.push.unsubscribe.useMutation();
-  const [status, setStatus] = useState<'unknown' | 'subscribed' | 'denied' | 'unsupported'>('unknown');
+  const [status, setStatus] = useState<'loading' | 'unavailable' | 'denied' | 'unsubscribed' | 'subscribed'>('loading');
 
   React.useEffect(() => {
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-      setStatus('unsupported'); return;
+    try {
+      const hasNotification = 'Notification' in window;
+      const hasSW = 'serviceWorker' in navigator;
+
+      if (!hasNotification || !hasSW) {
+        setStatus('unavailable');
+        return;
+      }
+
+      if ((Notification as any).permission === 'denied') {
+        setStatus('denied');
+        return;
+      }
+
+      navigator.serviceWorker.ready
+        .then(reg => reg.pushManager.getSubscription())
+        .then(sub => setStatus(sub ? 'subscribed' : 'unsubscribed'))
+        .catch(() => setStatus('unsubscribed'));
+    } catch {
+      setStatus('unavailable');
     }
-    if (Notification.permission === 'denied') { setStatus('denied'); return; }
-    navigator.serviceWorker.ready.then(reg =>
-      reg.pushManager.getSubscription().then(sub => {
-        setStatus(sub ? 'subscribed' : 'unknown');
-      })
-    );
   }, []);
 
-  if (status === 'unsupported') return null;
-
   const enable = async () => {
-    if (!vapidKey) return;
-    const perm = await Notification.requestPermission();
-    if (perm !== 'granted') { setStatus('denied'); return; }
-    const reg = await navigator.serviceWorker.ready;
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidKey),
-    });
-    await subscribeMutation.mutateAsync({ subscription: sub.toJSON() });
-    setStatus('subscribed');
-    toast.success('Push notifications enabled!');
+    try {
+      if (!vapidKey) { toast.error('Push not configured — check VAPID keys'); return; }
+      const perm = await (Notification as any).requestPermission();
+      if (perm !== 'granted') { setStatus('denied'); return; }
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      });
+      await subscribeMutation.mutateAsync({ subscription: sub.toJSON() });
+      setStatus('subscribed');
+      toast.success('Push notifications enabled! 🔔');
+    } catch (err: any) {
+      toast.error('Could not enable notifications: ' + (err?.message ?? 'unknown error'));
+    }
   };
 
   const disable = async () => {
-    const reg = await navigator.serviceWorker.ready;
-    const sub = await reg.pushManager.getSubscription();
-    if (sub) {
-      await unsubscribeMutation.mutateAsync({ endpoint: sub.endpoint });
-      await sub.unsubscribe();
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await unsubscribeMutation.mutateAsync({ endpoint: sub.endpoint });
+        await sub.unsubscribe();
+      }
+      setStatus('unsubscribed');
+      toast.success('Push notifications disabled');
+    } catch {
+      toast.error('Could not disable notifications');
     }
-    setStatus('unknown');
-    toast.success('Push notifications disabled');
   };
+
+  if (status === 'loading') return null;
+
+  if (status === 'unavailable') {
+    return (
+      <div className="bg-amber-50 border border-amber-200 px-4 py-2.5 mb-4 text-sm text-amber-700 font-light" style={{ borderRadius: '2px' }}>
+        💡 To enable push notifications, open this page from the <strong>home screen icon</strong> (not Safari), and make sure you're on iOS 16.4 or later.
+      </div>
+    );
+  }
+
+  if (status === 'denied') {
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 px-4 py-2.5 mb-4 text-sm text-yellow-700 font-light" style={{ borderRadius: '2px' }}>
+        🔕 Notifications are blocked — go to <strong>Settings → princess-made → Notifications</strong> to allow them.
+      </div>
+    );
+  }
 
   if (status === 'subscribed') {
     return (
@@ -535,24 +571,17 @@ function PushNotificationBanner() {
     );
   }
 
-  if (status === 'denied') {
-    return (
-      <div className="bg-yellow-50 border border-yellow-200 px-4 py-2.5 mb-4 text-sm text-yellow-700 font-light" style={{ borderRadius: '2px' }}>
-        Notifications blocked — please allow notifications for this site in your browser settings.
-      </div>
-    );
-  }
-
+  // unsubscribed
   return (
     <div className="flex items-center justify-between bg-accent/5 border border-accent/20 px-4 py-2.5 mb-4" style={{ borderRadius: '2px' }}>
-      <p className="text-sm font-light text-foreground/70">Enable push notifications to get alerts for new orders</p>
+      <p className="text-sm font-light text-foreground/70">🔔 Enable push notifications to get alerts for new orders</p>
       <motion.button
         whileHover={{ scale: 1.02 }}
         onClick={enable}
         disabled={subscribeMutation.isPending}
         className="btn-primary px-3 py-1.5 text-xs shrink-0 ml-4 disabled:opacity-50"
       >
-        Enable Notifications
+        {subscribeMutation.isPending ? 'Enabling…' : 'Enable'}
       </motion.button>
     </div>
   );
