@@ -448,6 +448,7 @@ export default function Admin() {
                 transition={{ delay: 0.1 }}
                 className="lg:col-span-3"
               >
+                <PushNotificationBanner />
                 {activeTab === 'dashboard' && <DashboardTab />}
 
                 {activeTab === 'orders' && (
@@ -475,6 +476,94 @@ export default function Admin() {
 }
 
 // ========== DASHBOARD TAB ==========
+
+// ========== PUSH NOTIFICATIONS BANNER ==========
+
+function PushNotificationBanner() {
+  const { data: vapidKey } = trpc.push.vapidPublicKey.useQuery();
+  const subscribeMutation = trpc.push.subscribe.useMutation();
+  const unsubscribeMutation = trpc.push.unsubscribe.useMutation();
+  const [status, setStatus] = useState<'unknown' | 'subscribed' | 'denied' | 'unsupported'>('unknown');
+
+  React.useEffect(() => {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+      setStatus('unsupported'); return;
+    }
+    if (Notification.permission === 'denied') { setStatus('denied'); return; }
+    navigator.serviceWorker.ready.then(reg =>
+      reg.pushManager.getSubscription().then(sub => {
+        setStatus(sub ? 'subscribed' : 'unknown');
+      })
+    );
+  }, []);
+
+  if (status === 'unsupported') return null;
+
+  const enable = async () => {
+    if (!vapidKey) return;
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { setStatus('denied'); return; }
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidKey),
+    });
+    await subscribeMutation.mutateAsync({ subscription: sub.toJSON() });
+    setStatus('subscribed');
+    toast.success('Push notifications enabled!');
+  };
+
+  const disable = async () => {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      await unsubscribeMutation.mutateAsync({ endpoint: sub.endpoint });
+      await sub.unsubscribe();
+    }
+    setStatus('unknown');
+    toast.success('Push notifications disabled');
+  };
+
+  if (status === 'subscribed') {
+    return (
+      <div className="flex items-center justify-between bg-green-50 border border-green-200 px-4 py-2.5 mb-4" style={{ borderRadius: '2px' }}>
+        <div className="flex items-center gap-2 text-sm text-green-700 font-light">
+          <CheckCircle size={14} /> Push notifications are enabled on this device
+        </div>
+        <button onClick={disable} className="text-xs text-green-600 hover:text-green-800 underline font-light">Disable</button>
+      </div>
+    );
+  }
+
+  if (status === 'denied') {
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 px-4 py-2.5 mb-4 text-sm text-yellow-700 font-light" style={{ borderRadius: '2px' }}>
+        Notifications blocked — please allow notifications for this site in your browser settings.
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-between bg-accent/5 border border-accent/20 px-4 py-2.5 mb-4" style={{ borderRadius: '2px' }}>
+      <p className="text-sm font-light text-foreground/70">Enable push notifications to get alerts for new orders</p>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        onClick={enable}
+        disabled={subscribeMutation.isPending}
+        className="btn-primary px-3 py-1.5 text-xs shrink-0 ml-4 disabled:opacity-50"
+      >
+        Enable Notifications
+      </motion.button>
+    </div>
+  );
+}
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
 
 function DashboardTab() {
   const { data: stats, isLoading } = trpc.admin.stats.useQuery();

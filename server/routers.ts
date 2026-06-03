@@ -8,6 +8,7 @@ import { z } from "zod";
 import * as db from "./db";
 import * as stripe from "./stripe";
 import * as email from "./email";
+import * as push from "./push";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
 
@@ -560,6 +561,25 @@ export const appRouter = router({
       }),
   }),
 
+  push: router({
+    vapidPublicKey: publicProcedure.query(() => ENV.vapidPublicKey),
+
+    subscribe: adminProcedure
+      .input(z.object({ subscription: z.any() }))
+      .mutation(async ({ input }) => {
+        const sub = input.subscription as { endpoint: string };
+        await db.savePushSubscription(sub.endpoint, sub);
+        return { success: true };
+      }),
+
+    unsubscribe: adminProcedure
+      .input(z.object({ endpoint: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.deletePushSubscription(input.endpoint);
+        return { success: true };
+      }),
+  }),
+
   customOrder: router({
     submit: publicProcedure
       .input(z.object({
@@ -605,6 +625,11 @@ export const appRouter = router({
           details: rest as Record<string, string>,
           inspirationImages,
         });
+        push.sendPushToAll({
+          title: "✂️ New Custom Order Request",
+          body: `${fullName} wants a ${productType}`,
+          url: "/admin",
+        }).catch(() => {});
         return { success: true };
       }),
 

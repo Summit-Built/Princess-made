@@ -155,3 +155,10 @@ export const customOrderRequests = sqliteTable("custom_order_requests", {
 
 export type CustomOrderRequest = typeof customOrderRequests.$inferSelect;
 export type InsertCustomOrderRequest = typeof customOrderRequests.$inferInsert;
+
+export const pushSubscriptions = sqliteTable("push_subscriptions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  endpoint: text("endpoint").notNull().unique(),
+  subscription: text("subscription").notNull(), // full JSON
+  createdAt: integer("createdAt", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
+});

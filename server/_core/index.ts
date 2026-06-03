@@ -10,6 +10,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { handleWebhookEvent } from "../stripe";
 import * as db from "../db";
+import * as push from "../push";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -50,11 +51,17 @@ async function startServer() {
         case "checkout.session.completed": {
           const session = event.data.object as any;
           await db.updateOrderStatus(session.id, "completed");
-          // Store the payment intent ID on the order for future refund/failure lookups
           if (session.payment_intent) {
             await db.updateOrderPaymentIntent(session.id, session.payment_intent);
           }
           console.log(`[Stripe] Order completed: ${session.id}`);
+          const customerName = session.customer_details?.name || session.metadata?.customerName || "A customer";
+          const amount = session.amount_total ? `A$${(session.amount_total / 100).toFixed(2)}` : "";
+          push.sendPushToAll({
+            title: "🛍️ New Order!",
+            body: `${customerName} placed an order${amount ? ` for ${amount}` : ""}`,
+            url: "/admin",
+          }).catch(() => {});
           break;
         }
 

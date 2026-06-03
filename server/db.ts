@@ -136,6 +136,13 @@ sqlite.exec(`
     createdAt INTEGER NOT NULL DEFAULT (unixepoch())
   );
 
+  CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    endpoint TEXT NOT NULL UNIQUE,
+    subscription TEXT NOT NULL,
+    createdAt INTEGER NOT NULL DEFAULT (unixepoch())
+  );
+
   CREATE TABLE IF NOT EXISTS custom_order_requests (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     status TEXT NOT NULL DEFAULT 'new',
@@ -717,6 +724,23 @@ export async function approveReview(id: number) {
 export async function deleteReview(id: number) {
   db.delete(schema.reviews).where(eq(schema.reviews.id, id)).run();
   return true;
+}
+
+// ============ PUSH SUBSCRIPTIONS ============
+
+export async function savePushSubscription(endpoint: string, subscription: object) {
+  return db.insert(schema.pushSubscriptions)
+    .values({ endpoint, subscription: JSON.stringify(subscription), createdAt: new Date() })
+    .onConflictDoUpdate({ target: schema.pushSubscriptions.endpoint, set: { subscription: JSON.stringify(subscription) } })
+    .returning().get();
+}
+
+export async function deletePushSubscription(endpoint: string) {
+  db.delete(schema.pushSubscriptions).where(eq(schema.pushSubscriptions.endpoint, endpoint)).run();
+}
+
+export async function getAllPushSubscriptions() {
+  return db.select().from(schema.pushSubscriptions).all();
 }
 
 // ============ CUSTOM ORDER REQUESTS ============

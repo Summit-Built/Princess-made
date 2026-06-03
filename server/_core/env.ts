@@ -6,4 +6,6 @@ export const ENV = {
   adminEmails: [process.env.ADMIN_EMAIL, "tommyrosato@gmail.com", "princessmadefashion@gmail.com"].filter(Boolean).map(e => e!.toLowerCase()),
   resendApiKey: process.env.RESEND_API_KEY ?? "",
   isProduction: process.env.NODE_ENV === "production",
+  vapidPublicKey: process.env.VAPID_PUBLIC_KEY ?? "",
+  vapidPrivateKey: process.env.VAPID_PRIVATE_KEY ?? "",
 };
