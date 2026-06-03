@@ -596,13 +596,37 @@ export const appRouter = router({
         })).optional().default([]),
       }))
       .mutation(async ({ input }) => {
-        const { inspirationImages, ...data } = input;
-        await email.sendCustomOrderNotification({
-          adminEmail: 'princessmadefashion@gmail.com',
-          data: data as Record<string, string>,
+        const { inspirationImages, fullName, email: customerEmail, phone, productType, ...rest } = input;
+        await db.createCustomOrderRequest({
+          fullName,
+          email: customerEmail,
+          phone,
+          productType,
+          details: rest as Record<string, string>,
           inspirationImages,
         });
         return { success: true };
+      }),
+
+    list: adminProcedure.query(async () => {
+      return db.getAllCustomOrderRequests();
+    }),
+
+    get: adminProcedure
+      .input(z.number())
+      .query(async ({ input }) => {
+        return db.getCustomOrderRequest(input);
+      }),
+
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(['new', 'quoted', 'in_progress', 'completed', 'declined']).optional(),
+        adminNotes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return db.updateCustomOrderRequest(id, data);
       }),
   }),
 

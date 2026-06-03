@@ -138,3 +138,20 @@ export const contactMessages = sqliteTable("contact_messages", {
 
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type InsertContactMessage = typeof contactMessages.$inferInsert;
+
+export const customOrderRequests = sqliteTable("custom_order_requests", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  status: text("status", { enum: ["new", "quoted", "in_progress", "completed", "declined"] }).default("new").notNull(),
+  fullName: text("fullName").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  productType: text("productType").notNull(),
+  details: text("details").notNull(), // JSON blob of all other fields
+  inspirationImages: text("inspirationImages"), // JSON array of { filename, content }
+  adminNotes: text("adminNotes"),
+  createdAt: integer("createdAt", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
+});
+
+export type CustomOrderRequest = typeof customOrderRequests.$inferSelect;
+export type InsertCustomOrderRequest = typeof customOrderRequests.$inferInsert;

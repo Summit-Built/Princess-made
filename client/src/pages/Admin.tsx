@@ -33,6 +33,9 @@ import {
   CheckCircle,
   MessageSquare,
   Download,
+  Scissors,
+  ChevronUp,
+  Image,
 } from 'lucide-react';
 
 import { Spinner } from '@/components/ui/spinner';
@@ -47,13 +50,17 @@ interface MyPostConfig {
   senderPostcode: string;
   senderPhone: string;
   packagingType: string;
+  itemLength: string;
+  itemWidth: string;
+  itemHeight: string;
 }
 
 const MYPOST_CONFIG_KEY = 'pm_mypost_config';
 const DEFAULT_MYPOST_CONFIG: MyPostConfig = {
   senderName: '', senderBusiness: 'princess-made', senderLine1: '',
   senderSuburb: '', senderState: '', senderPostcode: '', senderPhone: '',
-  packagingType: 'Parcel',
+  packagingType: 'Parcel Post',
+  itemLength: '25.5', itemWidth: '15', itemHeight: '10',
 };
 
 function loadMyPostConfig(): MyPostConfig {
@@ -173,7 +180,7 @@ function downloadMyPostCSV(orders: any[], weight: number, filename: string, serv
   URL.revokeObjectURL(url);
 }
 
-type TabType = 'dashboard' | 'orders' | 'users' | 'newsletter' | 'products' | 'reviews';
+type TabType = 'dashboard' | 'orders' | 'custom-orders' | 'users' | 'newsletter' | 'products' | 'reviews';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -364,9 +371,13 @@ export default function Admin() {
     );
   }
 
+  const { data: customOrdersData } = trpc.customOrder.list.useQuery();
+  const newCustomOrderCount = customOrdersData?.filter(r => r.status === 'new').length ?? 0;
+
   const tabs = [
     { id: 'dashboard' as TabType, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'orders' as TabType, label: 'Orders', icon: Package },
+    { id: 'custom-orders' as TabType, label: 'Custom Orders', icon: Scissors, badge: newCustomOrderCount },
     { id: 'users' as TabType, label: 'Users', icon: Users },
     { id: 'newsletter' as TabType, label: 'Newsletter', icon: Mail },
     { id: 'products' as TabType, label: 'Products', icon: ShoppingBag },
@@ -447,6 +458,7 @@ export default function Admin() {
                   />
                 )}
 
+                {activeTab === 'custom-orders' && <CustomOrdersTab />}
                 {activeTab === 'users' && <UsersTab />}
 
                 {activeTab === 'newsletter' && <NewsletterTab />}
@@ -1712,6 +1724,189 @@ function ProductsTab() {
           </motion.div>
         ))}
       </div>
+    </motion.div>
+  );
+}
+
+// ========== CUSTOM ORDERS TAB ==========
+
+const STATUS_LABELS: Record<string, { label: string; colour: string }> = {
+  new:         { label: 'New',         colour: 'bg-blue-100 text-blue-700' },
+  quoted:      { label: 'Quoted',      colour: 'bg-yellow-100 text-yellow-700' },
+  in_progress: { label: 'In Progress', colour: 'bg-purple-100 text-purple-700' },
+  completed:   { label: 'Completed',   colour: 'bg-green-100 text-green-700' },
+  declined:    { label: 'Declined',    colour: 'bg-red-100 text-red-700' },
+};
+
+function CustomOrdersTab() {
+  const utils = trpc.useUtils();
+  const { data: requests, isLoading } = trpc.customOrder.list.useQuery();
+  const updateMutation = trpc.customOrder.update.useMutation({
+    onSuccess: () => { utils.customOrder.list.invalidate(); toast.success('Updated'); },
+    onError: () => toast.error('Failed to update'),
+  });
+
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [editingNotes, setEditingNotes] = useState<Record<number, string>>({});
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+
+  if (isLoading) return <div className="flex justify-center py-16"><Spinner /></div>;
+  if (!requests?.length) return (
+    <div className="text-center py-16 text-muted-foreground font-light">
+      <Scissors size={32} className="mx-auto mb-3 opacity-30" />
+      <p>No custom order requests yet.</p>
+    </div>
+  );
+
+  return (
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-3">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-serif font-light">Custom Order Requests</h2>
+        <span className="text-xs text-muted-foreground font-light">{requests.length} total</span>
+      </div>
+
+      {requests.map(req => {
+        const isOpen = expandedId === req.id;
+        const details = JSON.parse(req.details ?? '{}') as Record<string, string>;
+        const images: { filename: string; content: string }[] = req.inspirationImages ? JSON.parse(req.inspirationImages) : [];
+        const statusInfo = STATUS_LABELS[req.status] ?? STATUS_LABELS.new;
+        const notes = editingNotes[req.id] ?? req.adminNotes ?? '';
+
+        return (
+          <motion.div key={req.id} variants={itemVariants} className="border border-border/30 bg-card" style={{ borderRadius: '2px' }}>
+            {/* Row header */}
+            <button
+              type="button"
+              className="w-full flex items-center gap-4 p-4 text-left hover:bg-accent/5 transition-colors"
+              onClick={() => setExpandedId(isOpen ? null : req.id)}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-light text-sm">{req.fullName}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-light ${statusInfo.colour}`}>{statusInfo.label}</span>
+                  {req.status === 'new' && <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-light">Needs attention</span>}
+                </div>
+                <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground font-light">
+                  <span>{req.productType}</span>
+                  <span>·</span>
+                  <span>{req.email}</span>
+                  <span>·</span>
+                  <span>{new Date(req.createdAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                </div>
+              </div>
+              {isOpen ? <ChevronUp size={14} className="text-muted-foreground shrink-0" /> : <ChevronDown size={14} className="text-muted-foreground shrink-0" />}
+            </button>
+
+            {/* Expanded detail */}
+            {isOpen && (
+              <div className="px-4 pb-5 space-y-5 border-t border-border/20 pt-4">
+
+                {/* Status selector */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-muted-foreground font-light uppercase tracking-wide">Status:</span>
+                  {Object.entries(STATUS_LABELS).map(([key, { label, colour }]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => updateMutation.mutate({ id: req.id, status: key as any })}
+                      className={`text-[11px] px-3 py-1 rounded-full border transition-all font-light ${
+                        req.status === key ? `${colour} border-transparent` : 'border-border/40 text-muted-foreground hover:border-accent/40'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Details grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+                  {[
+                    ['Phone', req.phone],
+                    ['Contact Method', details.contactMethod],
+                    ['Product Type', req.productType + (details.productTypeOther ? ` — ${details.productTypeOther}` : '')],
+                    ['Description', details.description],
+                    ['Outer Fabric', details.outerFabric],
+                    ['Lining Fabric', details.liningFabric],
+                    ['Lace', details.laceStyle],
+                    ['Bow', details.bowChoice],
+                    ['Charm', details.charmChoice],
+                    ['Zipper Colour', details.zipperColour + (details.zipperColourOther ? ` — ${details.zipperColourOther}` : '')],
+                    ['Zipper Charm', details.zipperCharm],
+                    ['Hardware', details.hardwareColour],
+                    ['Monogram', details.wantsMonogram === 'Yes' ? `Yes — "${details.monogramName}" (${details.fontChoice}, ${details.threadColour})` : 'No'],
+                    ['Size', [details.length && `L: ${details.length}cm`, details.width && `W: ${details.width}cm`, details.height && `H: ${details.height}cm`].filter(Boolean).join('  ')],
+                    ['Budget', details.budget],
+                    ['Needed By', details.neededByDate],
+                    ['Is a Gift?', details.isGift],
+                    ['Additional Notes', details.additionalNotes],
+                  ].filter(([, v]) => v).map(([label, value]) => (
+                    <div key={label as string}>
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-light">{label as string}</p>
+                      <p className="text-sm font-light mt-0.5 leading-relaxed">{value as string}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Inspiration images */}
+                {images.length > 0 && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-light mb-2">Inspiration Photos</p>
+                    <div className="flex flex-wrap gap-2">
+                      {images.map((img, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setLightboxImg(`data:image/jpeg;base64,${img.content}`)}
+                          className="w-20 h-20 border border-border/30 overflow-hidden hover:border-accent/50 transition-colors"
+                          style={{ borderRadius: '4px' }}
+                          title={img.filename}
+                        >
+                          <img src={`data:image/jpeg;base64,${img.content}`} alt={img.filename} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Admin notes */}
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-light mb-1">Admin Notes</p>
+                  <textarea
+                    className="input-elegant w-full min-h-[80px] resize-y text-sm"
+                    placeholder="Add private notes about this order..."
+                    value={notes}
+                    onChange={e => setEditingNotes(prev => ({ ...prev, [req.id]: e.target.value }))}
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.01 }}
+                    type="button"
+                    onClick={() => updateMutation.mutate({ id: req.id, adminNotes: notes })}
+                    disabled={updateMutation.isPending}
+                    className="mt-2 btn-primary px-4 py-2 text-xs flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <Save size={12} /> Save Notes
+                  </motion.button>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        );
+      })}
+
+      {/* Image lightbox */}
+      {lightboxImg && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setLightboxImg(null)}
+        >
+          <img src={lightboxImg} alt="Inspiration" className="max-w-full max-h-full object-contain rounded" />
+          <button
+            type="button"
+            className="absolute top-4 right-4 text-white bg-black/50 rounded-full w-8 h-8 flex items-center justify-center text-lg"
+            onClick={() => setLightboxImg(null)}
+          >✕</button>
+        </div>
+      )}
     </motion.div>
   );
 }

@@ -135,6 +135,20 @@ sqlite.exec(`
     approved INTEGER NOT NULL DEFAULT 0,
     createdAt INTEGER NOT NULL DEFAULT (unixepoch())
   );
+
+  CREATE TABLE IF NOT EXISTS custom_order_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    status TEXT NOT NULL DEFAULT 'new',
+    fullName TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    productType TEXT NOT NULL,
+    details TEXT NOT NULL,
+    inspirationImages TEXT,
+    adminNotes TEXT,
+    createdAt INTEGER NOT NULL DEFAULT (unixepoch()),
+    updatedAt INTEGER NOT NULL DEFAULT (unixepoch())
+  );
 `);
 
 // Add guest columns to existing orders table
@@ -703,6 +717,51 @@ export async function approveReview(id: number) {
 export async function deleteReview(id: number) {
   db.delete(schema.reviews).where(eq(schema.reviews.id, id)).run();
   return true;
+}
+
+// ============ CUSTOM ORDER REQUESTS ============
+
+export async function createCustomOrderRequest(data: {
+  fullName: string;
+  email: string;
+  phone: string;
+  productType: string;
+  details: Record<string, string>;
+  inspirationImages?: { filename: string; content: string }[];
+}) {
+  return db.insert(schema.customOrderRequests).values({
+    fullName: data.fullName,
+    email: data.email,
+    phone: data.phone,
+    productType: data.productType,
+    details: JSON.stringify(data.details),
+    inspirationImages: data.inspirationImages?.length ? JSON.stringify(data.inspirationImages) : null,
+    status: 'new',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }).returning().get();
+}
+
+export async function getAllCustomOrderRequests() {
+  return db.select().from(schema.customOrderRequests)
+    .orderBy(desc(schema.customOrderRequests.createdAt))
+    .all();
+}
+
+export async function getCustomOrderRequest(id: number) {
+  return db.select().from(schema.customOrderRequests)
+    .where(eq(schema.customOrderRequests.id, id))
+    .get() ?? null;
+}
+
+export async function updateCustomOrderRequest(id: number, data: {
+  status?: 'new' | 'quoted' | 'in_progress' | 'completed' | 'declined';
+  adminNotes?: string;
+}) {
+  return db.update(schema.customOrderRequests)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(schema.customOrderRequests.id, id))
+    .returning().get() ?? null;
 }
 
 // ============ AUSPOST ============
