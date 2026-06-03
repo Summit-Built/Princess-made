@@ -51,6 +51,67 @@ function RadioGroup({ name, options, value, onChange }: {
   );
 }
 
+const LACES = [
+  { id: 'white-lace',   label: 'White Lace',    src: '/lace/white-lace.jpg' },
+  { id: 'black-lace',   label: 'Black Lace',    src: '/lace/black-lace.jpg' },
+  { id: 'brown-lace',   label: 'Brown Lace',    src: '/lace/brown-lace.jpg' },
+  { id: 'cambric-lace', label: 'Cambric Lace',  src: '/lace/cambric-lace.jpg' },
+  { id: 'ruffle-lace',  label: 'Ruffle Lace',   src: '/lace/ruffle-lace.jpg' },
+  { id: 'black-ruffle', label: 'Black Ruffle',  src: '/lace/black-ruffle.jpg' },
+];
+
+function LacePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+        <button
+          type="button"
+          onClick={() => onChange('No Lace')}
+          className={`aspect-square border-2 transition-all flex flex-col items-center justify-center gap-1 ${
+            value === 'No Lace'
+              ? 'border-accent bg-accent/5'
+              : 'border-dashed border-border/40 hover:border-accent/40'
+          }`}
+          style={{ borderRadius: '4px' }}
+        >
+          <span className="text-lg leading-none text-muted-foreground">✕</span>
+          <span className="text-[10px] font-light text-muted-foreground text-center px-1">No Lace</span>
+        </button>
+        {LACES.map(lace => (
+          <button
+            key={lace.id}
+            type="button"
+            onClick={() => onChange(lace.id)}
+            className={`group relative aspect-square overflow-hidden border-2 transition-all ${
+              value === lace.id
+                ? 'border-accent shadow-md'
+                : 'border-transparent hover:border-accent/40'
+            }`}
+            style={{ borderRadius: '4px' }}
+            title={lace.label}
+          >
+            <img src={lace.src} alt={lace.label} className="w-full h-full object-cover" />
+            {value === lace.id && (
+              <div className="absolute inset-0 bg-accent/20 flex items-end justify-center pb-1">
+                <span className="text-[10px] font-light text-white bg-black/40 px-1.5 py-0.5 rounded-sm leading-tight text-center">
+                  {lace.label}
+                </span>
+              </div>
+            )}
+            {value !== lace.id && (
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-end justify-center pb-1 opacity-0 group-hover:opacity-100">
+                <span className="text-[10px] font-light text-white bg-black/40 px-1.5 py-0.5 rounded-sm leading-tight text-center">
+                  {lace.label}
+                </span>
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const FABRICS = [
   { id: 'red-gingham',      label: 'Red Gingham',       src: '/fabrics/red-gingham.jpg' },
   { id: 'berry-check',      label: 'Berry Check',        src: '/fabrics/berry-check.jpg' },
@@ -215,6 +276,7 @@ export default function CustomOrder() {
     }
 
     const resolveFabric = (v: string) => FABRICS.find(f => f.id === v)?.label ?? v;
+    const resolveLace = (v: string) => LACES.find(l => l.id === v)?.label ?? v;
 
     submitMutation.mutate({
       fullName, email, phone, contactMethod,
@@ -223,7 +285,7 @@ export default function CustomOrder() {
       description,
       length, width, height,
       outerFabric: resolveFabric(outerFabric), liningFabric: resolveFabric(liningFabric),
-      laceStyle,
+      laceStyle: resolveLace(laceStyle),
       zipperColour,
       zipperColourOther,
       zipperCharm,
@@ -384,12 +446,7 @@ export default function CustomOrder() {
               <div className="border border-border/30 bg-card p-6 sm:p-8 space-y-5" style={{ borderRadius: '2px' }}>
                 <SectionHeader num={5} title="Lace Trim" />
                 <Field label="Choose Lace Style">
-                  <RadioGroup
-                    name="lace"
-                    options={['No Lace', 'Lace Option 1', 'Lace Option 2', 'Lace Option 3']}
-                    value={laceStyle}
-                    onChange={setLaceStyle}
-                  />
+                  <LacePicker value={laceStyle} onChange={setLaceStyle} />
                 </Field>
               </div>
 
