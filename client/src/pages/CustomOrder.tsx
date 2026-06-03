@@ -112,6 +112,82 @@ function LacePicker({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
+const BOWS = [
+  { id: 'pink-bow',   label: 'Pink Bow',   src: '/bows/pink-bow.jpg' },
+  { id: 'white-bow',  label: 'White Bow',  src: '/bows/white-bow.jpg' },
+  { id: 'red-bow',    label: 'Red Bow',    src: '/bows/red-bow.jpg' },
+  { id: 'black-bow',  label: 'Black Bow',  src: '/bows/black-bow.jpg' },
+  { id: 'flower',     label: 'Flower',     src: '/bows/flower.jpg' },
+];
+
+const FLOWER_COLOURS = ['Pink', 'White', 'Red', 'Lavender', 'Peach', 'Yellow'];
+
+const CHARMS = [
+  { id: 'gold-heart',   label: 'Gold Heart',   src: '/charms/gold-heart.jpg' },
+  { id: 'silver-heart', label: 'Silver Heart', src: '/charms/silver-heart.jpg' },
+];
+
+function ImageOptionPicker({
+  items,
+  value,
+  onChange,
+  noneLabel = 'None',
+}: {
+  items: { id: string; label: string; src: string }[];
+  value: string;
+  onChange: (v: string) => void;
+  noneLabel?: string;
+}) {
+  const noneId = `No ${noneLabel}`;
+  return (
+    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+      <button
+        type="button"
+        onClick={() => onChange(noneId)}
+        className={`aspect-square border-2 transition-all flex flex-col items-center justify-center gap-1 ${
+          value === noneId
+            ? 'border-accent bg-accent/5'
+            : 'border-dashed border-border/40 hover:border-accent/40'
+        }`}
+        style={{ borderRadius: '4px' }}
+      >
+        <span className="text-lg leading-none text-muted-foreground">✕</span>
+        <span className="text-[10px] font-light text-muted-foreground text-center px-1">{noneId}</span>
+      </button>
+      {items.map(item => (
+        <button
+          key={item.id}
+          type="button"
+          onClick={() => onChange(item.id)}
+          className={`group relative aspect-square overflow-hidden border-2 transition-all ${
+            value === item.id
+              ? 'border-accent shadow-md'
+              : 'border-transparent hover:border-accent/40'
+          }`}
+          style={{ borderRadius: '4px' }}
+          title={item.label}
+        >
+          <img src={item.src} alt={item.label} className="w-full h-full object-cover" />
+          {value === item.id && (
+            <div className="absolute inset-0 bg-accent/20 flex items-end justify-center pb-1">
+              <span className="text-[10px] font-light text-white bg-black/40 px-1.5 py-0.5 rounded-sm leading-tight text-center">
+                {item.label}
+              </span>
+            </div>
+          )}
+          {value !== item.id && (
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-end justify-center pb-1 opacity-0 group-hover:opacity-100">
+              <span className="text-[10px] font-light text-white bg-black/40 px-1.5 py-0.5 rounded-sm leading-tight text-center">
+                {item.label}
+              </span>
+            </div>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 const FABRICS = [
   { id: 'red-gingham',      label: 'Red Gingham',       src: '/fabrics/red-gingham.jpg' },
   { id: 'berry-check',      label: 'Berry Check',        src: '/fabrics/berry-check.jpg' },
@@ -235,6 +311,10 @@ export default function CustomOrder() {
 
   const [laceStyle, setLaceStyle] = useState('No Lace');
 
+  const [bowChoice, setBowChoice] = useState('No Bow');
+  const [flowerColour, setFlowerColour] = useState('');
+  const [charmChoice, setCharmChoice] = useState('No Charm');
+
   const [zipperColour, setZipperColour] = useState('');
   const [zipperColourOther, setZipperColourOther] = useState('');
   const [zipperCharm, setZipperCharm] = useState('');
@@ -277,6 +357,8 @@ export default function CustomOrder() {
 
     const resolveFabric = (v: string) => FABRICS.find(f => f.id === v)?.label ?? v;
     const resolveLace = (v: string) => LACES.find(l => l.id === v)?.label ?? v;
+    const resolveBow = (v: string) => BOWS.find(b => b.id === v)?.label ?? v;
+    const resolveCharm = (v: string) => CHARMS.find(c => c.id === v)?.label ?? v;
 
     submitMutation.mutate({
       fullName, email, phone, contactMethod,
@@ -286,6 +368,8 @@ export default function CustomOrder() {
       length, width, height,
       outerFabric: resolveFabric(outerFabric), liningFabric: resolveFabric(liningFabric),
       laceStyle: resolveLace(laceStyle),
+      bowChoice: resolveBow(bowChoice) + (bowChoice === 'flower' && flowerColour ? ` — ${flowerColour} flower` : ''),
+      charmChoice: resolveCharm(charmChoice),
       zipperColour,
       zipperColourOther,
       zipperCharm,
@@ -450,9 +534,69 @@ export default function CustomOrder() {
                 </Field>
               </div>
 
+              {/* ── 5b. Bows ── */}
+              <div className="border border-border/30 bg-card p-6 sm:p-8 space-y-5" style={{ borderRadius: '2px' }}>
+                <SectionHeader num={6} title="Bow" />
+                <Field label="Choose a Bow">
+                  <ImageOptionPicker items={BOWS} value={bowChoice} onChange={(v) => { setBowChoice(v); if (v !== 'flower') setFlowerColour(''); }} noneLabel="Bow" />
+                </Field>
+                {bowChoice === 'flower' && (
+                  <div className="pl-4 border-l-2 border-accent/20 space-y-2">
+                    <Field label="Flower Colour">
+                      <div className="flex flex-wrap gap-2">
+                        {FLOWER_COLOURS.map(colour => (
+                          <button
+                            key={colour}
+                            type="button"
+                            onClick={() => setFlowerColour(colour)}
+                            className={`px-4 py-2 text-xs font-light border transition-all ${
+                              flowerColour === colour
+                                ? 'bg-accent text-accent-foreground border-accent'
+                                : 'border-border/40 text-muted-foreground hover:border-accent/40 hover:text-foreground'
+                            }`}
+                            style={{ borderRadius: '2px' }}
+                          >
+                            {colour}
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setFlowerColour('custom')}
+                          className={`px-4 py-2 text-xs font-light border transition-all ${
+                            flowerColour === 'custom' || (flowerColour !== '' && !FLOWER_COLOURS.includes(flowerColour))
+                              ? 'bg-accent text-accent-foreground border-accent'
+                              : 'border-border/40 text-muted-foreground hover:border-accent/40 hover:text-foreground'
+                          }`}
+                          style={{ borderRadius: '2px' }}
+                        >
+                          Other
+                        </button>
+                      </div>
+                    </Field>
+                    {(flowerColour === 'custom' || (flowerColour !== '' && !FLOWER_COLOURS.includes(flowerColour))) && (
+                      <input
+                        className="input-elegant w-full"
+                        value={FLOWER_COLOURS.includes(flowerColour) ? '' : flowerColour === 'custom' ? '' : flowerColour}
+                        onChange={e => setFlowerColour(e.target.value)}
+                        placeholder="Describe the flower colour..."
+                        autoFocus
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* ── 5c. Charms ── */}
+              <div className="border border-border/30 bg-card p-6 sm:p-8 space-y-5" style={{ borderRadius: '2px' }}>
+                <SectionHeader num={7} title="Charm" />
+                <Field label="Choose a Charm">
+                  <ImageOptionPicker items={CHARMS} value={charmChoice} onChange={setCharmChoice} noneLabel="Charm" />
+                </Field>
+              </div>
+
               {/* ── 6. Hardware & Details ── */}
               <div className="border border-border/30 bg-card p-6 sm:p-8 space-y-5" style={{ borderRadius: '2px' }}>
-                <SectionHeader num={6} title="Hardware & Details" />
+                <SectionHeader num={8} title="Hardware & Details" />
                 <Field label="Zipper Colour" required>
                   <RadioGroup
                     name="zipper"
@@ -481,7 +625,7 @@ export default function CustomOrder() {
 
               {/* ── 7. Personalisation ── */}
               <div className="border border-border/30 bg-card p-6 sm:p-8 space-y-5" style={{ borderRadius: '2px' }}>
-                <SectionHeader num={7} title="Personalisation (Optional)" />
+                <SectionHeader num={9} title="Personalisation (Optional)" />
                 <Field label="Would you like a monogram?">
                   <RadioGroup name="monogram" options={['No', 'Yes']} value={wantsMonogram} onChange={setWantsMonogram} />
                 </Field>
@@ -502,7 +646,7 @@ export default function CustomOrder() {
 
               {/* ── 8. Inspiration ── */}
               <div className="border border-border/30 bg-card p-6 sm:p-8 space-y-4" style={{ borderRadius: '2px' }}>
-                <SectionHeader num={8} title="Inspiration" />
+                <SectionHeader num={10} title="Inspiration" />
                 <div className="bg-accent/5 border border-accent/15 p-4 text-sm font-light text-muted-foreground" style={{ borderRadius: '2px' }}>
                   <p>📎 Please email any inspiration photos, fabric samples, or reference images to:</p>
                   <a href="mailto:princessmadefashion@gmail.com" className="text-accent font-light underline mt-1 block">
@@ -514,7 +658,7 @@ export default function CustomOrder() {
 
               {/* ── 9. Budget & Timeline ── */}
               <div className="border border-border/30 bg-card p-6 sm:p-8 space-y-5" style={{ borderRadius: '2px' }}>
-                <SectionHeader num={9} title="Budget & Timeline" />
+                <SectionHeader num={11} title="Budget & Timeline" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <Field label="Budget in mind?" hint="Optional — helps me suggest the best options">
                     <input className="input-elegant w-full" value={budget} onChange={e => setBudget(e.target.value)} placeholder="e.g. Around A$40, flexible..." />
@@ -530,7 +674,7 @@ export default function CustomOrder() {
 
               {/* ── 10. Additional Notes ── */}
               <div className="border border-border/30 bg-card p-6 sm:p-8 space-y-5" style={{ borderRadius: '2px' }}>
-                <SectionHeader num={10} title="Anything Else?" />
+                <SectionHeader num={12} title="Anything Else?" />
                 <Field label="Additional notes">
                   <textarea
                     className="input-elegant w-full min-h-[100px] resize-y"
@@ -543,7 +687,7 @@ export default function CustomOrder() {
 
               {/* ── 11. Terms & Agreement ── */}
               <div className="border border-border/30 bg-card p-6 sm:p-8 space-y-5" style={{ borderRadius: '2px' }}>
-                <SectionHeader num={11} title="Terms & Agreement" />
+                <SectionHeader num={13} title="Terms & Agreement" />
                 <p className="text-xs text-muted-foreground/60 font-light -mt-2">Please read and agree to the following before submitting.</p>
                 <div className="space-y-3">
                   {[

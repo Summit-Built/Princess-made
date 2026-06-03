@@ -576,6 +576,8 @@ export const appRouter = router({
         outerFabric: z.string().optional().default(''),
         liningFabric: z.string().optional().default(''),
         laceStyle: z.string(),
+        bowChoice: z.string().optional().default(''),
+        charmChoice: z.string().optional().default(''),
         zipperColour: z.string(),
         zipperColourOther: z.string().optional().default(''),
         zipperCharm: z.string().optional().default(''),

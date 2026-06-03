@@ -436,18 +436,20 @@ export async function sendCustomOrderNotification(opts: {
         row('Lining Fabric', d.liningFabric)
       )}
       ${section('5. Lace Trim', row('Lace Style', d.laceStyle))}
-      ${section('6. Hardware & Details',
+      ${section('6. Bow', row('Bow Choice', d.bowChoice))}
+      ${section('7. Charm', row('Charm Choice', d.charmChoice))}
+      ${section('8. Hardware & Details',
         row('Zipper Colour', d.zipperColour + (d.zipperColourOther ? ` — ${d.zipperColourOther}` : '')) +
         row('Zipper Charm', d.zipperCharm) +
         row('Hardware Colour', d.hardwareColour)
       )}
-      ${section('7. Personalisation',
+      ${section('9. Personalisation',
         row('Monogram', d.wantsMonogram) +
         row('Name / Word', d.monogramName) +
         row('Font Choice', d.fontChoice) +
         row('Thread Colour', d.threadColour)
       )}
-      ${section('8. Budget & Timeline',
+      ${section('10. Budget & Timeline',
         row('Budget', d.budget) +
         row('Needed By', d.neededByDate) +
         row('Is a Gift?', d.isGift)
