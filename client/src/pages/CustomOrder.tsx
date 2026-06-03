@@ -51,6 +51,90 @@ function RadioGroup({ name, options, value, onChange }: {
   );
 }
 
+const FABRICS = [
+  { id: 'red-gingham',      label: 'Red Gingham',       src: '/fabrics/red-gingham.jpg' },
+  { id: 'berry-check',      label: 'Berry Check',        src: '/fabrics/berry-check.jpg' },
+  { id: 'baby-roses',       label: 'Baby Roses',         src: '/fabrics/baby-roses.jpg' },
+  { id: 'rose-bunches',     label: 'Rose Bunches',       src: '/fabrics/rose-bunches.jpg' },
+  { id: 'pink-pinspot',     label: 'Pink Pinspot',       src: '/fabrics/pink-pinspot.jpg' },
+  { id: 'red-hearts',       label: 'Red Hearts',         src: '/fabrics/red-hearts.jpg' },
+  { id: 'lilac-spot',       label: 'Lilac Spot',         src: '/fabrics/lilac-spot.jpg' },
+  { id: 'baby-pink',        label: 'Baby Pink',          src: '/fabrics/baby-pink.jpg' },
+  { id: 'pink-flannelette', label: 'Pink Flannelette',   src: '/fabrics/pink-flannelette.jpg' },
+  { id: 'forest-flannelette', label: 'Forest Flannelette', src: '/fabrics/forest-flannelette.jpg' },
+  { id: 'brown-fabric',     label: 'Brown',              src: '/fabrics/brown-fabric.jpg' },
+  { id: 'wine-fabric',      label: 'Wine',               src: '/fabrics/wine-fabric.jpg' },
+  { id: 'bunny-fur',        label: 'Bunny Fur',          src: '/fabrics/bunny-fur.jpg' },
+  { id: 'cheetah-fur',      label: 'Cheetah Fur',        src: '/fabrics/cheetah-fur.jpg' },
+  { id: 'deer-fur',         label: 'Deer Fur',           src: '/fabrics/deer-fur.jpg' },
+];
+
+function FabricPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const isCustom = value !== '' && !FABRICS.find(f => f.id === value);
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+        {FABRICS.map(fabric => (
+          <button
+            key={fabric.id}
+            type="button"
+            onClick={() => onChange(fabric.id)}
+            className={`group relative aspect-square overflow-hidden border-2 transition-all ${
+              value === fabric.id
+                ? 'border-accent shadow-md'
+                : 'border-transparent hover:border-accent/40'
+            }`}
+            style={{ borderRadius: '4px' }}
+            title={fabric.label}
+          >
+            <img
+              src={fabric.src}
+              alt={fabric.label}
+              className="w-full h-full object-cover"
+            />
+            {value === fabric.id && (
+              <div className="absolute inset-0 bg-accent/20 flex items-end justify-center pb-1">
+                <span className="text-[10px] font-light text-white bg-black/40 px-1.5 py-0.5 rounded-sm leading-tight text-center">
+                  {fabric.label}
+                </span>
+              </div>
+            )}
+            {value !== fabric.id && (
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-end justify-center pb-1 opacity-0 group-hover:opacity-100">
+                <span className="text-[10px] font-light text-white bg-black/40 px-1.5 py-0.5 rounded-sm leading-tight text-center">
+                  {fabric.label}
+                </span>
+              </div>
+            )}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => onChange('custom')}
+          className={`aspect-square border-2 transition-all flex flex-col items-center justify-center gap-1 ${
+            value === 'custom' || isCustom
+              ? 'border-accent bg-accent/5'
+              : 'border-dashed border-border/40 hover:border-accent/40'
+          }`}
+          style={{ borderRadius: '4px' }}
+        >
+          <span className="text-lg leading-none text-muted-foreground">+</span>
+          <span className="text-[10px] font-light text-muted-foreground text-center px-1">Other / Describe</span>
+        </button>
+      </div>
+      {(value === 'custom' || isCustom) && (
+        <input
+          className="input-elegant w-full"
+          value={isCustom ? value : ''}
+          onChange={e => onChange(e.target.value)}
+          placeholder="Describe your fabric (colour, pattern, texture...)"
+          autoFocus
+        />
+      )}
+    </div>
+  );
+}
+
 function SectionHeader({ num, title }: { num: number; title: string }) {
   return (
     <div className="flex items-center gap-4 pb-4 border-b border-accent/10 mb-6">
@@ -130,13 +214,15 @@ export default function CustomOrder() {
       return;
     }
 
+    const resolveFabric = (v: string) => FABRICS.find(f => f.id === v)?.label ?? v;
+
     submitMutation.mutate({
       fullName, email, phone, contactMethod,
       productType: productType === 'Other' ? 'Other' : productType,
       productTypeOther,
       description,
       length, width, height,
-      outerFabric, liningFabric,
+      outerFabric: resolveFabric(outerFabric), liningFabric: resolveFabric(liningFabric),
       laceStyle,
       zipperColour,
       zipperColourOther,
@@ -280,20 +366,18 @@ export default function CustomOrder() {
               </div>
 
               {/* ── 4. Fabric Selection ── */}
-              <div className="border border-border/30 bg-card p-6 sm:p-8 space-y-5" style={{ borderRadius: '2px' }}>
+              <div className="border border-border/30 bg-card p-6 sm:p-8 space-y-6" style={{ borderRadius: '2px' }}>
                 <SectionHeader num={4} title="Fabric Selection" />
                 <p className="text-xs text-muted-foreground/60 font-light -mt-2">
-                  Describe the fabric you'd like — colour, texture, pattern, or send inspiration photos to{' '}
+                  Pick from my available fabrics below, or choose "Other" to describe your own. You can also email inspiration photos to{' '}
                   <a href="mailto:princessmadefashion@gmail.com" className="text-accent underline">princessmadefashion@gmail.com</a>
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <Field label="Outer Fabric">
-                    <input className="input-elegant w-full" value={outerFabric} onChange={e => setOuterFabric(e.target.value)} placeholder="e.g. Pink faux fur, floral quilted cotton..." />
-                  </Field>
-                  <Field label="Lining Fabric">
-                    <input className="input-elegant w-full" value={liningFabric} onChange={e => setLiningFabric(e.target.value)} placeholder="e.g. White satin, pink cotton..." />
-                  </Field>
-                </div>
+                <Field label="Outer Fabric">
+                  <FabricPicker value={outerFabric} onChange={setOuterFabric} />
+                </Field>
+                <Field label="Lining Fabric">
+                  <FabricPicker value={liningFabric} onChange={setLiningFabric} />
+                </Field>
               </div>
 
               {/* ── 5. Lace Trim ── */}
