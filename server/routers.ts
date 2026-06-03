@@ -590,11 +590,17 @@ export const appRouter = router({
         neededByDate: z.string().optional().default(''),
         isGift: z.string(),
         additionalNotes: z.string().optional().default(''),
+        inspirationImages: z.array(z.object({
+          filename: z.string(),
+          content: z.string(), // base64
+        })).optional().default([]),
       }))
       .mutation(async ({ input }) => {
+        const { inspirationImages, ...data } = input;
         await email.sendCustomOrderNotification({
           adminEmail: 'princessmadefashion@gmail.com',
-          data: input as Record<string, string>,
+          data: data as Record<string, string>,
+          inspirationImages,
         });
         return { success: true };
       }),

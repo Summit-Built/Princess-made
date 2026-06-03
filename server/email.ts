@@ -392,6 +392,7 @@ export async function sendNewsletterConfirmation(opts: {
 export async function sendCustomOrderNotification(opts: {
   adminEmail: string;
   data: Record<string, string>;
+  inspirationImages?: { filename: string; content: string }[];
 }) {
   const resend = getResend();
   if (!resend) {
@@ -467,12 +468,18 @@ export async function sendCustomOrderNotification(opts: {
   `;
 
   try {
+    const attachments = (opts.inspirationImages ?? []).map(img => ({
+      filename: img.filename,
+      content: Buffer.from(img.content, 'base64'),
+    }));
+
     await resend.emails.send({
       from: getFrom(),
       to: opts.adminEmail,
       replyTo: opts.data.email,
       subject: `Custom Order Request — ${opts.data.fullName} (${opts.data.productType})`,
       html,
+      ...(attachments.length > 0 && { attachments }),
     });
     console.log(`[Email] Custom order notification sent for ${opts.data.email}`);
   } catch (err) {

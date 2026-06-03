@@ -336,6 +336,8 @@ export default function CustomOrder() {
   const [neededByDate, setNeededByDate] = useState('');
   const [isGift, setIsGift] = useState('No');
 
+  const [inspirationImages, setInspirationImages] = useState<{ filename: string; content: string; preview: string }[]>([]);
+
   const [additionalNotes, setAdditionalNotes] = useState('');
 
   const [terms, setTerms] = useState([false, false, false, false, false]);
@@ -390,6 +392,7 @@ export default function CustomOrder() {
       neededByDate,
       isGift,
       additionalNotes,
+      inspirationImages: inspirationImages.map(img => ({ filename: img.filename, content: img.content })),
     });
   };
 
@@ -652,15 +655,64 @@ export default function CustomOrder() {
                 )}
               </div>
 
-              {/* ── 8. Inspiration ── */}
+              {/* ── 10. Inspiration Photos ── */}
               <div className="border border-border/30 bg-card p-6 sm:p-8 space-y-4" style={{ borderRadius: '2px' }}>
-                <SectionHeader num={10} title="Inspiration" />
-                <div className="bg-accent/5 border border-accent/15 p-4 text-sm font-light text-muted-foreground" style={{ borderRadius: '2px' }}>
-                  <p>📎 Please email any inspiration photos, fabric samples, or reference images to:</p>
-                  <a href="mailto:princessmadefashion@gmail.com" className="text-accent font-light underline mt-1 block">
-                    princessmadefashion@gmail.com
-                  </a>
-                  <p className="mt-2 text-xs text-muted-foreground/60">Include your name in the subject line so I can match it to your request.</p>
+                <SectionHeader num={10} title="Inspiration Photos" />
+                <p className="text-xs text-muted-foreground/60 font-light -mt-2">
+                  Upload up to 5 images — screenshots, inspo pics, anything that helps me understand your vision.
+                </p>
+                <div className="space-y-3">
+                  {/* Upload button */}
+                  {inspirationImages.length < 5 && (
+                    <label className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-border/40 hover:border-accent/40 transition-colors cursor-pointer py-6"
+                      style={{ borderRadius: '4px' }}>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={async (e) => {
+                          const files = Array.from(e.target.files ?? []);
+                          const remaining = 5 - inspirationImages.length;
+                          const toAdd = files.slice(0, remaining);
+                          const converted = await Promise.all(toAdd.map(file => new Promise<{ filename: string; content: string; preview: string }>((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              const dataUrl = reader.result as string;
+                              const base64 = dataUrl.split(',')[1];
+                              resolve({ filename: file.name, content: base64, preview: dataUrl });
+                            };
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                          })));
+                          setInspirationImages(prev => [...prev, ...converted]);
+                          e.target.value = '';
+                        }}
+                      />
+                      <span className="text-sm font-light text-muted-foreground">
+                        📎 Click to upload photos
+                      </span>
+                      <span className="text-xs text-muted-foreground/50">({inspirationImages.length}/5)</span>
+                    </label>
+                  )}
+                  {/* Previews */}
+                  {inspirationImages.length > 0 && (
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                      {inspirationImages.map((img, i) => (
+                        <div key={i} className="relative aspect-square group">
+                          <img src={img.preview} alt={img.filename} className="w-full h-full object-cover rounded-sm" />
+                          <button
+                            type="button"
+                            onClick={() => setInspirationImages(prev => prev.filter((_, idx) => idx !== i))}
+                            className="absolute top-1 right-1 w-5 h-5 bg-black/60 text-white text-xs rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            ✕
+                          </button>
+                          <p className="text-[9px] text-muted-foreground truncate mt-0.5 px-0.5">{img.filename}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
