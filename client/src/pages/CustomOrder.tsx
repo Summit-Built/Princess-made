@@ -127,6 +127,13 @@ const CHARMS = [
   { id: 'silver-heart', label: 'Silver Heart', src: '/charms/silver-heart.jpg' },
 ];
 
+const ZIPPER_CHARMS = [
+  { id: 'cake-charm',   label: 'Cake',       src: '/zipper-charms/cake-charm.jpg' },
+  { id: 'cherry-charm', label: 'Cherry',     src: '/zipper-charms/cherry-charm.jpg' },
+  { id: 'teddy-charm',  label: 'Teddy Bear', src: '/zipper-charms/teddy-charm.jpg' },
+  { id: 'gold-bow',     label: 'Gold Bow',   src: '/zipper-charms/gold-bow.jpg' },
+];
+
 function ImageOptionPicker({
   items,
   value,
@@ -359,6 +366,7 @@ export default function CustomOrder() {
     const resolveLace = (v: string) => LACES.find(l => l.id === v)?.label ?? v;
     const resolveBow = (v: string) => BOWS.find(b => b.id === v)?.label ?? v;
     const resolveCharm = (v: string) => CHARMS.find(c => c.id === v)?.label ?? v;
+    const resolveZipperCharm = (v: string) => ZIPPER_CHARMS.find(c => c.id === v)?.label ?? v;
 
     submitMutation.mutate({
       fullName, email, phone, contactMethod,
@@ -372,7 +380,7 @@ export default function CustomOrder() {
       charmChoice: resolveCharm(charmChoice),
       zipperColour,
       zipperColourOther,
-      zipperCharm,
+      zipperCharm: resolveZipperCharm(zipperCharm),
       hardwareColour,
       wantsMonogram,
       monogramName,
@@ -610,8 +618,8 @@ export default function CustomOrder() {
                     <input className="input-elegant w-full" value={zipperColourOther} onChange={e => setZipperColourOther(e.target.value)} placeholder="e.g. Champagne, rose gold..." />
                   </Field>
                 )}
-                <Field label="Zipper Charm" hint="Describe any charm preference, or leave blank for none">
-                  <input className="input-elegant w-full" value={zipperCharm} onChange={e => setZipperCharm(e.target.value)} placeholder="e.g. Pearl charm, bow, leave blank for none" />
+                <Field label="Zipper Charm">
+                  <ImageOptionPicker items={ZIPPER_CHARMS} value={zipperCharm} onChange={setZipperCharm} noneLabel="Charm" />
                 </Field>
                 <Field label="Hardware Colour (Optional)">
                   <RadioGroup
