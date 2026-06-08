@@ -1901,11 +1901,17 @@ function CustomOrdersTab() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-light text-sm">{req.fullName}</span>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-light ${statusInfo.colour}`}>{statusInfo.label}</span>
+                  {(req as any).paymentStatus === 'paid' ? (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-light">✓ Paid</span>
+                  ) : (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-light">Unpaid</span>
+                  )}
                   {req.status === 'new' && <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-light">Needs attention</span>}
                 </div>
                 <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground font-light">
                   <span>{req.productType}</span>
                   <span>·</span>
+                  {(req as any).totalAmount > 0 && <><span className="text-accent">A${((req as any).totalAmount / 100).toFixed(2)}</span><span>·</span></>}
                   <span>{req.email}</span>
                   <span>·</span>
                   <span>{new Date(req.createdAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</span>

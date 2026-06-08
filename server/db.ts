@@ -153,10 +153,18 @@ sqlite.exec(`
     details TEXT NOT NULL,
     inspirationImages TEXT,
     adminNotes TEXT,
+    totalAmount INTEGER NOT NULL DEFAULT 0,
+    paymentStatus TEXT NOT NULL DEFAULT 'unpaid',
+    stripeSessionId TEXT,
     createdAt INTEGER NOT NULL DEFAULT (unixepoch()),
     updatedAt INTEGER NOT NULL DEFAULT (unixepoch())
   );
 `);
+
+// Add pricing/payment columns to existing custom_order_requests table
+addColumnIfNotExists("custom_order_requests", "totalAmount", "INTEGER NOT NULL DEFAULT 0");
+addColumnIfNotExists("custom_order_requests", "paymentStatus", "TEXT NOT NULL DEFAULT 'unpaid'");
+addColumnIfNotExists("custom_order_requests", "stripeSessionId", "TEXT");
 
 // Add guest columns to existing orders table
 addColumnIfNotExists("orders", "guestEmail", "TEXT");
@@ -752,6 +760,9 @@ export async function createCustomOrderRequest(data: {
   productType: string;
   details: Record<string, string>;
   inspirationImages?: { filename: string; content: string }[];
+  totalAmount?: number; // cents
+  paymentStatus?: 'unpaid' | 'paid';
+  stripeSessionId?: string;
 }) {
   return db.insert(schema.customOrderRequests).values({
     fullName: data.fullName,
@@ -760,10 +771,20 @@ export async function createCustomOrderRequest(data: {
     productType: data.productType,
     details: JSON.stringify(data.details),
     inspirationImages: data.inspirationImages?.length ? JSON.stringify(data.inspirationImages) : null,
+    totalAmount: data.totalAmount ?? 0,
+    paymentStatus: data.paymentStatus ?? 'unpaid',
+    stripeSessionId: data.stripeSessionId ?? null,
     status: 'new',
     createdAt: new Date(),
     updatedAt: new Date(),
   }).returning().get();
+}
+
+export async function markCustomOrderPaidBySession(stripeSessionId: string) {
+  return db.update(schema.customOrderRequests)
+    .set({ paymentStatus: 'paid', updatedAt: new Date() })
+    .where(eq(schema.customOrderRequests.stripeSessionId, stripeSessionId))
+    .returning().get() ?? null;
 }
 
 export async function getAllCustomOrderRequests() {

@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useState, useMemo, useEffect, type FormEvent, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { PageTransition } from '@/components/PageTransition';
 import { Header } from '@/components/Header';
@@ -9,6 +9,7 @@ import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 import { usePageMeta } from '@/lib/usePageMeta';
 import { Check, Scissors } from 'lucide-react';
+import { calculateCustomOrderPrice } from '@shared/customOrderPricing';
 
 // ─── Shared field components ───────────────────────────────────────────────
 
@@ -342,8 +343,28 @@ export default function CustomOrder() {
 
   const [terms, setTerms] = useState([false, false, false, false, false]);
 
-  const submitMutation = trpc.customOrder.submit.useMutation({
-    onSuccess: () => setSubmitted(true),
+  // ── Live price calculation (mirrors the server) ──
+  const price = useMemo(() => calculateCustomOrderPrice({
+    productType: productType === 'Other' ? 'Other' : productType,
+    outerFabric, liningFabric, laceStyle, bowChoice, charmChoice, zipperCharm, wantsMonogram,
+  }), [productType, outerFabric, liningFabric, laceStyle, bowChoice, charmChoice, zipperCharm, wantsMonogram]);
+
+  // Show a thank-you screen when returning from a successful Stripe payment
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('paid') === '1') {
+      setSubmitted(true);
+      window.history.replaceState({}, '', '/custom-order');
+    } else if (params.get('cancelled') === '1') {
+      toast.error('Payment cancelled — your order was not placed.');
+      window.history.replaceState({}, '', '/custom-order');
+    }
+  }, []);
+
+  const checkoutMutation = trpc.customOrder.createCheckout.useMutation({
+    onSuccess: (res) => {
+      if (res.url) window.location.href = res.url; // redirect to Stripe
+    },
     onError: (err) => toast.error(`Something went wrong: ${err.message}`),
   });
 
@@ -370,7 +391,7 @@ export default function CustomOrder() {
     const resolveCharm = (v: string) => CHARMS.find(c => c.id === v)?.label ?? v;
     const resolveZipperCharm = (v: string) => ZIPPER_CHARMS.find(c => c.id === v)?.label ?? v;
 
-    submitMutation.mutate({
+    checkoutMutation.mutate({
       fullName, email, phone, contactMethod,
       productType: productType === 'Other' ? 'Other' : productType,
       productTypeOther,
@@ -393,6 +414,8 @@ export default function CustomOrder() {
       isGift,
       additionalNotes,
       inspirationImages: inspirationImages.map(img => ({ filename: img.filename, content: img.content })),
+      // Raw ids so the server can compute the authoritative price
+      selection: { outerFabric, liningFabric, laceStyle, bowChoice, charmChoice, zipperCharm, wantsMonogram },
     });
   };
 
@@ -409,12 +432,13 @@ export default function CustomOrder() {
               <div className="w-16 h-16 mx-auto rounded-full bg-accent/10 flex items-center justify-center">
                 <Check size={28} className="text-accent" />
               </div>
-              <h1 className="text-3xl font-serif font-light">Request Received!</h1>
+              <h1 className="text-3xl font-serif font-light">Payment Received! 💕</h1>
               <p className="text-muted-foreground font-light leading-relaxed">
-                Thank you for your custom order request. I'll review your details and be in touch within 1–2 business days with a quote.
+                Thank you for your custom order! Your payment has gone through and I've received all your details.
+                I'll get started and be in touch if I have any questions. You'll get a confirmation email shortly.
               </p>
               <p className="text-sm text-muted-foreground/60 font-light">
-                In the meantime, feel free to email any inspiration photos to{' '}
+                Questions? Email me anytime at{' '}
                 <a href="mailto:princessmadefashion@gmail.com" className="text-accent underline">
                   princessmadefashion@gmail.com
                 </a>
@@ -755,7 +779,7 @@ export default function CustomOrder() {
                     'I understand colours may vary slightly between screens and real life.',
                     'I understand custom orders are final sale and cannot be returned unless faulty.',
                     'I understand production times may vary depending on workload and material availability.',
-                    'I understand a quote will be provided before work begins.',
+                    'I understand I am paying the listed price now, and will be contacted if my custom request needs any price adjustment.',
                   ].map((text, i) => (
                     <label
                       key={i}
@@ -773,27 +797,57 @@ export default function CustomOrder() {
                 </div>
               </div>
 
+              {/* ── Price summary & checkout ── */}
+              <div className="border border-accent/30 bg-accent/5 p-6 sm:p-8 space-y-4" style={{ borderRadius: '2px' }}>
+                <SectionHeader num={14} title="Your Price" />
+                <div className="space-y-2">
+                  {price.lines.map((line, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm font-light">
+                      <span className="text-muted-foreground">{line.label}</span>
+                      <span className="text-foreground">A${line.amount.toFixed(2)}</span>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between pt-3 mt-1 border-t border-accent/20">
+                    <span className="text-base font-serif">Total</span>
+                    <span className="text-xl font-serif text-accent">A${price.total.toFixed(2)}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground/60 font-light">
+                  Shipping is calculated at checkout. If your custom request needs a price adjustment, I'll contact you before starting.
+                </p>
+              </div>
+
               {/* ── Submit ── */}
               <motion.button
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
                 type="submit"
-                disabled={submitMutation.isPending}
+                disabled={checkoutMutation.isPending}
                 className="btn-primary w-full py-4 text-sm tracking-[0.15em] uppercase flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {submitMutation.isPending ? (
-                  <span className="font-light">Sending your request…</span>
+                {checkoutMutation.isPending ? (
+                  <span className="font-light">Redirecting to secure checkout…</span>
                 ) : (
-                  <span className="font-light">Submit Custom Order Request</span>
+                  <span className="font-light">Pay A${price.total.toFixed(2)} &amp; Place Order</span>
                 )}
               </motion.button>
 
               <p className="text-center text-xs text-muted-foreground/50 font-light">
-                By submitting you agree to be contacted about your custom order request.
+                Secure payment powered by Stripe. You'll be redirected to complete your purchase.
               </p>
             </form>
           </div>
         </section>
+
+        {/* Floating live total */}
+        {productType && (
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+            <div className="bg-accent text-accent-foreground shadow-lg px-5 py-2.5 flex items-center gap-3" style={{ borderRadius: '999px' }}>
+              <span className="text-xs uppercase tracking-[0.15em] font-light opacity-80">Total</span>
+              <span className="text-lg font-serif">A${price.total.toFixed(2)}</span>
+            </div>
+          </div>
+        )}
 
         <Footer />
       </div>

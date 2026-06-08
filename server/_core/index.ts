@@ -50,13 +50,26 @@ async function startServer() {
       switch (event.type) {
         case "checkout.session.completed": {
           const session = event.data.object as any;
+          const amount = session.amount_total ? `A$${(session.amount_total / 100).toFixed(2)}` : "";
+          const customerName = session.customer_details?.name || session.metadata?.customerName || "A customer";
+
+          if (session.metadata?.type === "custom_order") {
+            // Custom order payment
+            await db.markCustomOrderPaidBySession(session.id);
+            console.log(`[Stripe] Custom order paid: ${session.id}`);
+            push.sendPushToAll({
+              title: "✂️💳 Custom Order Paid!",
+              body: `${customerName} paid ${amount} for a custom order`,
+              url: "/admin",
+            }).catch(() => {});
+            break;
+          }
+
           await db.updateOrderStatus(session.id, "completed");
           if (session.payment_intent) {
             await db.updateOrderPaymentIntent(session.id, session.payment_intent);
           }
           console.log(`[Stripe] Order completed: ${session.id}`);
-          const customerName = session.customer_details?.name || session.metadata?.customerName || "A customer";
-          const amount = session.amount_total ? `A$${(session.amount_total / 100).toFixed(2)}` : "";
           push.sendPushToAll({
             title: "🛍️ New Order!",
             body: `${customerName} placed an order${amount ? ` for ${amount}` : ""}`,

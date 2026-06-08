@@ -149,6 +149,9 @@ export const customOrderRequests = sqliteTable("custom_order_requests", {
   details: text("details").notNull(), // JSON blob of all other fields
   inspirationImages: text("inspirationImages"), // JSON array of { filename, content }
   adminNotes: text("adminNotes"),
+  totalAmount: integer("totalAmount").default(0).notNull(), // cents
+  paymentStatus: text("paymentStatus", { enum: ["unpaid", "paid"] }).default("unpaid").notNull(),
+  stripeSessionId: text("stripeSessionId"),
   createdAt: integer("createdAt", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
   updatedAt: integer("updatedAt", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
 });

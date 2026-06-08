@@ -9,12 +9,60 @@ import * as db from "./db";
 import * as stripe from "./stripe";
 import * as email from "./email";
 import * as push from "./push";
+import { calculateCustomOrderPrice } from "@shared/customOrderPricing";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
 
 function auspostTrackingUrl(trackingNumber: string) {
   return `https://auspost.com.au/mypost/track/#/details/${encodeURIComponent(trackingNumber)}`;
 }
+
+// Shared input for custom order submit + checkout. `selection` holds the raw
+// option ids used for server-side price calculation; the other fields are the
+// human-readable values stored for display.
+const customOrderInputSchema = z.object({
+  fullName: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string().min(1),
+  contactMethod: z.string(),
+  productType: z.string().min(1),
+  productTypeOther: z.string().optional().default(''),
+  description: z.string().min(1),
+  length: z.string().optional().default(''),
+  width: z.string().optional().default(''),
+  height: z.string().optional().default(''),
+  outerFabric: z.string().optional().default(''),
+  liningFabric: z.string().optional().default(''),
+  laceStyle: z.string(),
+  bowChoice: z.string().optional().default(''),
+  charmChoice: z.string().optional().default(''),
+  zipperColour: z.string(),
+  zipperColourOther: z.string().optional().default(''),
+  zipperCharm: z.string().optional().default(''),
+  hardwareColour: z.string().optional().default(''),
+  wantsMonogram: z.string(),
+  monogramName: z.string().optional().default(''),
+  fontChoice: z.string().optional().default(''),
+  threadColour: z.string().optional().default(''),
+  budget: z.string().optional().default(''),
+  neededByDate: z.string().optional().default(''),
+  isGift: z.string(),
+  additionalNotes: z.string().optional().default(''),
+  inspirationImages: z.array(z.object({
+    filename: z.string(),
+    content: z.string(), // base64
+  })).optional().default([]),
+  // Raw option ids for pricing (not stored; used to compute the authoritative total)
+  selection: z.object({
+    outerFabric: z.string().optional(),
+    liningFabric: z.string().optional(),
+    laceStyle: z.string().optional(),
+    bowChoice: z.string().optional(),
+    charmChoice: z.string().optional(),
+    zipperCharm: z.string().optional(),
+    wantsMonogram: z.string().optional(),
+  }).optional().default({}),
+});
 
 export const appRouter = router({
   system: systemRouter,
@@ -582,41 +630,9 @@ export const appRouter = router({
 
   customOrder: router({
     submit: publicProcedure
-      .input(z.object({
-        fullName: z.string().min(1),
-        email: z.string().email(),
-        phone: z.string().min(1),
-        contactMethod: z.string(),
-        productType: z.string().min(1),
-        productTypeOther: z.string().optional().default(''),
-        description: z.string().min(1),
-        length: z.string().optional().default(''),
-        width: z.string().optional().default(''),
-        height: z.string().optional().default(''),
-        outerFabric: z.string().optional().default(''),
-        liningFabric: z.string().optional().default(''),
-        laceStyle: z.string(),
-        bowChoice: z.string().optional().default(''),
-        charmChoice: z.string().optional().default(''),
-        zipperColour: z.string(),
-        zipperColourOther: z.string().optional().default(''),
-        zipperCharm: z.string().optional().default(''),
-        hardwareColour: z.string().optional().default(''),
-        wantsMonogram: z.string(),
-        monogramName: z.string().optional().default(''),
-        fontChoice: z.string().optional().default(''),
-        threadColour: z.string().optional().default(''),
-        budget: z.string().optional().default(''),
-        neededByDate: z.string().optional().default(''),
-        isGift: z.string(),
-        additionalNotes: z.string().optional().default(''),
-        inspirationImages: z.array(z.object({
-          filename: z.string(),
-          content: z.string(), // base64
-        })).optional().default([]),
-      }))
+      .input(customOrderInputSchema)
       .mutation(async ({ input }) => {
-        const { inspirationImages, fullName, email: customerEmail, phone, productType, ...rest } = input;
+        const { inspirationImages, selection, fullName, email: customerEmail, phone, productType, ...rest } = input;
         await db.createCustomOrderRequest({
           fullName,
           email: customerEmail,
@@ -632,6 +648,60 @@ export const appRouter = router({
         }).catch(() => {});
         return { success: true };
       }),
+
+    // Compute price + create a Stripe checkout session, then save the request.
+    createCheckout: publicProcedure
+      .input(customOrderInputSchema)
+      .mutation(async ({ ctx, input }) => {
+        const { inspirationImages, selection, fullName, email: customerEmail, phone, productType, ...rest } = input;
+
+        // Authoritative server-side price (never trust the client total)
+        const price = calculateCustomOrderPrice({ productType, ...selection });
+        if (price.totalCents < 100) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid order total" });
+        }
+
+        const origin = `${ctx.req.protocol}://${ctx.req.get("host")}`;
+        const summary = price.lines.map(l => l.label).join(", ");
+
+        const session = await stripe.createCustomOrderCheckout({
+          amountCents: price.totalCents,
+          productName: `Custom ${productType}`,
+          description: summary,
+          customerEmail,
+          successUrl: `${origin}/custom-order?paid=1`,
+          cancelUrl: `${origin}/custom-order?cancelled=1`,
+          metadata: { customerName: fullName },
+        });
+
+        await db.createCustomOrderRequest({
+          fullName,
+          email: customerEmail,
+          phone,
+          productType,
+          details: rest as Record<string, string>,
+          inspirationImages,
+          totalAmount: price.totalCents,
+          paymentStatus: "unpaid",
+          stripeSessionId: session.sessionId,
+        });
+
+        return { url: session.url };
+      }),
+
+    // Live price preview (so the client and server agree on the number)
+    quote: publicProcedure
+      .input(z.object({
+        productType: z.string(),
+        outerFabric: z.string().optional(),
+        liningFabric: z.string().optional(),
+        laceStyle: z.string().optional(),
+        bowChoice: z.string().optional(),
+        charmChoice: z.string().optional(),
+        zipperCharm: z.string().optional(),
+        wantsMonogram: z.string().optional(),
+      }))
+      .query(({ input }) => calculateCustomOrderPrice(input)),
 
     list: adminProcedure.query(async () => {
       return db.getAllCustomOrderRequests();

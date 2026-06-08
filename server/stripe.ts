@@ -223,6 +223,51 @@ export async function createCheckoutSession(options: {
   return { url: session.url!, sessionId: session.id };
 }
 
+export async function createCustomOrderCheckout(options: {
+  amountCents: number;
+  productName: string;
+  description: string;
+  customerEmail: string;
+  successUrl: string;
+  cancelUrl: string;
+  metadata: Record<string, string>;
+}): Promise<{ url: string; sessionId: string }> {
+  const stripe = getStripe();
+  const shippingRateIds = process.env.STRIPE_SHIPPING_RATE_IDS
+    ? process.env.STRIPE_SHIPPING_RATE_IDS.split(",").map((id) => id.trim()).filter(Boolean)
+    : [];
+
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    payment_method_types: ["card"],
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "aud",
+          unit_amount: options.amountCents,
+          product_data: {
+            name: options.productName,
+            description: options.description.slice(0, 500),
+          },
+        },
+      },
+    ],
+    customer_email: options.customerEmail,
+    metadata: { type: "custom_order", ...options.metadata },
+    shipping_address_collection: {
+      allowed_countries: ["AU", "NZ"],
+    },
+    ...(shippingRateIds.length > 0 && {
+      shipping_options: shippingRateIds.map((id) => ({ shipping_rate: id })),
+    }),
+    success_url: options.successUrl,
+    cancel_url: options.cancelUrl,
+  });
+
+  return { url: session.url!, sessionId: session.id };
+}
+
 export async function handleWebhookEvent(
   body: Buffer,
   signature: string
