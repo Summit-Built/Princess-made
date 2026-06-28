@@ -186,7 +186,7 @@ export function generateXLSX(rows: string[][], sheetName = 'Sheet1'): Uint8Array
 /** Download a generated XLSX file in the browser. */
 export function downloadXLSX(rows: string[][], filename: string, sheetName = 'Sheet1'): void {
   const bytes = generateXLSX(rows, sheetName);
-  const blob = new Blob([bytes], {
+  const blob = new Blob([bytes as BlobPart], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
   const url = URL.createObjectURL(blob);

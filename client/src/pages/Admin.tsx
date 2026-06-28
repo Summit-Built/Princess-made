@@ -430,7 +430,7 @@ export default function Admin() {
                       >
                         <Icon size={16} />
                         <span className="flex-1">{tab.label}</span>
-                        {'badge' in tab && tab.badge > 0 && (
+                        {'badge' in tab && (tab.badge ?? 0) > 0 && (
                           <span className={`text-[9px] px-1.5 py-0.5 font-light rounded-full min-w-[18px] text-center leading-none ${isActive ? 'bg-white/30 text-white' : 'bg-accent/15 text-accent'}`}>
                             {tab.badge}
                           </span>
